@@ -61,13 +61,9 @@ export default function AdminPage() {
   // Create match mutation
   const createMatch = useMutation({
     mutationFn: async (data: FormValues) => {
-      // Ensure matchDate is properly handled
-      const payload = {
-        ...data,
-        matchDate: data.matchDate instanceof Date ? data.matchDate : new Date(data.matchDate),
-      };
-      console.log("Sending match data:", payload);
-      const response = await apiRequest("POST", "/api/matches", payload);
+      // No need to convert matchDate again - let the schema handle it
+      console.log("Sending match data:", data);
+      const response = await apiRequest("POST", "/api/matches", data);
       return response.json();
     },
     onSuccess: () => {

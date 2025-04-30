@@ -33,9 +33,18 @@ export const matchesRelations = relations(matches, ({ many }) => ({
   predictions: many(predictions),
 }));
 
-export const matchSchema = createInsertSchema(matches).omit({
+// Create a base schema
+const baseMatchSchema = createInsertSchema(matches).omit({
   id: true,
   createdAt: true,
+});
+
+// Override with custom matchDate handling
+export const matchSchema = baseMatchSchema.extend({
+  matchDate: z.union([
+    z.string().transform((str) => new Date(str)),
+    z.date()
+  ]),
 });
 
 // Predictions table
