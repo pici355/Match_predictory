@@ -33,7 +33,16 @@ const isAdmin = async (req: Request, res: Response, next: Function) => {
   try {
     const user = await storage.getUser(userId);
     
-    if (!user || !user.isAdmin) {
+    if (!user) {
+      console.log("Admin middleware: User not found");
+      return res.status(403).json({ message: "Access denied" });
+    }
+    
+    console.log("Admin middleware checking user:", user);
+    
+    // Use the correct property name (isAdmin) from the User model
+    if (!user.isAdmin) {
+      console.log("Admin middleware: User is not admin");
       return res.status(403).json({ message: "Access denied" });
     }
     
@@ -59,6 +68,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
+      
+      console.log("Raw user data from database:", user);
       
       res.json({
         id: user.id,
