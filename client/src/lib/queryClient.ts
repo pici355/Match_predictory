@@ -29,16 +29,25 @@ export const getQueryFn: <T>(options: {
 }) => QueryFunction<T> =
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey }) => {
-    const res = await fetch(queryKey[0] as string, {
+    const url = queryKey[0] as string;
+    console.log(`Fetching: ${url}`);
+    
+    const res = await fetch(url, {
       credentials: "include",
     });
 
-    if (unauthorizedBehavior === "returnNull" && res.status === 401) {
+    console.log(`Response status: ${res.status}`);
+    
+    // For /api/me endpoint, return null on 401 regardless of setting
+    if ((unauthorizedBehavior === "returnNull" || url === "/api/me") && res.status === 401) {
+      console.log("Returning null for unauthorized request");
       return null;
     }
 
     await throwIfResNotOk(res);
-    return await res.json();
+    const data = await res.json();
+    console.log("Response data:", data);
+    return data;
   };
 
 export const queryClient = new QueryClient({

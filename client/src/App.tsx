@@ -22,17 +22,20 @@ type User = {
 
 // Check if user is authenticated
 function useAuth() {
-  const { data: user } = useQuery<User | null>({
+  const { data: user, isError } = useQuery<User | null>({
     queryKey: ['/api/me'],
     retry: false,
     refetchOnWindowFocus: false,
     refetchInterval: false,
+    staleTime: 0, // Always fetch fresh data
   });
 
+  console.log("Auth user data:", user);
+  
   return {
     user,
     isAuthenticated: !!user,
-    isAdmin: user?.isAdmin || false,
+    isAdmin: !!user?.isAdmin,
   };
 }
 
