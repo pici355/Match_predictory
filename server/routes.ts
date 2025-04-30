@@ -45,6 +45,32 @@ const isAdmin = async (req: Request, res: Response, next: Function) => {
 };
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Get current user
+  app.get("/api/me", async (req, res) => {
+    const userId = req.session?.userId;
+    
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+    
+    try {
+      const user = await storage.getUser(userId);
+      
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      res.json({
+        id: user.id,
+        username: user.username,
+        isAdmin: user.isAdmin
+      });
+    } catch (error) {
+      console.error("Error fetching user:", error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+  
   // Authentication routes
   app.post("/api/register", async (req, res) => {
     try {

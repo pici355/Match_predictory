@@ -262,12 +262,12 @@ export default function AdminPage() {
                     <label htmlFor="excel-file" className="block text-sm font-medium mb-2">
                       File Excel
                     </label>
-                    <Input
+                    <input
                       id="excel-file"
                       type="file"
                       accept=".xlsx,.xls"
                       onChange={handleFileChange}
-                      className="w-full"
+                      className="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 focus:outline-none p-2"
                     />
                     <p className="mt-2 text-sm text-gray-500">
                       Il file deve contenere le colonne: homeTeam, awayTeam, matchDate, matchDay (e opzionalmente description)
