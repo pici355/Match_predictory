@@ -48,6 +48,7 @@ export default function AdminPage() {
     defaultValues: {
       homeTeam: "",
       awayTeam: "",
+      matchDate: new Date(), // Set a default date to now
       matchDay: 1,
       description: "",
     },
@@ -60,7 +61,13 @@ export default function AdminPage() {
   // Create match mutation
   const createMatch = useMutation({
     mutationFn: async (data: FormValues) => {
-      const response = await apiRequest("POST", "/api/matches", data);
+      // Ensure matchDate is properly handled
+      const payload = {
+        ...data,
+        matchDate: data.matchDate instanceof Date ? data.matchDate : new Date(data.matchDate),
+      };
+      console.log("Sending match data:", payload);
+      const response = await apiRequest("POST", "/api/matches", payload);
       return response.json();
     },
     onSuccess: () => {
@@ -72,6 +79,7 @@ export default function AdminPage() {
       form.reset({
         homeTeam: "",
         awayTeam: "",
+        matchDate: new Date(), // Reset with a new date
         matchDay: form.getValues("matchDay"),
         description: "",
       });

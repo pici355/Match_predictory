@@ -199,12 +199,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   app.post("/api/matches", isAdmin, async (req, res) => {
     try {
-      const validatedData = matchSchema.parse(req.body);
-      const match = await storage.createMatch(validatedData);
-      res.status(201).json(match);
+      console.log("Received match data:", req.body);
+      
+      try {
+        const validatedData = matchSchema.parse(req.body);
+        console.log("Validated match data:", validatedData);
+        
+        const match = await storage.createMatch(validatedData);
+        res.status(201).json(match);
+      } catch (validationError) {
+        console.error("Match validation error:", validationError);
+        if (validationError instanceof Error) {
+          return res.status(400).json({ message: validationError.message });
+        }
+        return res.status(400).json({ message: "Invalid match data" });
+      }
     } catch (error) {
+      console.error("Match creation error:", error);
       if (error instanceof Error) {
-        res.status(400).json({ message: error.message });
+        res.status(500).json({ message: error.message });
       } else {
         res.status(500).json({ message: "An unexpected error occurred" });
       }
