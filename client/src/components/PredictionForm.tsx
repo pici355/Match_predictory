@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Slider } from "@/components/ui/slider";
+
 import { predictSchema } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
 import { formatDateToLocalString, isMatchPredictionEditable } from "@/lib/dateUtils";
@@ -25,10 +25,8 @@ const formSchema = predictSchema.extend({
   prediction: z.enum(["1", "X", "2"], {
     required_error: "Seleziona un pronostico",
   }),
-  credits: z.number({
-    required_error: "Assegna i crediti",
-    invalid_type_error: "I crediti devono essere un numero",
-  }).min(2, { message: "Minimo 2 crediti" }).max(8, { message: "Massimo 8 crediti" }),
+  // Valore fisso per i crediti
+  credits: z.number().default(1),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -55,7 +53,7 @@ export default function PredictionForm() {
       userId: 0, // This will be overridden by the server
       matchId: undefined,
       prediction: undefined,
-      credits: 2, // Default value
+      credits: 1, // Valore fisso per le scommesse
     },
   });
 
@@ -120,7 +118,7 @@ export default function PredictionForm() {
         title: "Pronostico inviato!",
         description: "Il tuo pronostico è stato registrato con successo.",
       });
-      form.reset({ credits: 2 }); // Reset but keep the credits slider at its default
+      form.reset({ credits: 1 }); // Reset ma mantiene il valore fisso dei crediti
     },
     onError: (error) => {
       toast({
@@ -412,37 +410,8 @@ export default function PredictionForm() {
               )}
             />
 
-            {/* Credits Slider */}
-            <FormField
-              control={form.control}
-              name="credits"
-              render={({ field }) => (
-                <FormItem className="space-y-3">
-                  <div className="flex justify-between items-center">
-                    <FormLabel className="font-medium">Crediti</FormLabel>
-                    <span className="font-bold text-lg text-primary">{field.value}</span>
-                  </div>
-                  <FormControl>
-                    <Slider
-                      min={2}
-                      max={8}
-                      step={1}
-                      value={[field.value]}
-                      onValueChange={(values) => field.onChange(values[0])}
-                      className="pt-2"
-                    />
-                  </FormControl>
-                  <div className="flex justify-between text-sm text-gray-500">
-                    <span>2</span>
-                    <span>8</span>
-                  </div>
-                  <p className="text-sm text-gray-600 mt-1">
-                    Assegna da 2 a 8 crediti a questo pronostico in base alla tua fiducia nel risultato.
-                  </p>
-                  <FormMessage className="text-red-500 text-sm" />
-                </FormItem>
-              )}
-            />
+            {/* Hidden credits field - impostato fisso a 1 */}
+            <input type="hidden" name="credits" value="1" />
 
             <div className="pt-2">
               <Button 
@@ -468,7 +437,7 @@ export default function PredictionForm() {
               <h3 className="font-semibold text-green-800">Pronostico Registrato</h3>
               <div className="mt-2 text-green-700">
                 <div>Risultato: <span className="font-bold">{submissionResult.prediction}</span></div>
-                <div>Crediti assegnati: <span className="font-bold">{submissionResult.credits}</span></div>
+                {/* I crediti sono ora fissi a 1 */}
               </div>
             </div>
           </div>
