@@ -121,16 +121,25 @@ function MatchCard({ match }: { match: Match }) {
                   src={homeTeamData.logo} 
                   alt={match.homeTeam}
                   onError={(e) => {
-                    // Fallback se l'immagine non esiste
-                    const parent = e.currentTarget.parentElement;
-                    if (parent) {
-                      // Remove the img element
-                      parent.removeChild(e.currentTarget);
-                      // Update parent styling
-                      parent.className = 'w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-primary font-semibold text-sm mb-2';
-                      // Add the text directly
-                      parent.textContent = match.homeTeam.substring(0, 2).toUpperCase();
-                    }
+                    // Prova prima con .jpg
+                    const fileName = match.homeTeam.toLowerCase().replace(/\s+/g, '-');
+                    const jpgSrc = `/team-logos/${fileName}.jpg`;
+                    
+                    // Cambia il src dell'immagine per provare con .jpg
+                    e.currentTarget.src = jpgSrc;
+                    
+                    // Se ancora fallisce, mostra le iniziali
+                    e.currentTarget.onerror = () => {
+                      const parent = e.currentTarget.parentElement;
+                      if (parent) {
+                        // Remove the img element
+                        parent.removeChild(e.currentTarget);
+                        // Update parent styling
+                        parent.className = 'w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-primary font-semibold text-sm mb-2';
+                        // Add the text directly
+                        parent.textContent = match.homeTeam.substring(0, 2).toUpperCase();
+                      }
+                    };
                   }}
                   className="w-full h-full object-cover"
                 />
@@ -155,16 +164,25 @@ function MatchCard({ match }: { match: Match }) {
                   src={awayTeamData.logo} 
                   alt={match.awayTeam}
                   onError={(e) => {
-                    // Fallback se l'immagine non esiste
-                    const parent = e.currentTarget.parentElement;
-                    if (parent) {
-                      // Remove the img element
-                      parent.removeChild(e.currentTarget);
-                      // Update parent styling
-                      parent.className = 'w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-primary font-semibold text-sm mb-2';
-                      // Add the text directly
-                      parent.textContent = match.awayTeam.substring(0, 2).toUpperCase();
-                    }
+                    // Prova prima con .jpg
+                    const fileName = match.awayTeam.toLowerCase().replace(/\s+/g, '-');
+                    const jpgSrc = `/team-logos/${fileName}.jpg`;
+                    
+                    // Cambia il src dell'immagine per provare con .jpg
+                    e.currentTarget.src = jpgSrc;
+                    
+                    // Se ancora fallisce, mostra le iniziali
+                    e.currentTarget.onerror = () => {
+                      const parent = e.currentTarget.parentElement;
+                      if (parent) {
+                        // Remove the img element
+                        parent.removeChild(e.currentTarget);
+                        // Update parent styling
+                        parent.className = 'w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-primary font-semibold text-sm mb-2';
+                        // Add the text directly
+                        parent.textContent = match.awayTeam.substring(0, 2).toUpperCase();
+                      }
+                    };
                   }}
                   className="w-full h-full object-cover"
                 />
