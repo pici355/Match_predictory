@@ -11,6 +11,15 @@ import {
   convertToTimezone 
 } from "@/lib/dateUtils";
 
+// Diamo anche accesso ai team per ottenere i loghi corretti
+type Team = {
+  id: number;
+  name: string;
+  logo?: string;
+  managerName: string;
+  credits: number;
+};
+
 type Match = {
   id: number;
   homeTeam: string;
@@ -37,6 +46,15 @@ function MatchCard({ match }: { match: Match }) {
   const [timeRemaining, setTimeRemaining] = useState<string>("");
   const [isEditable, setIsEditable] = useState<boolean>(true);
   const [currentTimezone, setCurrentTimezone] = useState<string>(USER_TIMEZONE);
+  
+  // Ottieni i dati dei team per i loghi
+  const { data: teams } = useQuery<Team[]>({
+    queryKey: ['/api/teams'],
+  });
+  
+  // Trova i team corrispondenti per ottenere i loghi
+  const homeTeamData = teams?.find(team => team.name === match.homeTeam);
+  const awayTeamData = teams?.find(team => team.name === match.awayTeam);
   
   // Update component when the global timezone changes
   useEffect(() => {
@@ -88,23 +106,30 @@ function MatchCard({ match }: { match: Match }) {
           {/* Home team */}
           <div className="text-center flex-1 flex flex-col items-center">
             <div className="w-10 h-10 rounded-full overflow-hidden mb-2">
-              <img 
-                src={`/team-logos/${match.homeTeam.toLowerCase().replace(/\s+/g, '-')}.png`} 
-                alt={match.homeTeam}
-                onError={(e) => {
-                  // Fallback se l'immagine non esiste
-                  const parent = e.currentTarget.parentElement;
-                  if (parent) {
-                    // Remove the img element
-                    parent.removeChild(e.currentTarget);
-                    // Update parent styling
-                    parent.className = 'w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-primary font-semibold text-sm mb-2';
-                    // Add the text directly
-                    parent.textContent = match.homeTeam.substring(0, 2).toUpperCase();
-                  }
-                }}
-                className="w-full h-full object-cover"
-              />
+              {homeTeamData && homeTeamData.logo ? (
+                <img 
+                  src={homeTeamData.logo} 
+                  alt={match.homeTeam}
+                  onError={(e) => {
+                    // Fallback se l'immagine non esiste
+                    const parent = e.currentTarget.parentElement;
+                    if (parent) {
+                      // Remove the img element
+                      parent.removeChild(e.currentTarget);
+                      // Update parent styling
+                      parent.className = 'w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-primary font-semibold text-sm mb-2';
+                      // Add the text directly
+                      parent.textContent = match.homeTeam.substring(0, 2).toUpperCase();
+                    }
+                  }}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                // Logo non trovato, mostra le iniziali
+                <div className='w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-primary font-semibold text-sm'>
+                  {match.homeTeam.substring(0, 2).toUpperCase()}
+                </div>
+              )}
             </div>
             <div className="font-bold truncate">{match.homeTeam}</div>
           </div>
@@ -115,23 +140,30 @@ function MatchCard({ match }: { match: Match }) {
           {/* Away team */}
           <div className="text-center flex-1 flex flex-col items-center">
             <div className="w-10 h-10 rounded-full overflow-hidden mb-2">
-              <img 
-                src={`/team-logos/${match.awayTeam.toLowerCase().replace(/\s+/g, '-')}.png`} 
-                alt={match.awayTeam}
-                onError={(e) => {
-                  // Fallback se l'immagine non esiste
-                  const parent = e.currentTarget.parentElement;
-                  if (parent) {
-                    // Remove the img element
-                    parent.removeChild(e.currentTarget);
-                    // Update parent styling
-                    parent.className = 'w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-primary font-semibold text-sm mb-2';
-                    // Add the text directly
-                    parent.textContent = match.awayTeam.substring(0, 2).toUpperCase();
-                  }
-                }}
-                className="w-full h-full object-cover"
-              />
+              {awayTeamData && awayTeamData.logo ? (
+                <img 
+                  src={awayTeamData.logo} 
+                  alt={match.awayTeam}
+                  onError={(e) => {
+                    // Fallback se l'immagine non esiste
+                    const parent = e.currentTarget.parentElement;
+                    if (parent) {
+                      // Remove the img element
+                      parent.removeChild(e.currentTarget);
+                      // Update parent styling
+                      parent.className = 'w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-primary font-semibold text-sm mb-2';
+                      // Add the text directly
+                      parent.textContent = match.awayTeam.substring(0, 2).toUpperCase();
+                    }
+                  }}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                // Logo non trovato, mostra le iniziali
+                <div className='w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-primary font-semibold text-sm'>
+                  {match.awayTeam.substring(0, 2).toUpperCase()}
+                </div>
+              )}
             </div>
             <div className="font-bold truncate">{match.awayTeam}</div>
           </div>

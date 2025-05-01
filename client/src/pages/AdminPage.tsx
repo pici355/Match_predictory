@@ -5,6 +5,7 @@ import {
 } from '@/components/ui/accordion';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import TeamManagementSection from '@/components/TeamManagementSection';
+import AdminUserPredictionsSection from '@/components/AdminUserPredictionsSection';
 
 export default function AdminPage() {
   return (
@@ -51,15 +52,13 @@ export default function AdminPage() {
           </AccordionContent>
         </AccordionItem>
         
-        {/* Prize distribution section */}
-        <AccordionItem value="prizes" className="border rounded-lg overflow-hidden shadow-sm">
+        {/* User predictions section */}
+        <AccordionItem value="predictions" className="border rounded-lg overflow-hidden shadow-sm">
           <AccordionTrigger className="p-4 bg-gray-50 hover:bg-gray-100">
-            <h2 className="text-xl font-bold text-left">Gestione Premi</h2>
+            <h2 className="text-xl font-bold text-left">Pronostici Utenti e Premi</h2>
           </AccordionTrigger>
           <AccordionContent className="p-4">
-            <div className="text-center py-12">
-              <p className="text-gray-500">Sezione in costruzione</p>
-            </div>
+            <AdminUserPredictionsSection />
           </AccordionContent>
         </AccordionItem>
       </Accordion>
