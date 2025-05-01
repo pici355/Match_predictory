@@ -118,7 +118,7 @@ export default function PredictionForm() {
         title: "Pronostico inviato!",
         description: "Il tuo pronostico è stato registrato con successo.",
       });
-      form.reset({ credits: 1 }); // Reset ma mantiene il valore fisso dei crediti
+      // Non resettiamo qui il form perché lo facciamo nel metodo onSubmit
     },
     onError: (error) => {
       toast({
@@ -130,7 +130,22 @@ export default function PredictionForm() {
   });
 
   function onSubmit(data: FormValues) {
-    submitPrediction.mutate(data);
+    submitPrediction.mutate(data, {
+      onSuccess: () => {
+        // Resetta solo il campo match e prediction, ma non i crediti
+        form.reset({ 
+          ...form.getValues(), 
+          matchId: undefined as any, 
+          prediction: undefined as any 
+        }, { 
+          keepDefaultValues: true,
+          keepValues: false,
+          keepDirtyValues: false
+        });
+        setSelectedMatch(null);
+        setSubmissionResult(null);
+      }
+    });
   }
 
   const predictionOptions = [
