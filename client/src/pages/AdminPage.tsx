@@ -1005,21 +1005,11 @@ export default function AdminPage() {
                               {teams.map((team) => (
                                 <tr key={team.id} className="border-b">
                                   <td className="px-4 py-3 text-sm">
-                                    {team.logo ? (
-                                      <div className="w-8 h-8 rounded-full overflow-hidden">
-                                        <img 
-                                          src={team.logo} 
-                                          alt={`Logo ${team.name}`} 
-                                          className="w-full h-full object-cover"
-                                        />
-                                      </div>
-                                    ) : (
-                                      <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
-                                        <span className="text-xs font-bold text-gray-500">
-                                          {team.name.substring(0, 2).toUpperCase()}
-                                        </span>
-                                      </div>
-                                    )}
+                                    <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary font-semibold">
+                                      <span className="text-xs">
+                                        {team.name.substring(0, 2).toUpperCase()}
+                                      </span>
+                                    </div>
                                   </td>
                                   <td className="px-4 py-3 text-sm">{team.name}</td>
                                   <td className="px-4 py-3 text-sm">{team.managerName}</td>

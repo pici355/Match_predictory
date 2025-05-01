@@ -59,7 +59,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/team-logos', (req, res, next) => {
     const options = {
       root: path.join(process.cwd(), 'attached_assets/team-logos'),
-      dotfiles: 'deny',
+      dotfiles: 'deny' as const, // Type annotation to fix TypeScript error
       headers: {
         'x-timestamp': Date.now(),
         'x-sent': true
