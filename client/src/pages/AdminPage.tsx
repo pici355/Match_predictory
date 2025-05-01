@@ -51,10 +51,18 @@ const matchResultFormSchema = z.object({
   }),
 });
 
+const teamFormSchema = z.object({
+  name: z.string().min(2, { message: "Il nome della squadra deve avere almeno 2 caratteri" }),
+  managerName: z.string().min(2, { message: "Il nome del gestore deve avere almeno 2 caratteri" }),
+  credits: z.coerce.number().min(0, { message: "I crediti non possono essere negativi" }),
+  logo: z.string().optional(),
+});
+
 // ======== TYPES ========
 type MatchFormValues = z.infer<typeof matchFormSchema>;
 type UserFormValues = z.infer<typeof userFormSchema>;
 type MatchResultFormValues = z.infer<typeof matchResultFormSchema>;
+type TeamFormValues = z.infer<typeof teamFormSchema>;
 
 type Match = {
   id: number;
@@ -83,6 +91,15 @@ type PrizeDistribution = {
   users4Correct: number;
   users5Correct: number;
   isDistributed: boolean;
+};
+
+type Team = {
+  id: number;
+  name: string;
+  logo?: string;
+  managerName: string;
+  credits: number;
+  createdAt: string;
 };
 
 export default function AdminPage() {
@@ -123,6 +140,17 @@ export default function AdminPage() {
     },
   });
 
+  // Team form
+  const teamForm = useForm<TeamFormValues>({
+    resolver: zodResolver(teamFormSchema),
+    defaultValues: {
+      name: "",
+      managerName: "",
+      credits: 0,
+      logo: "",
+    },
+  });
+
   // ======== QUERIES ========
   // Fetch matches
   const { 
@@ -148,6 +176,15 @@ export default function AdminPage() {
   } = useQuery<PrizeDistribution>({
     queryKey: ['/api/prizes/matchday', selectedMatchDay],
     enabled: !!selectedMatchDay,
+  });
+  
+  // Fetch teams
+  const { 
+    data: teams, 
+    isLoading: isLoadingTeams,
+    refetch: refetchTeams
+  } = useQuery<Team[]>({
+    queryKey: ['/api/teams'],
   });
 
   // ======== MUTATIONS ========
@@ -314,6 +351,34 @@ export default function AdminPage() {
       });
     }
   });
+  
+  // Create team mutation
+  const createTeam = useMutation({
+    mutationFn: async (data: TeamFormValues) => {
+      const response = await apiRequest("POST", "/api/teams", data);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/teams'] });
+      toast({
+        title: "Squadra aggiunta!",
+        description: "La squadra è stata aggiunta con successo.",
+      });
+      teamForm.reset({
+        name: "",
+        managerName: "",
+        credits: 0,
+        logo: "",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Errore!",
+        description: error instanceof Error ? error.message : "Si è verificato un errore durante l'aggiunta della squadra.",
+        variant: "destructive",
+      });
+    }
+  });
 
   // ======== HANDLERS ========
   function onSubmitMatch(data: MatchFormValues) {
@@ -362,9 +427,10 @@ export default function AdminPage() {
         <h1 className="text-3xl font-bold text-center text-primary mb-8">Admin Dashboard</h1>
         
         <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-8">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="add-match">Aggiungi Partita</TabsTrigger>
             <TabsTrigger value="add-user">Aggiungi Utente</TabsTrigger>
+            <TabsTrigger value="teams">Squadre</TabsTrigger>
             <TabsTrigger value="match-results">Risultati</TabsTrigger>
             <TabsTrigger value="prizes">Premi</TabsTrigger>
             <TabsTrigger value="view-data">Visualizza Dati</TabsTrigger>
@@ -625,6 +691,103 @@ export default function AdminPage() {
                       Nessun utente trovato
                     </div>
                   )}
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+          
+          {/* Teams Tab */}
+          <TabsContent value="teams">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Aggiungi una nuova squadra</CardTitle>
+                  <CardDescription>Aggiungi una squadra di calcio con il suo logo</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <form className="space-y-5">
+                    <div>
+                      <label htmlFor="team-name" className="block text-sm font-medium mb-2">
+                        Nome Squadra
+                      </label>
+                      <Input
+                        id="team-name"
+                        placeholder="Es. Newell's Old Boys"
+                      />
+                    </div>
+                    
+                    <div>
+                      <label htmlFor="team-manager" className="block text-sm font-medium mb-2">
+                        Gestore
+                      </label>
+                      <Input
+                        id="team-manager"
+                        placeholder="Es. El Loco Bielsa"
+                      />
+                    </div>
+                    
+                    <div>
+                      <label htmlFor="team-credits" className="block text-sm font-medium mb-2">
+                        Crediti
+                      </label>
+                      <Input
+                        id="team-credits"
+                        type="number"
+                        min="0"
+                        placeholder="Es. 100"
+                      />
+                    </div>
+                    
+                    <div>
+                      <label htmlFor="team-logo" className="block text-sm font-medium mb-2">
+                        Logo
+                      </label>
+                      <Input
+                        id="team-logo"
+                        type="file"
+                        accept="image/*"
+                        className="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 focus:outline-none p-2"
+                      />
+                    </div>
+                    
+                    <Button 
+                      type="submit" 
+                      className="w-full"
+                    >
+                      Salva Squadra
+                    </Button>
+                  </form>
+                </CardContent>
+              </Card>
+              
+              <Card>
+                <CardHeader>
+                  <CardTitle>Squadre</CardTitle>
+                  <CardDescription>Elenco delle squadre registrate</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="border rounded-md overflow-hidden">
+                    <table className="w-full text-left">
+                      <thead className="bg-gray-50 border-b">
+                        <tr>
+                          <th className="px-4 py-3 text-sm font-medium">Logo</th>
+                          <th className="px-4 py-3 text-sm font-medium">Nome</th>
+                          <th className="px-4 py-3 text-sm font-medium">Gestore</th>
+                          <th className="px-4 py-3 text-sm font-medium">Crediti</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr className="border-b">
+                          <td className="px-4 py-3 text-sm">
+                            <div className="w-8 h-8 rounded-full bg-gray-200"></div>
+                          </td>
+                          <td className="px-4 py-3 text-sm">Newell's Old Boys</td>
+                          <td className="px-4 py-3 text-sm">El Loco Bielsa</td>
+                          <td className="px-4 py-3 text-sm">100</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
                 </CardContent>
               </Card>
             </div>
