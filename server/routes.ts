@@ -526,11 +526,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const sanitizedName = teamName.toLowerCase().replace(/\s+/g, '-');
       const ext = req.file.originalname.split('.').pop();
       const filename = `${sanitizedName}.${ext}`;
+      const logoPath = `/team-logos/${filename}`;
+      
+      // Cerca la squadra nel database e aggiorna il logo
+      const team = await storage.getTeamByName(teamName);
+      
+      if (team) {
+        // Aggiorna il campo logo della squadra
+        await storage.updateTeam(team.id, {
+          ...team,
+          logo: logoPath
+        });
+        
+        console.log(`Aggiornato il logo per la squadra ${teamName} con path: ${logoPath}`);
+      } else {
+        console.log(`Squadra non trovata: ${teamName}. Il logo è stato salvato ma non associato.`);
+      }
       
       res.json({
         success: true,
-        message: "Logo caricato con successo",
-        logoPath: `/team-logos/${filename}`
+        message: team 
+          ? "Logo caricato e associato alla squadra con successo" 
+          : "Logo caricato con successo ma nessuna squadra trovata con questo nome",
+        logoPath: logoPath,
+        teamFound: !!team
       });
     } catch (error) {
       console.error("Errore upload logo:", error);
