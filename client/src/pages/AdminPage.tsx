@@ -21,6 +21,7 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
+import { formatDateToLocalString, DEFAULT_TIMEZONE } from '@/lib/dateUtils';
 
 // Schema definitions
 const matchFormSchema = z.object({
@@ -667,14 +668,38 @@ export default function AdminPage() {
                                 type="datetime-local" 
                                 value={field.value ? new Date(field.value).toISOString().slice(0, 16) : ''} 
                                 onChange={(e) => {
-                                  // Parse the date but keep the timezone as is
+                                  // Parse the date in the default timezone (Italian)
                                   const dateString = e.target.value;
-                                  const date = new Date(dateString);
-                                  console.log("Selected date input:", dateString, "Date object:", date);
-                                  field.onChange(date);
+                                  
+                                  // Creating date object (browser will handle timezone conversion)
+                                  const localDate = new Date(dateString);
+                                  
+                                  console.log("Selected date input:", dateString);
+                                  console.log("Date object (local):", localDate.toLocaleString());
+                                  console.log("Date object (UTC):", localDate.toISOString());
+                                  
+                                  // Store date with proper timezone handling
+                                  field.onChange(localDate);
                                 }}
                               />
                             </FormControl>
+                            <div className="mt-1 text-xs text-gray-500">
+                              Nota: Gli orari sono impostati nel fuso orario italiano (Europe/Rome).
+                              <br />
+                              {field.value && (
+                                <span>
+                                  Data selezionata: <strong>{formatDateToLocalString(field.value, {
+                                    weekday: 'long',
+                                    day: '2-digit',
+                                    month: '2-digit',
+                                    year: 'numeric',
+                                    hour: '2-digit',
+                                    minute: '2-digit',
+                                    timeZone: DEFAULT_TIMEZONE
+                                  })}</strong>
+                                </span>
+                              )}
+                            </div>
                             <FormMessage />
                           </FormItem>
                         )}
@@ -749,7 +774,12 @@ export default function AdminPage() {
                                       .filter(match => !match.hasResult)
                                       .map(match => (
                                         <SelectItem key={match.id} value={match.id.toString()}>
-                                          {match.homeTeam} vs {match.awayTeam} (Giornata {match.matchDay})
+                                          {match.homeTeam} vs {match.awayTeam} - {formatDateToLocalString(match.matchDate, {
+                                            day: '2-digit',
+                                            month: '2-digit',
+                                            hour: '2-digit',
+                                            minute: '2-digit'
+                                          })} (Giornata {match.matchDay})
                                         </SelectItem>
                                       )) 
                                     : null}
