@@ -46,6 +46,8 @@ function MatchCard({ match }: { match: Match }) {
   const [timeRemaining, setTimeRemaining] = useState<string>("");
   const [isEditable, setIsEditable] = useState<boolean>(true);
   const [currentTimezone, setCurrentTimezone] = useState<string>(USER_TIMEZONE);
+  const [homeTeamLogoError, setHomeTeamLogoError] = useState<boolean>(false);
+  const [awayTeamLogoError, setAwayTeamLogoError] = useState<boolean>(false);
   
   // Ottieni i dati dei team per i loghi
   const { data: teams } = useQuery<Team[]>({
@@ -116,35 +118,43 @@ function MatchCard({ match }: { match: Match }) {
           {/* Home team */}
           <div className="text-center flex-1 flex flex-col items-center">
             <div className="w-8 h-8 rounded-full overflow-hidden mb-1">
-              {homeTeamData && homeTeamData.logo ? (
+              {homeTeamData && homeTeamData.logo && !homeTeamLogoError ? (
                 <img 
                   src={homeTeamData.logo} 
                   alt={match.homeTeam}
                   onError={(e) => {
-                    // Prova prima con .jpg
-                    const fileName = match.homeTeam.toLowerCase().replace(/\s+/g, '-');
-                    const jpgSrc = `/team-logos/${fileName}.jpg`;
-                    
-                    // Cambia il src dell'immagine per provare con .jpg
-                    e.currentTarget.src = jpgSrc;
-                    
-                    // Se ancora fallisce, mostra le iniziali
-                    e.currentTarget.onerror = () => {
-                      const parent = e.currentTarget.parentElement;
-                      if (parent) {
-                        // Remove the img element
-                        parent.removeChild(e.currentTarget);
-                        // Update parent styling
-                        parent.className = 'w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary font-semibold text-xs mb-1';
-                        // Add the text directly
-                        parent.textContent = match.homeTeam.substring(0, 2).toUpperCase();
-                      }
-                    };
+                    try {
+                      // Prepara il nome file base
+                      const fileName = match.homeTeam.toLowerCase().replace(/\s+/g, '-');
+                      
+                      // Prova prima con .jpg
+                      const jpgSrc = `/team-logos/${fileName}.jpg`;
+                      e.currentTarget.src = jpgSrc;
+                      
+                      // Se fallisce con jpg, prova con png
+                      e.currentTarget.onerror = () => {
+                        try {
+                          const pngSrc = `/team-logos/${fileName}.png`;
+                          e.currentTarget.src = pngSrc;
+                          
+                          // Se ancora fallisce, imposta lo stato di errore
+                          e.currentTarget.onerror = () => {
+                            setHomeTeamLogoError(true);
+                          };
+                        } catch (pngErr) {
+                          console.error("Error handling PNG fallback:", pngErr);
+                          setHomeTeamLogoError(true);
+                        }
+                      };
+                    } catch (err) {
+                      console.error("Error handling home team logo:", err);
+                      setHomeTeamLogoError(true);
+                    }
                   }}
                   className="w-full h-full object-cover"
                 />
               ) : (
-                // Logo non trovato, mostra le iniziali
+                // Logo non trovato o errore, mostra le iniziali
                 <div className='w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary font-semibold text-xs'>
                   {match.homeTeam.substring(0, 2).toUpperCase()}
                 </div>
@@ -159,35 +169,43 @@ function MatchCard({ match }: { match: Match }) {
           {/* Away team */}
           <div className="text-center flex-1 flex flex-col items-center">
             <div className="w-8 h-8 rounded-full overflow-hidden mb-1">
-              {awayTeamData && awayTeamData.logo ? (
+              {awayTeamData && awayTeamData.logo && !awayTeamLogoError ? (
                 <img 
                   src={awayTeamData.logo} 
                   alt={match.awayTeam}
                   onError={(e) => {
-                    // Prova prima con .jpg
-                    const fileName = match.awayTeam.toLowerCase().replace(/\s+/g, '-');
-                    const jpgSrc = `/team-logos/${fileName}.jpg`;
-                    
-                    // Cambia il src dell'immagine per provare con .jpg
-                    e.currentTarget.src = jpgSrc;
-                    
-                    // Se ancora fallisce, mostra le iniziali
-                    e.currentTarget.onerror = () => {
-                      const parent = e.currentTarget.parentElement;
-                      if (parent) {
-                        // Remove the img element
-                        parent.removeChild(e.currentTarget);
-                        // Update parent styling
-                        parent.className = 'w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary font-semibold text-xs mb-1';
-                        // Add the text directly
-                        parent.textContent = match.awayTeam.substring(0, 2).toUpperCase();
-                      }
-                    };
+                    try {
+                      // Prepara il nome file base
+                      const fileName = match.awayTeam.toLowerCase().replace(/\s+/g, '-');
+                      
+                      // Prova prima con .jpg
+                      const jpgSrc = `/team-logos/${fileName}.jpg`;
+                      e.currentTarget.src = jpgSrc;
+                      
+                      // Se fallisce con jpg, prova con png
+                      e.currentTarget.onerror = () => {
+                        try {
+                          const pngSrc = `/team-logos/${fileName}.png`;
+                          e.currentTarget.src = pngSrc;
+                          
+                          // Se ancora fallisce, imposta lo stato di errore
+                          e.currentTarget.onerror = () => {
+                            setAwayTeamLogoError(true);
+                          };
+                        } catch (pngErr) {
+                          console.error("Error handling PNG fallback:", pngErr);
+                          setAwayTeamLogoError(true);
+                        }
+                      };
+                    } catch (err) {
+                      console.error("Error handling away team logo:", err);
+                      setAwayTeamLogoError(true);
+                    }
                   }}
                   className="w-full h-full object-cover"
                 />
               ) : (
-                // Logo non trovato, mostra le iniziali
+                // Logo non trovato o errore, mostra le iniziali
                 <div className='w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary font-semibold text-xs'>
                   {match.awayTeam.substring(0, 2).toUpperCase()}
                 </div>
