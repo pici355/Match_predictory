@@ -405,6 +405,29 @@ export default function AdminPage() {
       setFile(e.target.files[0]);
     }
   }
+  
+  function onSubmitTeam(data: TeamFormValues) {
+    createTeam.mutate(data);
+  }
+  
+  // Handle team logo file selection
+  const [teamLogoFile, setTeamLogoFile] = useState<File | null>(null);
+  
+  function handleTeamLogoChange(e: React.ChangeEvent<HTMLInputElement>) {
+    if (e.target.files && e.target.files.length > 0) {
+      const file = e.target.files[0];
+      setTeamLogoFile(file);
+      
+      // Read file as base64 to store in form
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        if (event.target?.result) {
+          teamForm.setValue('logo', event.target.result as string);
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  }
 
   // Group matches by match day
   const matchesByDay = matches ? 
@@ -705,58 +728,83 @@ export default function AdminPage() {
                   <CardDescription>Aggiungi una squadra di calcio con il suo logo</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <form className="space-y-5">
-                    <div>
-                      <label htmlFor="team-name" className="block text-sm font-medium mb-2">
-                        Nome Squadra
-                      </label>
-                      <Input
-                        id="team-name"
-                        placeholder="Es. Newell's Old Boys"
+                  <Form {...teamForm}>
+                    <form onSubmit={teamForm.handleSubmit(onSubmitTeam)} className="space-y-5">
+                      <FormField
+                        control={teamForm.control}
+                        name="name"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Nome Squadra</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Es. Newell's Old Boys" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
                       />
-                    </div>
-                    
-                    <div>
-                      <label htmlFor="team-manager" className="block text-sm font-medium mb-2">
-                        Gestore
-                      </label>
-                      <Input
-                        id="team-manager"
-                        placeholder="Es. El Loco Bielsa"
+                      
+                      <FormField
+                        control={teamForm.control}
+                        name="managerName"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Gestore</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Es. El Loco Bielsa" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
                       />
-                    </div>
-                    
-                    <div>
-                      <label htmlFor="team-credits" className="block text-sm font-medium mb-2">
-                        Crediti
-                      </label>
-                      <Input
-                        id="team-credits"
-                        type="number"
-                        min="0"
-                        placeholder="Es. 100"
+                      
+                      <FormField
+                        control={teamForm.control}
+                        name="credits"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Crediti</FormLabel>
+                            <FormControl>
+                              <Input 
+                                type="number" 
+                                min="0" 
+                                placeholder="Es. 100" 
+                                {...field}
+                                onChange={(e) => field.onChange(e.target.valueAsNumber)}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
                       />
-                    </div>
-                    
-                    <div>
-                      <label htmlFor="team-logo" className="block text-sm font-medium mb-2">
-                        Logo
-                      </label>
-                      <Input
-                        id="team-logo"
-                        type="file"
-                        accept="image/*"
-                        className="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 focus:outline-none p-2"
-                      />
-                    </div>
-                    
-                    <Button 
-                      type="submit" 
-                      className="w-full"
-                    >
-                      Salva Squadra
-                    </Button>
-                  </form>
+                      
+                      <div>
+                        <FormLabel className="mb-2 block">Logo</FormLabel>
+                        <Input
+                          id="team-logo"
+                          type="file"
+                          accept="image/*"
+                          onChange={handleTeamLogoChange}
+                          className="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 focus:outline-none p-2"
+                        />
+                        {teamLogoFile && (
+                          <div className="mt-2 p-2 bg-gray-50 rounded-md">
+                            <p className="text-sm text-gray-600">
+                              Immagine selezionata: {teamLogoFile.name}
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                      
+                      <Button 
+                        type="submit" 
+                        className="w-full"
+                        disabled={createTeam.isPending}
+                      >
+                        {createTeam.isPending ? "Salvataggio in corso..." : "Salva Squadra"}
+                      </Button>
+                    </form>
+                  </Form>
                 </CardContent>
               </Card>
               
@@ -766,28 +814,56 @@ export default function AdminPage() {
                   <CardDescription>Elenco delle squadre registrate</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="border rounded-md overflow-hidden">
-                    <table className="w-full text-left">
-                      <thead className="bg-gray-50 border-b">
-                        <tr>
-                          <th className="px-4 py-3 text-sm font-medium">Logo</th>
-                          <th className="px-4 py-3 text-sm font-medium">Nome</th>
-                          <th className="px-4 py-3 text-sm font-medium">Gestore</th>
-                          <th className="px-4 py-3 text-sm font-medium">Crediti</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <tr className="border-b">
-                          <td className="px-4 py-3 text-sm">
-                            <div className="w-8 h-8 rounded-full bg-gray-200"></div>
-                          </td>
-                          <td className="px-4 py-3 text-sm">Newell's Old Boys</td>
-                          <td className="px-4 py-3 text-sm">El Loco Bielsa</td>
-                          <td className="px-4 py-3 text-sm">100</td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
+                  {isLoadingTeams ? (
+                    <div className="space-y-4">
+                      <Skeleton className="h-12 w-full" />
+                      <Skeleton className="h-12 w-full" />
+                      <Skeleton className="h-12 w-full" />
+                    </div>
+                  ) : teams && teams.length > 0 ? (
+                    <div className="border rounded-md overflow-hidden">
+                      <table className="w-full text-left">
+                        <thead className="bg-gray-50 border-b">
+                          <tr>
+                            <th className="px-4 py-3 text-sm font-medium">Logo</th>
+                            <th className="px-4 py-3 text-sm font-medium">Nome</th>
+                            <th className="px-4 py-3 text-sm font-medium">Gestore</th>
+                            <th className="px-4 py-3 text-sm font-medium">Crediti</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {teams.map((team) => (
+                            <tr key={team.id} className="border-b">
+                              <td className="px-4 py-3 text-sm">
+                                {team.logo ? (
+                                  <div className="w-8 h-8 rounded-full overflow-hidden">
+                                    <img 
+                                      src={team.logo} 
+                                      alt={`Logo ${team.name}`} 
+                                      className="w-full h-full object-cover"
+                                    />
+                                  </div>
+                                ) : (
+                                  <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
+                                    <span className="text-xs font-bold text-gray-500">
+                                      {team.name.substring(0, 2).toUpperCase()}
+                                    </span>
+                                  </div>
+                                )}
+                              </td>
+                              <td className="px-4 py-3 text-sm">{team.name}</td>
+                              <td className="px-4 py-3 text-sm">{team.managerName}</td>
+                              <td className="px-4 py-3 text-sm">{team.credits}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  ) : (
+                    <div className="text-center py-12 text-gray-500">
+                      Nessuna squadra trovata
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </div>
