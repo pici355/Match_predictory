@@ -14,6 +14,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import Logo from "@/components/Logo";
 import Footer from "@/components/Footer";
+import TimezoneDetector from "@/components/TimezoneDetector";
 
 // Auth context and types
 type User = {
@@ -109,7 +110,9 @@ function Navigation() {
           </div>
         </div>
         
-        <div>
+        <div className="flex items-center space-x-4">
+          <TimezoneDetector />
+          
           {isAuthenticated ? (
             <div className="flex items-center space-x-4">
               <span className="text-sm">{user?.username}</span>

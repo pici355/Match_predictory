@@ -8,6 +8,54 @@
 export const DEFAULT_TIMEZONE = 'Europe/Rome';
 
 /**
+ * User's detected timezone (initialized with browser's timezone)
+ */
+export let USER_TIMEZONE = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+/**
+ * Store for detected timezone from IP address
+ */
+let detectedTimezoneFromIP: string | null = null;
+
+/**
+ * Flag to track if we've attempted to detect timezone
+ */
+let hasAttemptedTimezoneDetection = false;
+
+/**
+ * Detect user's timezone from their IP address
+ * @returns Promise that resolves when timezone detection is complete
+ */
+export async function detectTimezoneFromIP(): Promise<string> {
+  if (detectedTimezoneFromIP || hasAttemptedTimezoneDetection) {
+    return detectedTimezoneFromIP || USER_TIMEZONE;
+  }
+  
+  hasAttemptedTimezoneDetection = true;
+  
+  try {
+    // Use a free IP geolocation service with timezone info
+    const response = await fetch('https://ipapi.co/json/');
+    if (!response.ok) {
+      throw new Error('Failed to fetch IP data');
+    }
+    
+    const data = await response.json();
+    if (data.timezone) {
+      detectedTimezoneFromIP = data.timezone;
+      USER_TIMEZONE = data.timezone;
+      console.log('Detected timezone from IP:', USER_TIMEZONE);
+      return USER_TIMEZONE;
+    } else {
+      throw new Error('No timezone in response');
+    }
+  } catch (error) {
+    console.error('Failed to detect timezone from IP:', error);
+    return USER_TIMEZONE; // Fallback to browser timezone
+  }
+}
+
+/**
  * Format a date to a string representation with proper timezone handling
  * @param date The date to format
  * @param format The format options
@@ -23,7 +71,7 @@ export function formatDateToLocalString(
     hour: '2-digit',
     minute: '2-digit'
   },
-  timezone: string = DEFAULT_TIMEZONE
+  timezone: string = USER_TIMEZONE
 ): string {
   const dateObj = typeof date === 'string' ? new Date(date) : date;
   return dateObj.toLocaleString('it-IT', {
@@ -40,7 +88,7 @@ export function formatDateToLocalString(
  */
 export function convertToTimezone(
   date: Date | string,
-  timezone: string = DEFAULT_TIMEZONE
+  timezone: string = USER_TIMEZONE
 ): Date {
   const dateObj = typeof date === 'string' ? new Date(date) : date;
   
@@ -58,7 +106,7 @@ export function convertToTimezone(
  */
 export function isDateInPast(
   date: Date | string,
-  timezone: string = DEFAULT_TIMEZONE
+  timezone: string = USER_TIMEZONE
 ): boolean {
   const dateObj = typeof date === 'string' ? new Date(date) : date;
   const now = new Date();
@@ -75,7 +123,7 @@ export function isDateInPast(
  * @param timezone The timezone to get the offset for
  * @returns Offset in minutes
  */
-export function getTimezoneOffset(timezone: string = DEFAULT_TIMEZONE): number {
+export function getTimezoneOffset(timezone: string = USER_TIMEZONE): number {
   const now = new Date();
   
   // Get the time string in the user's timezone
@@ -94,7 +142,7 @@ export function getTimezoneOffset(timezone: string = DEFAULT_TIMEZONE): number {
  */
 export function isMatchPredictionEditable(
   matchDate: string | Date,
-  timezone: string = DEFAULT_TIMEZONE
+  timezone: string = USER_TIMEZONE
 ): boolean {
   const date = typeof matchDate === 'string' ? new Date(matchDate) : matchDate;
   const now = new Date();
