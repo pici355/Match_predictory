@@ -69,8 +69,17 @@ export interface IStorage {
   
   // Statistics
   getTotalCreditsForMatchDay(matchDay: number): Promise<number>;
-  getCorrectPredictionCountForUser(userId: number, matchDay: number): Promise<number>;
-  getUsersWithCorrectPredictionCount(matchDay: number, correctCount: number): Promise<User[]>;
+  getCorrectPredictionStatsForUser(userId: number, matchDay: number): Promise<{
+    correctCount: number,
+    totalCount: number,
+    percentage: number
+  }>;
+  getUsersWithCorrectPredictionPercentage(matchDay: number, percentage: number): Promise<{
+    user: User,
+    correctCount: number,
+    totalCount: number,
+    percentage: number
+  }[]>;
 }
 
 // Database implementation

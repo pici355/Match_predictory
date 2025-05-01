@@ -99,10 +99,10 @@ export const prizeDistributions = pgTable("prize_distributions", {
   id: serial("id").primaryKey(),
   matchDay: integer("match_day").notNull(),
   totalPot: integer("total_pot").notNull(), // Total credits in the pot
-  potFor4Correct: integer("pot_for_4_correct").notNull(), // 35% of total pot
-  potFor5Correct: integer("pot_for_5_correct").notNull(), // 65% of total pot
-  users4Correct: integer("users_4_correct").default(0), // Number of users with 4 correct predictions
-  users5Correct: integer("users_5_correct").default(0), // Number of users with 5 correct predictions
+  potFor90Pct: integer("pot_for_90_pct").notNull(), // 35% of total pot (for 90% correct predictions)
+  potFor100Pct: integer("pot_for_100_pct").notNull(), // 65% of total pot (for 100% correct predictions)
+  users90PctCorrect: integer("users_90_pct_correct").default(0), // Number of users with 90% correct predictions
+  users100PctCorrect: integer("users_100_pct_correct").default(0), // Number of users with 100% correct predictions
   isDistributed: boolean("is_distributed").default(false), // Whether prizes have been distributed
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
@@ -118,7 +118,9 @@ export const winnerPayouts = pgTable("winner_payouts", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull(),
   matchDay: integer("match_day").notNull(),
-  correctPredictions: integer("correct_predictions").notNull(), // Either 4 or 5
+  correctPercentage: integer("correct_percentage").notNull(), // Percentage of correct predictions (e.g., 90, 100)
+  predictionsCorrect: integer("predictions_correct").notNull(), // Number of predictions that were correct
+  predictionsTotal: integer("predictions_total").notNull(), // Total number of predictions made
   amount: integer("amount").notNull(), // Amount of credits won
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
