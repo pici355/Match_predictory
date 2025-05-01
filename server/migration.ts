@@ -52,6 +52,19 @@ async function runMigration() {
       );
     `);
     
+    // 5. Create teams table
+    console.log("Creating teams table...");
+    await db.execute(sql`
+      CREATE TABLE IF NOT EXISTS teams (
+        id SERIAL PRIMARY KEY,
+        name TEXT NOT NULL UNIQUE,
+        logo TEXT,
+        manager_name TEXT NOT NULL,
+        credits INTEGER NOT NULL DEFAULT 0,
+        created_at TIMESTAMP NOT NULL DEFAULT NOW()
+      );
+    `);
+    
     console.log("Migration completed successfully!");
   } catch (error) {
     console.error("Migration failed:", error);
