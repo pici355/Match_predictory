@@ -279,11 +279,11 @@ export default function UserPredictionHistory() {
             Visualizza i tuoi pronostici e le tue vincite
           </CardDescription>
           <div className="mt-2 p-2 bg-blue-50 border border-blue-100 rounded-md text-xs text-blue-800">
-            <p className="font-medium">Sistema premi fissi:</p>
+            <p className="font-medium">Sistema premi:</p>
             <ul className="mt-1 space-y-1 pl-2">
               <li>· 100% previsioni corrette = 10 crediti</li>
-              <li>· 90% previsioni corrette = 8 crediti</li>
-              <li>· 80% previsioni corrette = 6 crediti</li>
+              <li>· I pronostici sono gratuiti</li>
+              <li>· Minimo 5 partite per schedina</li>
             </ul>
           </div>
         </CardHeader>
@@ -308,11 +308,11 @@ export default function UserPredictionHistory() {
             Visualizza i tuoi pronostici e le tue vincite
           </CardDescription>
           <div className="mt-2 p-2 bg-blue-50 border border-blue-100 rounded-md text-xs text-blue-800">
-            <p className="font-medium">Sistema premi fissi:</p>
+            <p className="font-medium">Sistema premi:</p>
             <ul className="mt-1 space-y-1 pl-2">
               <li>· 100% previsioni corrette = 10 crediti</li>
-              <li>· 90% previsioni corrette = 8 crediti</li>
-              <li>· 80% previsioni corrette = 6 crediti</li>
+              <li>· I pronostici sono gratuiti</li>
+              <li>· Minimo 5 partite per schedina</li>
             </ul>
           </div>
         </CardHeader>
@@ -335,11 +335,11 @@ export default function UserPredictionHistory() {
           Visualizza i tuoi pronostici e le tue vincite
         </CardDescription>
         <div className="mt-2 p-2 bg-blue-50 border border-blue-100 rounded-md text-xs text-blue-800">
-          <p className="font-medium">Sistema premi fissi:</p>
+          <p className="font-medium">Sistema premi:</p>
           <ul className="mt-1 space-y-1 pl-2">
             <li>· 100% previsioni corrette = 10 crediti</li>
-            <li>· 90% previsioni corrette = 8 crediti</li>
-            <li>· 80% previsioni corrette = 6 crediti</li>
+            <li>· I pronostici sono gratuiti</li>
+            <li>· Minimo 5 partite per schedina</li>
           </ul>
         </div>
       </CardHeader>
