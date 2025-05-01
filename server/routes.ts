@@ -510,6 +510,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Upload team logo
+  app.post("/api/teams/logo", isAdmin, logoUpload.single("logo"), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ message: "Nessun file caricato" });
+      }
+
+      const teamName = req.body.teamName;
+      if (!teamName) {
+        return res.status(400).json({ message: "Nome squadra obbligatorio" });
+      }
+
+      // Genera il percorso del file
+      const sanitizedName = teamName.toLowerCase().replace(/\s+/g, '-');
+      const ext = req.file.originalname.split('.').pop();
+      const filename = `${sanitizedName}.${ext}`;
+      
+      res.json({
+        success: true,
+        message: "Logo caricato con successo",
+        logoPath: `/team-logos/${filename}`
+      });
+    } catch (error) {
+      console.error("Errore upload logo:", error);
+      res.status(500).json({ message: "Errore durante l'upload del logo" });
+    }
+  });
+  
   app.post("/api/teams", isAdmin, async (req, res) => {
     try {
       const data = teamSchema.parse(req.body);
