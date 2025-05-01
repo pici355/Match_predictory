@@ -282,11 +282,12 @@ export class DatabaseStorage implements IStorage {
     const [match] = await db.select().from(matches).where(eq(matches.id, prediction.matchId));
     if (!match) return false;
     
-    // Check if match starts in more than 30 minutes
+    // Check if match starts in more than 30 minutes (using UTC times for server consistency)
     const now = new Date();
     const matchStartTime = new Date(match.matchDate);
-    const thirtyMinutesBeforeMatch = new Date(matchStartTime);
-    thirtyMinutesBeforeMatch.setMinutes(matchStartTime.getMinutes() - 30);
+    const thirtyMinutesBeforeMatch = new Date(matchStartTime.getTime() - 30 * 60 * 1000);
+    
+    console.log(`Server check - Match time: ${matchStartTime.toISOString()}, Current time: ${now.toISOString()}, Editable until: ${thirtyMinutesBeforeMatch.toISOString()}`);
     
     return now < thirtyMinutesBeforeMatch;
   }

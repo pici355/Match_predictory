@@ -14,6 +14,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Slider } from "@/components/ui/slider";
 import { predictSchema } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
+import { formatDateToLocalString, isMatchPredictionEditable } from "@/lib/dateUtils";
 
 // Custom form schema that extends the predict schema
 const formSchema = predictSchema.extend({
@@ -266,21 +267,35 @@ export default function PredictionForm() {
                                   value={match.id.toString()}
                                   disabled={!!alreadyPredicted}
                                 >
-                                  <div className="flex items-center space-x-2">
-                                    <div className="flex items-center space-x-1">
-                                      <div className="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center text-primary font-semibold text-[10px]">
-                                        {match.homeTeam.substring(0, 2).toUpperCase()}
+                                  <div className="flex flex-col">
+                                    <div className="flex items-center space-x-2">
+                                      <div className="flex items-center space-x-1">
+                                        <div className="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center text-primary font-semibold text-[10px]">
+                                          {match.homeTeam.substring(0, 2).toUpperCase()}
+                                        </div>
+                                        <span>{match.homeTeam}</span>
                                       </div>
-                                      <span>{match.homeTeam}</span>
-                                    </div>
-                                    <span className="text-gray-500">vs</span>
-                                    <div className="flex items-center space-x-1">
-                                      <div className="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center text-primary font-semibold text-[10px]">
-                                        {match.awayTeam.substring(0, 2).toUpperCase()}
+                                      <span className="text-gray-500">vs</span>
+                                      <div className="flex items-center space-x-1">
+                                        <div className="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center text-primary font-semibold text-[10px]">
+                                          {match.awayTeam.substring(0, 2).toUpperCase()}
+                                        </div>
+                                        <span>{match.awayTeam}</span>
                                       </div>
-                                      <span>{match.awayTeam}</span>
+                                      {!!alreadyPredicted && <span className="ml-1 text-gray-400 text-xs">(già pronosticata)</span>}
                                     </div>
-                                    {!!alreadyPredicted && <span className="ml-1 text-gray-400 text-xs">(già pronosticata)</span>}
+                                    <div className="text-xs text-gray-500 mt-1">
+                                      {formatDateToLocalString(match.matchDate, {
+                                        weekday: 'short',
+                                        day: '2-digit',
+                                        month: '2-digit',
+                                        hour: '2-digit',
+                                        minute: '2-digit'
+                                      })}
+                                      {!isMatchPredictionEditable(match.matchDate) && 
+                                        <span className="ml-2 text-red-500 font-medium">(Chiuso)</span>
+                                      }
+                                    </div>
                                   </div>
                                 </SelectItem>
                               );
@@ -304,7 +319,19 @@ export default function PredictionForm() {
               <div className="bg-gray-50 p-3 rounded-md border border-gray-200">
                 <h3 className="font-medium text-gray-700">Dettagli partita:</h3>
                 <div className="mt-1 text-sm">
-                  <div><span className="font-semibold">Data:</span> {new Date(selectedMatch.matchDate).toLocaleString('it-IT')}</div>
+                  <div>
+                    <span className="font-semibold">Data:</span> {formatDateToLocalString(selectedMatch.matchDate, {
+                      weekday: 'long',
+                      day: '2-digit',
+                      month: '2-digit',
+                      year: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    })}
+                    {!isMatchPredictionEditable(selectedMatch.matchDate) && 
+                      <span className="ml-2 text-red-500 font-medium">(Chiuso)</span>
+                    }
+                  </div>
                   <div className="mt-2">
                     <span className="font-semibold mb-1 block">Squadre:</span>
                     <div className="flex items-center gap-4 mt-1">
