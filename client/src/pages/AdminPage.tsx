@@ -960,48 +960,49 @@ export default function AdminPage() {
                       <Skeleton className="h-12 w-full" />
                     </div>
                   ) : users && users.length > 0 ? (
-                    <div className="border rounded-md overflow-hidden">
-                      <table className="w-full text-left">
-                        <thead className="bg-gray-50 border-b sticky top-0">
+                    <div className="border rounded-md overflow-auto">
+                      <table className="w-full">
+                        <thead className="bg-gray-50 border-b">
                           <tr>
-                            <th className="px-4 py-3 text-sm font-medium">Nome</th>
-                            <th className="px-4 py-3 text-sm font-medium">PIN</th>
-                            <th className="px-4 py-3 text-sm font-medium">Ruolo</th>
-                            <th className="px-4 py-3 text-sm font-medium">Azioni</th>
+                            <th className="px-3 py-2 text-sm font-medium text-left">Nome</th>
+                            <th className="px-3 py-2 text-sm font-medium text-left">PIN</th>
+                            <th className="px-3 py-2 text-sm font-medium text-left">Ruolo</th>
+                            <th className="px-3 py-2 text-sm font-medium text-center">Azioni</th>
                           </tr>
                         </thead>
                         <tbody>
                           {users.map((user) => (
                             <tr key={user.id} className="border-b">
-                              <td className="px-4 py-3 text-sm">{user.username}</td>
-                              <td className="px-4 py-3 text-sm">••••</td>
-                              <td className="px-4 py-3 text-sm">
+                              <td className="px-3 py-2 text-sm">{user.username}</td>
+                              <td className="px-3 py-2 text-sm">••••</td>
+                              <td className="px-3 py-2 text-sm">
                                 {user.isAdmin ? (
                                   <Badge className="bg-amber-600">Admin</Badge>
                                 ) : (
                                   <Badge variant="outline">Utente</Badge>
                                 )}
                               </td>
-                              <td className="px-4 py-3 text-sm">
-                                <div className="flex space-x-2">
-                                  <Button 
-                                    variant="outline" 
-                                    size="sm" 
+                              <td className="px-3 py-2 text-sm text-center">
+                                <div className="flex justify-center gap-2">
+                                  <Button
+                                    variant="ghost" 
+                                    size="sm"
+                                    className="h-7 bg-blue-50 hover:bg-blue-100 text-blue-700"
                                     onClick={() => {
                                       userForm.reset({
                                         username: user.username,
                                         pin: "", // PIN is not returned from server
                                         isAdmin: user.isAdmin,
                                       });
-                                      // Set the editing user
                                       setEditingUserId(user.id);
                                     }}
                                   >
                                     Modifica
                                   </Button>
                                   <Button 
-                                    variant="destructive" 
+                                    variant="ghost"
                                     size="sm"
+                                    className="h-7 bg-red-50 hover:bg-red-100 text-red-700"
                                     disabled={deleteUser.isPending}
                                     onClick={() => {
                                       if (confirm(`Sei sicuro di voler eliminare l'utente ${user.username}?`)) {
@@ -1157,21 +1158,21 @@ export default function AdminPage() {
                       <Skeleton className="h-12 w-full" />
                     </div>
                   ) : teams && teams.length > 0 ? (
-                    <div className="border rounded-md overflow-hidden">
-                      <table className="w-full text-left">
-                        <thead className="bg-gray-50 border-b sticky top-0">
+                    <div className="border rounded-md overflow-auto">
+                      <table className="w-full">
+                        <thead className="bg-gray-50 border-b">
                           <tr>
-                            <th className="px-4 py-3 text-sm font-medium">Logo</th>
-                            <th className="px-4 py-3 text-sm font-medium">Nome</th>
-                            <th className="px-4 py-3 text-sm font-medium">Allenatore</th>
-                            <th className="px-4 py-3 text-sm font-medium">Crediti</th>
-                            <th className="px-4 py-3 text-sm font-medium">Azioni</th>
+                            <th className="px-3 py-2 text-sm font-medium text-left">Logo</th>
+                            <th className="px-3 py-2 text-sm font-medium text-left">Nome</th>
+                            <th className="px-3 py-2 text-sm font-medium text-left">Allenatore</th>
+                            <th className="px-3 py-2 text-sm font-medium text-left">Crediti</th>
+                            <th className="px-3 py-2 text-sm font-medium text-center">Azioni</th>
                           </tr>
                         </thead>
                         <tbody>
                           {teams.map((team) => (
                             <tr key={team.id} className="border-b">
-                              <td className="px-4 py-3 text-sm">
+                              <td className="px-3 py-2 text-sm">
                                 {team.logo ? (
                                   <div className="w-8 h-8 rounded-full overflow-hidden border border-gray-200">
                                     <img 
@@ -1179,7 +1180,6 @@ export default function AdminPage() {
                                       alt={`${team.name} logo`}
                                       className="w-full h-full object-cover"
                                       onError={(e) => {
-                                        // Fallback to initials if image fails to load
                                         e.currentTarget.style.display = 'none';
                                         e.currentTarget.parentElement!.classList.add('bg-primary/20', 'flex', 'items-center', 'justify-center', 'text-primary', 'font-semibold');
                                         e.currentTarget.parentElement!.innerHTML = `<span class="text-xs">${team.name.substring(0, 2).toUpperCase()}</span>`;
@@ -1194,39 +1194,40 @@ export default function AdminPage() {
                                   </div>
                                 )}
                               </td>
-                              <td className="px-4 py-3 text-sm">{team.name}</td>
-                              <td className="px-4 py-3 text-sm">{team.managerName}</td>
-                              <td className="px-4 py-3 text-sm">{team.credits}</td>
-                              <td className="px-4 py-3 text-sm">
-                                <div className="flex items-center space-x-2">
-                                  <button 
-                                    className="px-2 py-1 text-xs font-medium text-blue-700 bg-blue-100 rounded hover:bg-blue-200"
+                              <td className="px-3 py-2 text-sm">{team.name}</td>
+                              <td className="px-3 py-2 text-sm">{team.managerName}</td>
+                              <td className="px-3 py-2 text-sm">{team.credits}</td>
+                              <td className="px-3 py-2 text-sm text-center">
+                                <div className="flex justify-center gap-2">
+                                  <Button
+                                    variant="ghost" 
+                                    size="sm"
+                                    className="h-7 bg-blue-50 hover:bg-blue-100 text-blue-700"
                                     onClick={() => {
-                                      console.log("Edit team:", team);
                                       teamForm.reset({
                                         name: team.name,
                                         managerName: team.managerName,
                                         credits: team.credits,
                                         logo: team.logo || "",
                                       });
-                                      // Set the editing team
                                       setEditingTeamId(team.id);
                                     }}
                                   >
                                     Modifica
-                                  </button>
-                                  <button 
-                                    className="px-2 py-1 text-xs font-medium text-red-700 bg-red-100 rounded hover:bg-red-200"
+                                  </Button>
+                                  <Button 
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-7 bg-red-50 hover:bg-red-100 text-red-700"
                                     disabled={deleteTeam.isPending}
                                     onClick={() => {
-                                      console.log("Delete team:", team);
                                       if (confirm(`Sei sicuro di voler eliminare la squadra ${team.name}?`)) {
                                         deleteTeam.mutate(team.id);
                                       }
                                     }}
                                   >
                                     Elimina
-                                  </button>
+                                  </Button>
                                 </div>
                               </td>
                             </tr>
