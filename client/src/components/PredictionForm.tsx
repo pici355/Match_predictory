@@ -191,7 +191,7 @@ export default function PredictionForm() {
               </Select>
               
               {selectedMatchDay && (
-                <div className="mt-2 text-sm">
+                <div className="mt-2">
                   {allPredicted ? (
                     <div className="text-green-600 font-medium flex items-center">
                       <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -200,11 +200,23 @@ export default function PredictionForm() {
                       Complimenti! Hai pronosticato tutte le 5 partite di questa giornata.
                     </div>
                   ) : (
-                    <div className="text-amber-600 font-medium">
-                      Devi pronosticare esattamente 5 partite per questa giornata.
-                      {predictionsRemaining > 0 && (
-                        <span className="ml-1">Ancora {predictionsRemaining} da pronosticare.</span>
-                      )}
+                    <div>
+                      <div className="text-amber-600 font-medium">
+                        Devi pronosticare esattamente 5 partite per questa giornata.
+                        {predictionsRemaining > 0 && (
+                          <span className="ml-1">Ancora {predictionsRemaining} da pronosticare.</span>
+                        )}
+                      </div>
+                      <div className="flex items-center space-x-1 mt-1">
+                        {[...Array(5)].map((_, i) => (
+                          <div 
+                            key={i}
+                            className={`h-2 w-1/5 rounded-sm ${
+                              i < 5 - predictionsRemaining ? 'bg-green-500' : 'bg-gray-200'
+                            }`}
+                          />
+                        ))}
+                      </div>
                     </div>
                   )}
                 </div>

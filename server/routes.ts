@@ -548,25 +548,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Partita non trovata" });
       }
       
-      // Get existing user predictions for this match day
+      // Get user ID
       const userId = validatedData.userId;
-      const userPredictions = await storage.getPredictionsByUserId(userId);
       
-      // Count predictions for the same match day
-      const matchDayPredictions = userPredictions.filter(p => {
-        const predictionMatch = match.matchDay === p.matchId; // This would need a join operation in a real DB
-        // For now, let's get the match for each prediction
-        return match.matchDay === p.matchId; // This approach is inefficient but works for small data
-      });
-      
-      // Get all matches for this match day to get proper prediction count
-      const matchesForDay = await storage.getMatchesByMatchDay(match.matchDay);
-      const matchIdsForDay = matchesForDay.map(m => m.id);
-      
-      // Count existing predictions for this match day
-      const existingPredictions = userPredictions.filter(p => 
-        matchIdsForDay.includes(p.matchId)
-      );
+      // Get all user predictions for this match day using our optimized method
+      const existingPredictions = await storage.getUserPredictionsByMatchDay(userId, match.matchDay);
       
       // Only allow prediction if user hasn't already predicted 5 matches in this match day
       // or if user is updating an existing prediction

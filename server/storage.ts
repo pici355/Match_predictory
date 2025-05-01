@@ -40,6 +40,7 @@ export interface IStorage {
   getPredictionsByMatchId(matchId: number): Promise<Prediction[]>;
   getPredictionsByUserId(userId: number): Promise<Prediction[]>;
   getPredictionsByMatchDay(matchDay: number): Promise<Prediction[]>;
+  getUserPredictionsByMatchDay(userId: number, matchDay: number): Promise<Prediction[]>;
   getPrediction(id: number): Promise<Prediction | undefined>;
   createPrediction(prediction: InsertPrediction): Promise<Prediction>;
   updatePrediction(id: number, prediction: Partial<InsertPrediction>): Promise<Prediction | undefined>;
@@ -150,6 +151,22 @@ export class DatabaseStorage implements IStorage {
     return await db.select()
       .from(predictions)
       .where(inArray(predictions.matchId, matchIds));
+  }
+  
+  async getUserPredictionsByMatchDay(userId: number, matchDay: number): Promise<Prediction[]> {
+    // Get all matches for this match day
+    const matchesForDay = await this.getMatchesByMatchDay(matchDay);
+    const matchIds = matchesForDay.map(m => m.id);
+    
+    if (matchIds.length === 0) return [];
+    
+    // Get all user predictions for these matches
+    return await db.select()
+      .from(predictions)
+      .where(and(
+        eq(predictions.userId, userId),
+        inArray(predictions.matchId, matchIds)
+      ));
   }
   
   async getPrediction(id: number): Promise<Prediction | undefined> {
