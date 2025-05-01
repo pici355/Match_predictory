@@ -53,8 +53,18 @@ function MatchCard({ match }: { match: Match }) {
   });
   
   // Trova i team corrispondenti per ottenere i loghi
-  const homeTeamData = teams?.find(team => team.name === match.homeTeam);
-  const awayTeamData = teams?.find(team => team.name === match.awayTeam);
+  // Utilizziamo una corrispondenza più flessibile per i nomi delle squadre
+  const homeTeamData = teams?.find(team => 
+    team.name.toLowerCase() === match.homeTeam.toLowerCase() || 
+    match.homeTeam.toLowerCase().includes(team.name.toLowerCase()) || 
+    team.name.toLowerCase().includes(match.homeTeam.toLowerCase())
+  );
+  
+  const awayTeamData = teams?.find(team => 
+    team.name.toLowerCase() === match.awayTeam.toLowerCase() || 
+    match.awayTeam.toLowerCase().includes(team.name.toLowerCase()) || 
+    team.name.toLowerCase().includes(match.awayTeam.toLowerCase())
+  );
   
   // Update component when the global timezone changes
   useEffect(() => {
