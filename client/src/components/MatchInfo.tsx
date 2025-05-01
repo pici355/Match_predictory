@@ -42,62 +42,16 @@ function formatTimeRemaining(timeInMs: number): string {
   return `${minutes}m ${seconds}s`;
 }
 
-// Componente per il logo della squadra con fallback sicuro
+// Mostra solo le iniziali della squadra, senza tentare di caricare alcun logo
 function TeamLogo({ teamName, size = "md" }: { teamName: string, size?: "sm" | "md" }) {
-  const [logoError, setLogoError] = useState(false);
-  const { data: teams } = useQuery<Team[]>({
-    queryKey: ['/api/teams'],
-  });
-
-  // Trova il team corrispondente in modo flessibile
-  const teamData = teams?.find(team => 
-    team.name.toLowerCase() === teamName.toLowerCase() || 
-    teamName.toLowerCase().includes(team.name.toLowerCase()) || 
-    team.name.toLowerCase().includes(teamName.toLowerCase())
-  );
-
   const dimensions = size === "sm" ? "w-6 h-6" : "w-7 h-7";
   const fontSize = size === "sm" ? "text-[10px]" : "text-xs";
 
-  // Se c'è un errore o non c'è logo, mostra le iniziali
-  if (logoError || !teamData?.logo) {
-    return (
-      <div className={`${dimensions} rounded-full bg-primary/20 flex items-center justify-center text-primary font-semibold ${fontSize}`}>
-        {teamName.substring(0, 2).toUpperCase()}
-      </div>
-    );
-  }
-
-  // Altrimenti mostra il logo con gestione errori
+  // Mostra le iniziali della squadra in un cerchio colorato
   return (
-    <img
-      src={teamData.logo}
-      alt={teamName}
-      onError={(e) => {
-        try {
-          // Prova con JPG
-          const fileName = teamName.toLowerCase().replace(/\s+/g, '-');
-          const jpgSrc = `/team-logos/${fileName}.jpg`;
-          e.currentTarget.src = jpgSrc;
-          
-          // Se fallisce con JPG, prova con PNG
-          e.currentTarget.onerror = () => {
-            try {
-              const pngSrc = `/team-logos/${fileName}.png`;
-              e.currentTarget.src = pngSrc;
-              
-              // Se ancora fallisce, imposta lo stato di errore
-              e.currentTarget.onerror = () => setLogoError(true);
-            } catch {
-              setLogoError(true);
-            }
-          };
-        } catch {
-          setLogoError(true);
-        }
-      }}
-      className="w-full h-full object-cover"
-    />
+    <div className={`${dimensions} rounded-full bg-primary/20 flex items-center justify-center text-primary font-semibold ${fontSize}`}>
+      {teamName.substring(0, 2).toUpperCase()}
+    </div>
   );
 }
 
