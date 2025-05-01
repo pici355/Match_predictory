@@ -149,35 +149,64 @@ export default function MatchDayReceipt({ matchDay, predictions, username }: Mat
       
       const image = canvas.toDataURL('image/png');
       
-      // Scarica l'immagine automaticamente
+      // Testo per WhatsApp
+      const text = `📋 Indistruttibili Bet: Pronostici di ${username} per la Giornata ${matchDay}`;
       const fileName = `schedina_giornata_${matchDay}_${username}.png`;
+      
+      // Converti l'immagine in un file
+      const response = await fetch(image);
+      const blob = await response.blob();
+      const file = new File([blob], fileName, { type: 'image/png' });
+      
+      // Verifica il supporto per l'API di condivisione
+      if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+        try {
+          // Usa l'API Web Share con supporto per file (funziona principalmente su mobile)
+          await navigator.share({
+            title: 'Indistruttibili Bet',
+            text: text,
+            files: [file]
+          });
+          
+          toast({
+            title: "Condivisione avviata",
+            description: "Seleziona WhatsApp dalla lista delle app"
+          });
+          return;
+        } catch (err) {
+          console.log('Web Share API error:', err);
+          // Se fallisce, continua con il metodo alternativo
+        }
+      }
+      
+      // Metodo alternativo per dispositivi che non supportano API di condivisione con file
+      // 1. Creiamo un link per scaricare l'immagine
       const downloadLink = document.createElement('a');
       downloadLink.href = image;
       downloadLink.download = fileName;
       downloadLink.click();
       
-      // Testo per WhatsApp
-      const text = `📋 Indistruttibili Bet: Pronostici di ${username} per la Giornata ${matchDay}\n\nHo appena scaricato la mia schedina! 📊`;
-      
       toast({
         title: "Immagine scaricata",
-        description: "Ora puoi condividerla su WhatsApp"
+        description: "La schedina è stata scaricata automaticamente"
       });
       
-      // Share on WhatsApp (mobile)
+      // 2. Apriamo WhatsApp con un messaggio che include un link per aprire l'immagine
       setTimeout(() => {
+        const whatsappText = `${text}\n\nTi ho inviato la mia schedina come immagine! 📊\nControlla nelle immagini scaricate.`;
+        
         if (/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) {
-          window.open(`whatsapp://send?text=${encodeURIComponent(text)}`);
+          window.open(`whatsapp://send?text=${encodeURIComponent(whatsappText)}`);
         } else {
-          // WhatsApp Web for desktop users
-          window.open(`https://web.whatsapp.com/send?text=${encodeURIComponent(text)}`);
+          // WhatsApp Web per desktop
+          window.open(`https://web.whatsapp.com/send?text=${encodeURIComponent(whatsappText)}`);
         }
-      }, 300);
+      }, 500);
     } catch (error) {
       console.error("Error sharing receipt:", error);
       toast({
-        title: "Errore",
-        description: "Si è verificato un errore nella condivisione",
+        title: "Errore di condivisione",
+        description: "Si è verificato un errore nella condivisione. Prova a scaricare manualmente l'immagine.",
         variant: "destructive"
       });
     }
