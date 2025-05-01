@@ -33,9 +33,10 @@ Ti ringraziamo per aver accettato di provare FantaSchedina Web. Questa guida ti 
 Durante il test, ti chiediamo di annotare:
 
 1. **Facilità d'uso**: L'interfaccia è intuitiva? Hai avuto difficoltà a trovare funzionalità specifiche?
-2. **Comprensione del sistema di premi**: Il nuovo sistema di distribuzione basato sulle percentuali è chiaro?
-3. **Bug o problemi**: Hai riscontrato errori o comportamenti inaspettati?
-4. **Suggerimenti di miglioramento**: Quali funzionalità aggiuntive o modifiche suggeriresti?
+2. **Comprensione del sistema di premi**: Il nuovo sistema di premio semplificato è chiaro?
+3. **Funzionalità di condivisione**: Come hai trovato la funzione per condividere la schedina? Funziona correttamente?
+4. **Bug o problemi**: Hai riscontrato errori o comportamenti inaspettati?
+5. **Suggerimenti di miglioramento**: Quali funzionalità aggiuntive o modifiche suggeriresti?
 
 ## Note Importanti
 
