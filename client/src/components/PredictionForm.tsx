@@ -287,9 +287,15 @@ export default function PredictionForm() {
                                             alt={match.homeTeam}
                                             onError={(e) => {
                                               // Fallback se l'immagine non esiste
-                                              e.currentTarget.src = '';
-                                              e.currentTarget.parentElement!.className = 'w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center text-primary font-semibold text-[10px]';
-                                              e.currentTarget.parentElement!.innerHTML = match.homeTeam.substring(0, 2).toUpperCase();
+                                              const parent = e.currentTarget.parentElement;
+                                              if (parent) {
+                                                // Remove the img element
+                                                parent.removeChild(e.currentTarget);
+                                                // Update parent styling
+                                                parent.className = 'w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center text-primary font-semibold text-[10px]';
+                                                // Add the text directly
+                                                parent.textContent = match.homeTeam.substring(0, 2).toUpperCase();
+                                              }
                                             }}
                                             className="w-full h-full object-cover"
                                           />
@@ -304,9 +310,15 @@ export default function PredictionForm() {
                                             alt={match.awayTeam}
                                             onError={(e) => {
                                               // Fallback se l'immagine non esiste
-                                              e.currentTarget.src = '';
-                                              e.currentTarget.parentElement!.className = 'w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center text-primary font-semibold text-[10px]';
-                                              e.currentTarget.parentElement!.innerHTML = match.awayTeam.substring(0, 2).toUpperCase();
+                                              const parent = e.currentTarget.parentElement;
+                                              if (parent) {
+                                                // Remove the img element
+                                                parent.removeChild(e.currentTarget);
+                                                // Update parent styling
+                                                parent.className = 'w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center text-primary font-semibold text-[10px]';
+                                                // Add the text directly
+                                                parent.textContent = match.awayTeam.substring(0, 2).toUpperCase();
+                                              }
                                             }}
                                             className="w-full h-full object-cover"
                                           />
@@ -378,9 +390,15 @@ export default function PredictionForm() {
                             alt={selectedMatch.homeTeam}
                             onError={(e) => {
                               // Fallback se l'immagine non esiste
-                              e.currentTarget.src = '';
-                              e.currentTarget.parentElement!.className = 'w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-primary font-semibold text-[10px]';
-                              e.currentTarget.parentElement!.innerHTML = selectedMatch.homeTeam.substring(0, 2).toUpperCase();
+                              const parent = e.currentTarget.parentElement;
+                              if (parent) {
+                                // Remove the img element
+                                parent.removeChild(e.currentTarget);
+                                // Update parent styling
+                                parent.className = 'w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-primary font-semibold text-[10px]';
+                                // Add the text directly
+                                parent.textContent = selectedMatch.homeTeam.substring(0, 2).toUpperCase();
+                              }
                             }}
                             className="w-full h-full object-cover"
                           />
@@ -395,9 +413,15 @@ export default function PredictionForm() {
                             alt={selectedMatch.awayTeam}
                             onError={(e) => {
                               // Fallback se l'immagine non esiste
-                              e.currentTarget.src = '';
-                              e.currentTarget.parentElement!.className = 'w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-primary font-semibold text-[10px]';
-                              e.currentTarget.parentElement!.innerHTML = selectedMatch.awayTeam.substring(0, 2).toUpperCase();
+                              const parent = e.currentTarget.parentElement;
+                              if (parent) {
+                                // Remove the img element
+                                parent.removeChild(e.currentTarget);
+                                // Update parent styling
+                                parent.className = 'w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-primary font-semibold text-[10px]';
+                                // Add the text directly
+                                parent.textContent = selectedMatch.awayTeam.substring(0, 2).toUpperCase();
+                              }
                             }}
                             className="w-full h-full object-cover"
                           />
@@ -449,9 +473,15 @@ export default function PredictionForm() {
                                       alt={selectedMatch.homeTeam}
                                       onError={(e) => {
                                         // Fallback se l'immagine non esiste
-                                        e.currentTarget.src = '';
-                                        e.currentTarget.parentElement!.className = 'w-4 h-4 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold text-[8px]';
-                                        e.currentTarget.parentElement!.innerHTML = selectedMatch.homeTeam.substring(0, 2).toUpperCase();
+                                        const parent = e.currentTarget.parentElement;
+                                        if (parent) {
+                                          // Remove the img element
+                                          parent.removeChild(e.currentTarget);
+                                          // Update parent styling
+                                          parent.className = 'w-4 h-4 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold text-[8px]';
+                                          // Add the text directly
+                                          parent.textContent = selectedMatch.homeTeam.substring(0, 2).toUpperCase();
+                                        }
                                       }}
                                       className="w-full h-full object-cover"
                                     />
@@ -467,9 +497,15 @@ export default function PredictionForm() {
                                       alt={selectedMatch.awayTeam}
                                       onError={(e) => {
                                         // Fallback se l'immagine non esiste
-                                        e.currentTarget.src = '';
-                                        e.currentTarget.parentElement!.className = 'w-4 h-4 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold text-[8px]';
-                                        e.currentTarget.parentElement!.innerHTML = selectedMatch.awayTeam.substring(0, 2).toUpperCase();
+                                        const parent = e.currentTarget.parentElement;
+                                        if (parent) {
+                                          // Remove the img element
+                                          parent.removeChild(e.currentTarget);
+                                          // Update parent styling
+                                          parent.className = 'w-4 h-4 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold text-[8px]';
+                                          // Add the text directly
+                                          parent.textContent = selectedMatch.awayTeam.substring(0, 2).toUpperCase();
+                                        }
                                       }}
                                       className="w-full h-full object-cover"
                                     />

@@ -86,7 +86,26 @@ function MatchCard({ match }: { match: Match }) {
         {/* Teams section */}
         <div className="p-4 flex justify-between items-center">
           {/* Home team */}
-          <div className="text-center flex-1">
+          <div className="text-center flex-1 flex flex-col items-center">
+            <div className="w-10 h-10 rounded-full overflow-hidden mb-2">
+              <img 
+                src={`/team-logos/${match.homeTeam.toLowerCase().replace(/\s+/g, '-')}.png`} 
+                alt={match.homeTeam}
+                onError={(e) => {
+                  // Fallback se l'immagine non esiste
+                  const parent = e.currentTarget.parentElement;
+                  if (parent) {
+                    // Remove the img element
+                    parent.removeChild(e.currentTarget);
+                    // Update parent styling
+                    parent.className = 'w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-primary font-semibold text-sm mb-2';
+                    // Add the text directly
+                    parent.textContent = match.homeTeam.substring(0, 2).toUpperCase();
+                  }
+                }}
+                className="w-full h-full object-cover"
+              />
+            </div>
             <div className="font-bold truncate">{match.homeTeam}</div>
           </div>
           
@@ -94,7 +113,26 @@ function MatchCard({ match }: { match: Match }) {
           <div className="text-center mx-2 font-bold text-gray-500 px-3">VS</div>
           
           {/* Away team */}
-          <div className="text-center flex-1">
+          <div className="text-center flex-1 flex flex-col items-center">
+            <div className="w-10 h-10 rounded-full overflow-hidden mb-2">
+              <img 
+                src={`/team-logos/${match.awayTeam.toLowerCase().replace(/\s+/g, '-')}.png`} 
+                alt={match.awayTeam}
+                onError={(e) => {
+                  // Fallback se l'immagine non esiste
+                  const parent = e.currentTarget.parentElement;
+                  if (parent) {
+                    // Remove the img element
+                    parent.removeChild(e.currentTarget);
+                    // Update parent styling
+                    parent.className = 'w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-primary font-semibold text-sm mb-2';
+                    // Add the text directly
+                    parent.textContent = match.awayTeam.substring(0, 2).toUpperCase();
+                  }
+                }}
+                className="w-full h-full object-cover"
+              />
+            </div>
             <div className="font-bold truncate">{match.awayTeam}</div>
           </div>
         </div>
@@ -114,7 +152,7 @@ function MatchCard({ match }: { match: Match }) {
             </span>
           </div>
           {match.description && (
-            <div className="text-muted-foreground text-xs mt-1 italic">
+            <div className="text-indigo-600 text-xs mt-1 font-medium">
               {match.description}
             </div>
           )}
