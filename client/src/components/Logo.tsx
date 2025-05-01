@@ -1,5 +1,5 @@
 import React from 'react';
-import legaLogo from '../assets/lega-logo.png';
+import legaLogo from '@assets/lega-logo.png';
 
 export const Logo: React.FC<{ className?: string }> = ({ className = '' }) => {
   return (

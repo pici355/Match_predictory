@@ -88,7 +88,7 @@ function Navigation() {
       <div className="max-w-7xl mx-auto flex items-center justify-between">
         <div className="flex items-center space-x-4">
           <button onClick={() => navigate("/")} className="flex items-center space-x-2">
-            <Logo />
+            <Logo className="h-10" />
           </button>
           
           <div className="flex space-x-4 items-center ml-4">
@@ -113,7 +113,7 @@ function Navigation() {
           {isAuthenticated ? (
             <div className="flex items-center space-x-4">
               <span className="text-sm">{user?.username}</span>
-              <Button size="sm" variant="secondary" onClick={handleLogout}>
+              <Button size="sm" variant="secondary" onClick={handleLogout} className="font-semibold">
                 Logout
               </Button>
             </div>
