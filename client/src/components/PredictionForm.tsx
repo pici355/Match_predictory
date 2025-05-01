@@ -278,11 +278,12 @@ export default function PredictionForm() {
                                   value={match.id.toString()}
                                   disabled={!!alreadyPredicted}
                                 >
-                                  <div className="flex flex-col w-full">
-                                    <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-1 w-full">
-                                      {/* Home Team */}
-                                      <div className="flex items-center gap-1 min-w-0 overflow-hidden">
-                                        <div className="w-5 h-5 rounded-full overflow-hidden flex-shrink-0">
+                                  <div className="flex flex-col w-full py-1.5">
+                                    {/* Layout migliorato per evitare i contenuti dai bordi */}
+                                    <div className="flex justify-between items-center gap-3 w-full">
+                                      {/* Home Team - Aumentata larghezza */}
+                                      <div className="flex items-center gap-2 overflow-hidden flex-1 max-w-[42%]">
+                                        <div className="w-6 h-6 rounded-full overflow-hidden flex-shrink-0">
                                           <img 
                                             src={`/team-logos/${match.homeTeam.toLowerCase().replace(/\s+/g, '-')}.jpg`} 
                                             alt={match.homeTeam}
@@ -301,7 +302,7 @@ export default function PredictionForm() {
                                                   // Remove the img element
                                                   parent.removeChild(e.currentTarget);
                                                   // Update parent styling
-                                                  parent.className = 'w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center text-primary font-semibold text-[10px] flex-shrink-0';
+                                                  parent.className = 'w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-primary font-semibold text-xs flex-shrink-0';
                                                   // Add the text directly
                                                   parent.textContent = match.homeTeam.substring(0, 2).toUpperCase();
                                                 }
@@ -310,16 +311,16 @@ export default function PredictionForm() {
                                             className="w-full h-full object-cover"
                                           />
                                         </div>
-                                        <span className="truncate">{match.homeTeam}</span>
+                                        <span className="truncate font-medium">{match.homeTeam}</span>
                                       </div>
                                       
-                                      {/* VS */}
-                                      <div className="text-gray-500 flex-shrink-0 px-1 text-center">vs</div>
+                                      {/* VS - Aumentata larghezza */}
+                                      <div className="text-gray-500 flex-shrink-0 px-2 text-center font-bold">VS</div>
                                       
-                                      {/* Away Team */}
-                                      <div className="flex items-center gap-1 min-w-0 overflow-hidden justify-end">
-                                        <span className="truncate">{match.awayTeam}</span>
-                                        <div className="w-5 h-5 rounded-full overflow-hidden flex-shrink-0">
+                                      {/* Away Team - Aumentata larghezza */}
+                                      <div className="flex items-center gap-2 overflow-hidden flex-1 justify-end max-w-[42%]">
+                                        <span className="truncate font-medium text-right">{match.awayTeam}</span>
+                                        <div className="w-6 h-6 rounded-full overflow-hidden flex-shrink-0">
                                           <img 
                                             src={`/team-logos/${match.awayTeam.toLowerCase().replace(/\s+/g, '-')}.jpg`} 
                                             alt={match.awayTeam}
@@ -338,7 +339,7 @@ export default function PredictionForm() {
                                                   // Remove the img element
                                                   parent.removeChild(e.currentTarget);
                                                   // Update parent styling
-                                                  parent.className = 'w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center text-primary font-semibold text-[10px] flex-shrink-0';
+                                                  parent.className = 'w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-primary font-semibold text-xs flex-shrink-0';
                                                   // Add the text directly
                                                   parent.textContent = match.awayTeam.substring(0, 2).toUpperCase();
                                                 }
@@ -348,29 +349,33 @@ export default function PredictionForm() {
                                           />
                                         </div>
                                       </div>
-                                      
-                                      {!!alreadyPredicted && (
-                                        <div className="col-span-3 text-gray-400 text-xs text-center mt-1">
-                                          (già pronosticata)
-                                        </div>
-                                      )}
                                     </div>
-                                    {match.description && (
-                                      <div className="text-xs text-indigo-600 font-medium mt-1">
-                                        {match.description}
+                                    
+                                    {!!alreadyPredicted && (
+                                      <div className="text-gray-400 text-xs text-center mt-1.5">
+                                        (già pronosticata)
                                       </div>
                                     )}
-                                    <div className="text-xs text-gray-500 mt-1">
-                                      {formatDateToLocalString(match.matchDate, {
-                                        weekday: 'short',
-                                        day: '2-digit',
-                                        month: '2-digit',
-                                        hour: '2-digit',
-                                        minute: '2-digit'
-                                      })}
-                                      {!isMatchPredictionEditable(match.matchDate) && 
-                                        <span className="ml-2 text-red-500 font-medium">(Chiuso)</span>
-                                      }
+                                    
+                                    {/* Informazioni aggiuntive */}
+                                    <div className="mt-1.5 flex flex-col">
+                                      {match.description && (
+                                        <div className="text-xs text-indigo-600 font-medium">
+                                          {match.description}
+                                        </div>
+                                      )}
+                                      <div className="text-xs text-gray-500 mt-0.5">
+                                        {formatDateToLocalString(match.matchDate, {
+                                          weekday: 'short',
+                                          day: '2-digit',
+                                          month: '2-digit',
+                                          hour: '2-digit',
+                                          minute: '2-digit'
+                                        })}
+                                        {!isMatchPredictionEditable(match.matchDate) && 
+                                          <span className="ml-2 text-red-500 font-medium">(Chiuso)</span>
+                                        }
+                                      </div>
                                     </div>
                                   </div>
                                 </SelectItem>
