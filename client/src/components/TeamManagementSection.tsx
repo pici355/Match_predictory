@@ -156,41 +156,77 @@ export default function TeamManagementSection() {
   }
   
   function uploadTeamLogo(file: File, teamName: string) {
-    const formData = new FormData();
-    formData.append("teamName", teamName);
-    formData.append("logo", file);
+    setIsUploading(true);
     
-    toast({
-      title: "Caricamento logo...",
-      description: "Caricamento in corso...",
-    });
-    
-    fetch("/api/teams/logo", {
-      method: "POST",
-      body: formData,
-      credentials: "include"
-    })
-    .then(response => response.json())
-    .then(data => {
-      if (data.success) {
-        queryClient.invalidateQueries({ queryKey: ['/api/teams'] });
+    // Converti il file in base64 per salvarlo direttamente nel database
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => {
+      const base64Image = reader.result as string;
+      
+      const formData = new FormData();
+      formData.append("teamName", teamName);
+      formData.append("logo", file);
+      formData.append("base64Logo", base64Image);
+      
+      toast({
+        title: "Caricamento logo...",
+        description: "Caricamento in corso...",
+      });
+      
+      fetch("/api/teams/logo", {
+        method: "POST",
+        body: formData,
+        credentials: "include"
+      })
+      .then(response => response.json())
+      .then(data => {
+        setIsUploading(false);
+        if (data.success) {
+          queryClient.invalidateQueries({ queryKey: ['/api/teams'] });
+          toast({
+            title: "Logo caricato!",
+            description: data.teamFound 
+              ? "Il logo è stato caricato e associato alla squadra con successo." 
+              : "Il logo è stato caricato ma nessuna squadra trovata con questo nome esatto.",
+          });
+        } else {
+          throw new Error(data.message || "Errore durante il caricamento del logo");
+        }
+      })
+      .catch(error => {
+        setIsUploading(false);
         toast({
-          title: "Logo caricato!",
-          description: data.teamFound 
-            ? "Il logo è stato caricato e associato alla squadra con successo." 
-            : "Il logo è stato caricato ma nessuna squadra trovata con questo nome esatto.",
+          title: "Errore!",
+          description: error.message || "Si è verificato un errore durante il caricamento del logo.",
+          variant: "destructive",
         });
-      } else {
-        throw new Error(data.message || "Errore durante il caricamento del logo");
-      }
-    })
-    .catch(error => {
+      });
+    };
+    
+    reader.onerror = () => {
+      setIsUploading(false);
       toast({
         title: "Errore!",
-        description: error.message || "Si è verificato un errore durante il caricamento del logo.",
+        description: "Si è verificato un errore durante la lettura del file.",
         variant: "destructive",
       });
-    });
+    };
+  }
+  
+  // Funzione per aggiornare la lista dei team e verificare i loghi
+  function refreshTeamLogos() {
+    setIsRefreshing(true);
+    queryClient.invalidateQueries({ queryKey: ['/api/teams'] })
+      .then(() => {
+        toast({
+          title: "Aggiornamento completato",
+          description: "I loghi delle squadre sono stati aggiornati correttamente.",
+        });
+      })
+      .finally(() => {
+        setIsRefreshing(false);
+      });
   }
 
   function onSubmitTeam(data: TeamFormValues) {
@@ -210,15 +246,26 @@ export default function TeamManagementSection() {
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-      {/* Team Logo Uploader */}
-      <TeamLogoUploader />
-      
-      <div className="space-y-6">
+    <div className="grid grid-cols-1 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
-            <CardTitle>{editingTeamId ? "Modifica squadra" : "Aggiungi una nuova squadra"}</CardTitle>
-            <CardDescription>{editingTeamId ? "Modifica i dettagli della squadra" : "Inserisci i dettagli della nuova squadra"}</CardDescription>
+            <div className="flex justify-between items-center">
+              <div>
+                <CardTitle>{editingTeamId ? "Modifica squadra" : "Aggiungi una nuova squadra"}</CardTitle>
+                <CardDescription>{editingTeamId ? "Modifica i dettagli della squadra" : "Inserisci i dettagli della nuova squadra"}</CardDescription>
+              </div>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={refreshTeamLogos}
+                disabled={isRefreshing}
+                className="flex items-center gap-1"
+              >
+                <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+                <span>Aggiorna</span>
+              </Button>
+            </div>
           </CardHeader>
           <CardContent>
             <Form {...teamForm}>
@@ -325,106 +372,188 @@ export default function TeamManagementSection() {
         
         <Card>
           <CardHeader>
-            <CardTitle>Squadre</CardTitle>
-            <CardDescription>Elenco delle squadre registrate</CardDescription>
+            <CardTitle>Carica Logo per Squadra Esistente</CardTitle>
+            <CardDescription>Seleziona un'immagine e inserisci il nome esatto della squadra per caricarne il logo</CardDescription>
           </CardHeader>
-          <CardContent className="max-h-96 overflow-auto">
-            {isLoadingTeams ? (
-              <div className="space-y-4">
-                <Skeleton className="h-12 w-full" />
-                <Skeleton className="h-12 w-full" />
-                <Skeleton className="h-12 w-full" />
+          <CardContent>
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium" htmlFor="existingTeamLogoName">
+                  Nome Squadra
+                </label>
+                <Input
+                  id="existingTeamLogoName"
+                  placeholder="Inserisci il nome esatto della squadra"
+                  className="w-full"
+                />
+                <p className="text-xs text-gray-500">
+                  Inserisci il nome esatto della squadra come appare nell'app
+                </p>
               </div>
-            ) : teams && teams.length > 0 ? (
-              <div className="border rounded-md overflow-auto">
-                <table className="w-full">
-                  <thead className="bg-gray-50 border-b">
-                    <tr>
-                      <th className="px-3 py-2 text-sm font-medium text-left">Logo</th>
-                      <th className="px-3 py-2 text-sm font-medium text-left">Nome</th>
-                      <th className="px-3 py-2 text-sm font-medium text-left">Allenatore</th>
-                      <th className="px-3 py-2 text-sm font-medium text-left">Crediti</th>
-                      <th className="px-3 py-2 text-sm font-medium text-center">Azioni</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {teams.map((team) => (
-                      <tr key={team.id} className="border-b">
-                        <td className="px-3 py-2 text-sm">
-                          {team.logo ? (
-                            <div className="w-8 h-8 rounded-full overflow-hidden border border-gray-200">
-                              <img 
-                                src={team.logo}
-                                alt={`${team.name} logo`}
-                                className="w-full h-full object-cover"
-                                onError={(e) => {
-                                  e.currentTarget.style.display = 'none';
-                                  // Assicuriamoci che l'elemento parent esista prima di manipolarlo
-                                  const parent = e.currentTarget.parentElement;
-                                  if (parent) {
-                                    parent.classList.add('bg-primary/20', 'flex', 'items-center', 'justify-center', 'text-primary', 'font-semibold');
-                                    parent.innerHTML = `<span class="text-xs">${team.name.substring(0, 2).toUpperCase()}</span>`;
-                                  }
-                                }}
-                              />
-                            </div>
-                          ) : (
-                            <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary font-semibold">
-                              <span className="text-xs">
-                                {team.name.substring(0, 2).toUpperCase()}
-                              </span>
-                            </div>
-                          )}
-                        </td>
-                        <td className="px-3 py-2 text-sm">{team.name}</td>
-                        <td className="px-3 py-2 text-sm">{team.managerName}</td>
-                        <td className="px-3 py-2 text-sm">{team.credits}</td>
-                        <td className="px-3 py-2 text-sm text-center">
-                          <div className="flex justify-center gap-2">
-                            <Button
-                              variant="ghost" 
-                              size="sm"
-                              className="h-7 bg-blue-50 hover:bg-blue-100 text-blue-700"
-                              onClick={() => {
-                                teamForm.reset({
-                                  name: team.name,
-                                  managerName: team.managerName,
-                                  credits: team.credits,
-                                  logo: team.logo || "",
-                                });
-                                setEditingTeamId(team.id);
-                              }}
-                            >
-                              Modifica
-                            </Button>
-                            <Button 
-                              variant="ghost"
-                              size="sm"
-                              className="h-7 bg-red-50 hover:bg-red-100 text-red-700"
-                              disabled={deleteTeam.isPending}
-                              onClick={() => {
-                                if (confirm(`Sei sicuro di voler eliminare la squadra ${team.name}?`)) {
-                                  deleteTeam.mutate(team.id);
-                                }
-                              }}
-                            >
-                              Elimina
-                            </Button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+              
+              <div className="space-y-2">
+                <label className="text-sm font-medium" htmlFor="existingTeamLogo">
+                  Logo
+                </label>
+                <div className="flex items-center justify-center w-full">
+                  <label 
+                    htmlFor="existingTeamLogo" 
+                    className="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100"
+                  >
+                    <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                      <svg className="w-8 h-8 mb-3 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                      </svg>
+                      <p className="mb-1 text-sm text-gray-500">Clicca per caricare</p>
+                      <p className="text-xs text-gray-500">PNG, JPG (MAX. 2MB)</p>
+                    </div>
+                    <input 
+                      id="existingTeamLogo" 
+                      type="file" 
+                      className="hidden" 
+                      accept="image/*" 
+                    />
+                  </label>
+                </div>
               </div>
-            ) : (
-              <div className="text-center py-12 text-gray-500">
-                Nessuna squadra trovata
-              </div>
-            )}
+              
+              <Button
+                type="button"
+                className="w-full"
+                disabled={isUploading}
+                onClick={() => {
+                  const teamLogoInput = document.getElementById('existingTeamLogo') as HTMLInputElement;
+                  const teamNameInput = document.getElementById('existingTeamLogoName') as HTMLInputElement;
+                  
+                  if (!teamNameInput.value) {
+                    toast({
+                      title: "Nome squadra obbligatorio",
+                      description: "Inserisci il nome della squadra",
+                      variant: "destructive"
+                    });
+                    return;
+                  }
+                  
+                  if (!teamLogoInput.files || teamLogoInput.files.length === 0) {
+                    toast({
+                      title: "Nessun file selezionato",
+                      description: "Seleziona un'immagine da caricare",
+                      variant: "destructive"
+                    });
+                    return;
+                  }
+                  
+                  uploadTeamLogo(teamLogoInput.files[0], teamNameInput.value);
+                }}
+              >
+                {isUploading ? "Caricamento in corso..." : "Carica Logo"}
+              </Button>
+            </div>
           </CardContent>
         </Card>
       </div>
+      
+      <Card>
+        <CardHeader>
+          <CardTitle>Squadre</CardTitle>
+          <CardDescription>Elenco delle squadre registrate</CardDescription>
+        </CardHeader>
+        <CardContent className="max-h-96 overflow-auto">
+          {isLoadingTeams ? (
+            <div className="space-y-4">
+              <Skeleton className="h-12 w-full" />
+              <Skeleton className="h-12 w-full" />
+              <Skeleton className="h-12 w-full" />
+            </div>
+          ) : teams && teams.length > 0 ? (
+            <div className="border rounded-md overflow-auto">
+              <table className="w-full">
+                <thead className="bg-gray-50 border-b">
+                  <tr>
+                    <th className="px-3 py-2 text-sm font-medium text-left">Logo</th>
+                    <th className="px-3 py-2 text-sm font-medium text-left">Nome</th>
+                    <th className="px-3 py-2 text-sm font-medium text-left">Allenatore</th>
+                    <th className="px-3 py-2 text-sm font-medium text-left">Crediti</th>
+                    <th className="px-3 py-2 text-sm font-medium text-center">Azioni</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {teams.map((team) => (
+                    <tr key={team.id} className="border-b">
+                      <td className="px-3 py-2 text-sm">
+                        {team.logo ? (
+                          <div className="w-8 h-8 rounded-full overflow-hidden border border-gray-200">
+                            <img 
+                              src={team.logo}
+                              alt={`${team.name} logo`}
+                              className="w-full h-full object-cover"
+                              onError={(e) => {
+                                e.currentTarget.style.display = 'none';
+                                // Assicuriamoci che l'elemento parent esista prima di manipolarlo
+                                const parent = e.currentTarget.parentElement;
+                                if (parent) {
+                                  parent.classList.add('bg-primary/20', 'flex', 'items-center', 'justify-center', 'text-primary', 'font-semibold');
+                                  parent.innerHTML = `<span class="text-xs">${team.name.substring(0, 2).toUpperCase()}</span>`;
+                                }
+                              }}
+                            />
+                          </div>
+                        ) : (
+                          <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary font-semibold">
+                            <span className="text-xs">
+                              {team.name.substring(0, 2).toUpperCase()}
+                            </span>
+                          </div>
+                        )}
+                      </td>
+                      <td className="px-3 py-2 text-sm">{team.name}</td>
+                      <td className="px-3 py-2 text-sm">{team.managerName}</td>
+                      <td className="px-3 py-2 text-sm">{team.credits}</td>
+                      <td className="px-3 py-2 text-sm text-center">
+                        <div className="flex justify-center gap-2">
+                          <Button
+                            variant="ghost" 
+                            size="sm"
+                            className="h-7 bg-blue-50 hover:bg-blue-100 text-blue-700"
+                            onClick={() => {
+                              teamForm.reset({
+                                name: team.name,
+                                managerName: team.managerName,
+                                credits: team.credits,
+                                logo: team.logo || "",
+                              });
+                              setEditingTeamId(team.id);
+                            }}
+                          >
+                            Modifica
+                          </Button>
+                          <Button 
+                            variant="ghost"
+                            size="sm"
+                            className="h-7 bg-red-50 hover:bg-red-100 text-red-700"
+                            disabled={deleteTeam.isPending}
+                            onClick={() => {
+                              if (confirm(`Sei sicuro di voler eliminare la squadra ${team.name}?`)) {
+                                deleteTeam.mutate(team.id);
+                              }
+                            }}
+                          >
+                            Elimina
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <div className="text-center py-12 text-gray-500">
+              Nessuna squadra trovata
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }

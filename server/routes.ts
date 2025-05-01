@@ -513,8 +513,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Upload team logo
   app.post("/api/teams/logo", isAdmin, logoUpload.single("logo"), async (req, res) => {
     try {
-      if (!req.file) {
-        return res.status(400).json({ message: "Nessun file caricato" });
+      // Verifica se è stato fornito un file o un'immagine base64
+      const hasFile = !!req.file;
+      const hasBase64 = !!req.body.base64Logo;
+      
+      if (!hasFile && !hasBase64) {
+        return res.status(400).json({ message: "Nessuna immagine caricata (né file né base64)" });
       }
 
       const teamName = req.body.teamName;
@@ -522,25 +526,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Nome squadra obbligatorio" });
       }
 
-      // Genera il percorso del file
-      const sanitizedName = teamName.toLowerCase().replace(/\s+/g, '-');
-      const ext = req.file.originalname.split('.').pop();
-      const filename = `${sanitizedName}.${ext}`;
-      const logoPath = `/team-logos/${filename}`;
-      
-      // Cerca la squadra nel database e aggiorna il logo
+      // Cerca la squadra nel database
       const team = await storage.getTeamByName(teamName);
       
-      if (team) {
-        // Aggiorna il campo logo della squadra
-        await storage.updateTeam(team.id, {
-          ...team,
-          logo: logoPath
-        });
+      // Se è stata fornita un'immagine base64, la usiamo direttamente
+      if (hasBase64) {
+        const base64Logo = req.body.base64Logo;
         
-        console.log(`Aggiornato il logo per la squadra ${teamName} con path: ${logoPath}`);
-      } else {
-        console.log(`Squadra non trovata: ${teamName}. Il logo è stato salvato ma non associato.`);
+        if (team) {
+          // Aggiorna il campo logo della squadra con il dato base64
+          await storage.updateTeam(team.id, {
+            ...team,
+            logo: base64Logo
+          });
+          
+          console.log(`Aggiornato il logo (base64) per la squadra ${teamName}`);
+        } else {
+          console.log(`Squadra non trovata: ${teamName}. Il logo base64 non è stato associato.`);
+        }
+      } 
+      // Altrimenti, se è stato caricato un file, lo salviamo nel file system
+      else if (hasFile) {
+        // Genera il percorso del file
+        const sanitizedName = teamName.toLowerCase().replace(/\s+/g, '-');
+        const ext = req.file.originalname.split('.').pop();
+        const filename = `${sanitizedName}.${ext}`;
+        const logoPath = `/team-logos/${filename}`;
+        
+        if (team) {
+          // Aggiorna il campo logo della squadra
+          await storage.updateTeam(team.id, {
+            ...team,
+            logo: logoPath
+          });
+          
+          console.log(`Aggiornato il logo (file) per la squadra ${teamName} con path: ${logoPath}`);
+        } else {
+          console.log(`Squadra non trovata: ${teamName}. Il logo è stato salvato ma non associato.`);
+        }
       }
       
       res.json({
@@ -548,7 +571,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         message: team 
           ? "Logo caricato e associato alla squadra con successo" 
           : "Logo caricato con successo ma nessuna squadra trovata con questo nome",
-        logoPath: logoPath,
         teamFound: !!team
       });
     } catch (error) {
