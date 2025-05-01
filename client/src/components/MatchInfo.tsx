@@ -101,7 +101,7 @@ function MatchCard({ match }: { match: Match }) {
   }, [match.matchDate, currentTimezone]);
   
   return (
-    <Card className="mb-4 hover:shadow-md transition-shadow overflow-hidden">
+    <Card className="mb-2 hover:shadow-md transition-shadow overflow-hidden">
       <CardContent className="p-0">
         {/* Match day info and time banner */}
         <div className="bg-muted px-3 py-1 flex justify-between items-center text-xs">
@@ -112,10 +112,10 @@ function MatchCard({ match }: { match: Match }) {
         </div>
         
         {/* Teams section */}
-        <div className="p-4 flex justify-between items-center">
+        <div className="px-3 py-3 flex justify-between items-center">
           {/* Home team */}
           <div className="text-center flex-1 flex flex-col items-center">
-            <div className="w-10 h-10 rounded-full overflow-hidden mb-2">
+            <div className="w-8 h-8 rounded-full overflow-hidden mb-1">
               {homeTeamData && homeTeamData.logo ? (
                 <img 
                   src={homeTeamData.logo} 
@@ -135,7 +135,7 @@ function MatchCard({ match }: { match: Match }) {
                         // Remove the img element
                         parent.removeChild(e.currentTarget);
                         // Update parent styling
-                        parent.className = 'w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-primary font-semibold text-sm mb-2';
+                        parent.className = 'w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary font-semibold text-xs mb-1';
                         // Add the text directly
                         parent.textContent = match.homeTeam.substring(0, 2).toUpperCase();
                       }
@@ -145,20 +145,20 @@ function MatchCard({ match }: { match: Match }) {
                 />
               ) : (
                 // Logo non trovato, mostra le iniziali
-                <div className='w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-primary font-semibold text-sm'>
+                <div className='w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary font-semibold text-xs'>
                   {match.homeTeam.substring(0, 2).toUpperCase()}
                 </div>
               )}
             </div>
-            <div className="font-bold truncate">{match.homeTeam}</div>
+            <div className="font-bold text-sm truncate max-w-[90px]">{match.homeTeam}</div>
           </div>
           
           {/* VS section */}
-          <div className="text-center mx-2 font-bold text-gray-500 px-3">VS</div>
+          <div className="text-center mx-1 font-bold text-gray-500 text-sm px-1">VS</div>
           
           {/* Away team */}
           <div className="text-center flex-1 flex flex-col items-center">
-            <div className="w-10 h-10 rounded-full overflow-hidden mb-2">
+            <div className="w-8 h-8 rounded-full overflow-hidden mb-1">
               {awayTeamData && awayTeamData.logo ? (
                 <img 
                   src={awayTeamData.logo} 
@@ -178,7 +178,7 @@ function MatchCard({ match }: { match: Match }) {
                         // Remove the img element
                         parent.removeChild(e.currentTarget);
                         // Update parent styling
-                        parent.className = 'w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-primary font-semibold text-sm mb-2';
+                        parent.className = 'w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary font-semibold text-xs mb-1';
                         // Add the text directly
                         parent.textContent = match.awayTeam.substring(0, 2).toUpperCase();
                       }
@@ -188,31 +188,30 @@ function MatchCard({ match }: { match: Match }) {
                 />
               ) : (
                 // Logo non trovato, mostra le iniziali
-                <div className='w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-primary font-semibold text-sm'>
+                <div className='w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary font-semibold text-xs'>
                   {match.awayTeam.substring(0, 2).toUpperCase()}
                 </div>
               )}
             </div>
-            <div className="font-bold truncate">{match.awayTeam}</div>
+            <div className="font-bold text-sm truncate max-w-[90px]">{match.awayTeam}</div>
           </div>
         </div>
         
         {/* Match info footer */}
-        <div className="border-t px-4 py-2 bg-muted/20 text-sm">
+        <div className="border-t px-2 py-1.5 bg-muted/20 text-xs">
           <div className="flex items-center">
             <span className="font-medium">Data:</span>
-            <span className="ml-2">
+            <span className="ml-1">
               {formatDateToLocalString(match.matchDate, {
                 day: '2-digit',
                 month: '2-digit',
-                year: 'numeric',
                 hour: '2-digit',
                 minute: '2-digit'
               }, USER_TIMEZONE)}
             </span>
           </div>
           {match.description && (
-            <div className="text-indigo-600 text-xs mt-1 font-medium">
+            <div className="text-indigo-600 text-xs mt-0.5 font-medium truncate">
               {match.description}
             </div>
           )}
@@ -240,10 +239,10 @@ export default function MatchInfo() {
   
   return (
     <Card className="mb-8 shadow-md">
-      <CardHeader>
-        <CardTitle className="text-xl">Prossime partite</CardTitle>
+      <CardHeader className="px-4 py-3">
+        <CardTitle className="text-lg">Prossime partite</CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="px-3 py-2">
         {isLoading ? (
           <div className="space-y-4">
             <Skeleton className="h-32 w-full" />
@@ -252,7 +251,7 @@ export default function MatchInfo() {
         ) : matches && matches.length > 0 ? (
           matchDays.length > 0 ? (
             <Tabs defaultValue={matchDays[0].toString()}>
-              <TabsList className="mb-4 w-full">
+              <TabsList className="mb-2 w-full">
                 {matchDays.map(day => (
                   <TabsTrigger 
                     key={day}
