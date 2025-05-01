@@ -675,6 +675,41 @@ export default function PredictionForm() {
             </div>
           </div>
         )}
+        
+        {/* Mostra la schedina quando i pronostici sono completi */}
+        {allPredicted && selectedMatchDay && (
+          <div 
+            ref={receiptRef}
+            className={`mt-8 transition-all duration-500 ${showReceipt ? 'opacity-100' : 'opacity-0'}`}
+          >
+            <div className="flex flex-col lg:flex-row justify-between items-center mb-4">
+              <h3 className="text-xl font-bold text-primary">La tua schedina per la Giornata {selectedMatchDay}</h3>
+              
+              <div className="flex gap-2 mt-2 lg:mt-0">
+                <Button
+                  type="button"
+                  variant={showReceipt ? "outline" : "default"}
+                  onClick={() => setShowReceipt(!showReceipt)}
+                  className="text-sm"
+                >
+                  {showReceipt ? "Nascondi schedina" : "Mostra schedina"}
+                </Button>
+              </div>
+            </div>
+
+            {showReceipt && userPredictions && Array.isArray(userPredictions) && (
+              <div className="transition-all duration-500">
+                <MatchDayReceipt 
+                  matchDay={selectedMatchDay} 
+                  predictions={userPredictions.filter(p => 
+                    matches?.some(m => m.id === p.matchId && m.matchDay === selectedMatchDay)
+                  )}
+                  username={userPredictions[0]?.userId.toString() || ""}
+                />
+              </div>
+            )}
+          </div>
+        )}
       </CardContent>
     </Card>
   );
