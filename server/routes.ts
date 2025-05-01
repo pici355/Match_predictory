@@ -85,14 +85,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Authentication routes
   app.post("/api/register", async (req, res) => {
     try {
-      const validatedData = userSchema.parse(req.body);
+      // Custom validation for registration using PIN
+      const registrationSchema = z.object({
+        username: z.string().min(3, { message: "Il nome della squadra deve avere almeno 3 caratteri" }),
+        pin: z.string().length(4, { message: "Il PIN deve essere di 4 cifre" })
+          .regex(/^\d+$/, { message: "Il PIN deve contenere solo numeri" }),
+      });
+      
+      const validatedData = registrationSchema.parse(req.body);
       
       // Check if username already exists
       const existingUser = await storage.getUserByUsername(validatedData.username);
       if (existingUser) {
-        return res.status(400).json({ message: "Username already exists" });
+        return res.status(400).json({ message: "Il nome squadra è già in uso" });
       }
       
+      // Create the user with validated data
       const user = await storage.createUser(validatedData);
       
       // Store user ID in session
@@ -116,15 +124,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const loginSchema = z.object({
         username: z.string(),
-        password: z.string(),
+        pin: z.string(),
       });
       
-      const { username, password } = loginSchema.parse(req.body);
+      const { username, pin } = loginSchema.parse(req.body);
       
-      const user = await storage.getUserByUsername(username);
+      // Use the PIN verification method
+      const user = await storage.verifyUserPin(username, pin);
       
-      if (!user || user.password !== password) {
-        return res.status(401).json({ message: "Invalid credentials" });
+      if (!user) {
+        return res.status(401).json({ message: "Nome squadra o PIN non validi" });
       }
       
       // Store user ID in session

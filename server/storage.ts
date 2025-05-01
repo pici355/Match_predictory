@@ -17,6 +17,7 @@ export interface IStorage {
   // User operations
   getUser(id: number): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
+  verifyUserPin(username: string, pin: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   
   // Match operations
@@ -45,6 +46,16 @@ export class DatabaseStorage implements IStorage {
   
   async getUserByUsername(username: string): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.username, username));
+    return user;
+  }
+  
+  async verifyUserPin(username: string, pin: string): Promise<User | undefined> {
+    const [user] = await db.select()
+      .from(users)
+      .where(and(
+        eq(users.username, username),
+        eq(users.pin, pin)
+      ));
     return user;
   }
   
