@@ -502,6 +502,85 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Update user (Admin only)
+  app.patch("/api/users/:id", isAdmin, async (req, res) => {
+    try {
+      const userId = parseInt(req.params.id);
+      if (isNaN(userId)) {
+        return res.status(400).json({ message: "Invalid user ID" });
+      }
+      
+      // User update schema allows PIN to be optional for updates
+      const updateUserSchema = z.object({
+        username: z.string().min(3, { message: "Il nome della squadra deve avere almeno 3 caratteri" }),
+        pin: z.string().length(4, { message: "Il PIN deve essere di 4 cifre" })
+          .regex(/^\d+$/, { message: "Il PIN deve contenere solo numeri" })
+          .optional(),
+        isAdmin: z.boolean().optional(),
+      });
+      
+      const validatedData = updateUserSchema.parse(req.body);
+      
+      // If updating username, check if the new username already exists (but not for the same user)
+      if (validatedData.username) {
+        const existingUser = await storage.getUserByUsername(validatedData.username);
+        if (existingUser && existingUser.id !== userId) {
+          return res.status(400).json({ message: "Il nome squadra è già in uso" });
+        }
+      }
+      
+      const updatedUser = await storage.updateUser(userId, validatedData);
+      
+      if (!updatedUser) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      res.json(updatedUser);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid user data", errors: error.errors });
+      }
+      if (error instanceof Error) {
+        res.status(400).json({ message: error.message });
+      } else {
+        res.status(500).json({ message: "An unexpected error occurred" });
+      }
+    }
+  });
+  
+  // Delete user (Admin only)
+  app.delete("/api/users/:id", isAdmin, async (req, res) => {
+    try {
+      const userId = parseInt(req.params.id);
+      if (isNaN(userId)) {
+        return res.status(400).json({ message: "Invalid user ID" });
+      }
+      
+      // Check if user exists
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      // Don't allow deleting the current user
+      if (req.session.userId === userId) {
+        return res.status(400).json({ message: "You cannot delete your own account" });
+      }
+      
+      // Delete user
+      const success = await storage.deleteUser(userId);
+      
+      if (!success) {
+        return res.status(500).json({ message: "Failed to delete user" });
+      }
+      
+      res.json({ success: true, message: "User deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting user:", error);
+      res.status(500).json({ message: "Failed to delete user" });
+    }
+  });
+  
   // Match results
   app.post("/api/matches/:matchId/result", isAdmin, async (req, res) => {
     try {
