@@ -183,14 +183,14 @@ export default function UserPredictionHistory() {
               </div>
               {prediction.isCorrect === true ? (
                 <Badge className="bg-green-600 text-white flex items-center gap-1">
-                  <Check className="h-3 w-3" /> Vinto
+                  <Check className="h-3 w-3" /> Vinta
                 </Badge>
               ) : prediction.isCorrect === false && prediction.match?.hasResult ? (
                 <Badge variant="destructive" className="flex items-center gap-1">
-                  <X className="h-3 w-3" /> Perso
+                  <X className="h-3 w-3" /> Persa
                 </Badge>
               ) : (
-                <Badge variant="secondary" className="flex items-center gap-1">
+                <Badge variant="secondary" className="bg-gray-200 text-gray-700 flex items-center gap-1">
                   <Clock className="h-3 w-3" /> In corso
                 </Badge>
               )}

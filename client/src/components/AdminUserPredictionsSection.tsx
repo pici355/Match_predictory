@@ -302,13 +302,13 @@ export default function AdminUserPredictionsSection() {
                                 </div>
                                 <div>
                                   {prediction.isCorrect === true && (
-                                    <Badge className="bg-green-500">Corretto</Badge>
+                                    <Badge className="bg-green-600 text-white">Vinta</Badge>
                                   )}
                                   {prediction.isCorrect === false && match.hasResult && (
-                                    <Badge variant="destructive">Errato</Badge>
+                                    <Badge variant="destructive">Persa</Badge>
                                   )}
                                   {(prediction.isCorrect === null || (prediction.isCorrect === false && !match.hasResult)) && (
-                                    <Badge variant="outline">In corso</Badge>
+                                    <Badge variant="secondary" className="bg-gray-200 text-gray-700">In corso</Badge>
                                   )}
                                 </div>
                               </div>
