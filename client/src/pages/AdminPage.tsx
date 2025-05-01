@@ -182,6 +182,9 @@ export default function AdminPage() {
     queryKey: ['/api/teams'],
   });
 
+  // State for editing matches
+  const [editingMatchId, setEditingMatchId] = useState<number | null>(null);
+  
   // ======== MUTATIONS ========
   // Create match mutation
   const createMatch = useMutation({
@@ -203,11 +206,75 @@ export default function AdminPage() {
         matchDay: matchForm.getValues("matchDay"),
         description: "",
       });
+      setEditingMatchId(null);
     },
     onError: (error) => {
       toast({
         title: "Errore!",
         description: error instanceof Error ? error.message : "Si è verificato un errore durante l'aggiunta della partita.",
+        variant: "destructive",
+      });
+    }
+  });
+  
+  // Update match mutation
+  const updateMatch = useMutation({
+    mutationFn: async (data: { id: number; match: Partial<MatchFormValues> }) => {
+      const response = await apiRequest("PATCH", `/api/matches/${data.id}`, data.match);
+      return response.json();
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['/api/matches'] });
+      
+      // If there was a notice, show it in the toast
+      if (data.notice) {
+        toast({
+          title: "Partita aggiornata parzialmente",
+          description: data.notice,
+          variant: "default"
+        });
+      } else {
+        toast({
+          title: "Partita aggiornata!",
+          description: "La partita è stata aggiornata con successo.",
+        });
+      }
+      
+      matchForm.reset({
+        homeTeam: "",
+        awayTeam: "",
+        matchDate: new Date(),
+        matchDay: matchForm.getValues("matchDay"),
+        description: "",
+      });
+      setEditingMatchId(null);
+    },
+    onError: (error) => {
+      toast({
+        title: "Errore!",
+        description: error instanceof Error ? error.message : "Si è verificato un errore durante l'aggiornamento della partita.",
+        variant: "destructive",
+      });
+    }
+  });
+  
+  // Delete match mutation
+  const deleteMatch = useMutation({
+    mutationFn: async (id: number) => {
+      const response = await apiRequest("DELETE", `/api/matches/${id}`);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/matches'] });
+      toast({
+        title: "Partita eliminata!",
+        description: "La partita e tutti i pronostici associati sono stati eliminati con successo.",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Errore!",
+        description: error instanceof Error ? error.message : "Si è verificato un errore durante l'eliminazione della partita.",
         variant: "destructive",
       });
     }

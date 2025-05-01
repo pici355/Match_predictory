@@ -253,6 +253,79 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Update an existing match
+  app.patch("/api/matches/:id", isAdmin, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid match ID" });
+      }
+      
+      // Get the match to update
+      const match = await storage.getMatch(id);
+      if (!match) {
+        return res.status(404).json({ message: "Match not found" });
+      }
+      
+      // Check if predictions exist for this match
+      const predictions = await storage.getPredictionsByMatchId(id);
+      if (predictions.length > 0) {
+        // If there are predictions, only allow updating the description
+        const { description } = req.body;
+        const updatedMatch = await storage.updateMatch(id, { description });
+        
+        return res.json({
+          ...updatedMatch,
+          notice: "Only description was updated as predictions already exist for this match"
+        });
+      }
+      
+      // No predictions exist, full update is allowed
+      const validatedData = matchSchema.partial().parse(req.body);
+      const updatedMatch = await storage.updateMatch(id, validatedData);
+      
+      if (!updatedMatch) {
+        return res.status(500).json({ message: "Failed to update match" });
+      }
+      
+      res.json(updatedMatch);
+    } catch (error) {
+      console.error("Match update error:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid match data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to update match" });
+    }
+  });
+  
+  // Delete a match
+  app.delete("/api/matches/:id", isAdmin, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid match ID" });
+      }
+      
+      // Check if the match exists
+      const match = await storage.getMatch(id);
+      if (!match) {
+        return res.status(404).json({ message: "Match not found" });
+      }
+      
+      // Delete the match and its predictions
+      const success = await storage.deleteMatch(id);
+      
+      if (!success) {
+        return res.status(500).json({ message: "Failed to delete match" });
+      }
+      
+      res.json({ success: true, message: "Match and all associated predictions deleted" });
+    } catch (error) {
+      console.error("Match deletion error:", error);
+      res.status(500).json({ message: "Failed to delete match" });
+    }
+  });
+  
   // Upload Excel file with matches
   app.post("/api/matches/upload", isAdmin, upload.single("file"), async (req, res) => {
     if (!req.file) {

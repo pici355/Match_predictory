@@ -146,6 +146,28 @@ export class DatabaseStorage implements IStorage {
     return newMatch;
   }
   
+  async updateMatch(id: number, matchData: Partial<InsertMatch>): Promise<Match | undefined> {
+    const [updatedMatch] = await db.update(matches)
+      .set(matchData)
+      .where(eq(matches.id, id))
+      .returning();
+    return updatedMatch;
+  }
+  
+  async deleteMatch(id: number): Promise<boolean> {
+    try {
+      // First delete all predictions associated with this match
+      await db.delete(predictions).where(eq(predictions.matchId, id));
+      
+      // Then delete the match
+      await db.delete(matches).where(eq(matches.id, id));
+      return true;
+    } catch (error) {
+      console.error("Error deleting match:", error);
+      return false;
+    }
+  }
+  
   async updateMatchResult(matchId: number, result: string): Promise<Match | undefined> {
     // Update the match with the result
     const [updatedMatch] = await db.update(matches)
