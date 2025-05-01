@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { TabsContent, TabsList, TabsTrigger, Tabs } from '@/components/ui/tabs';
@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import { formatDateToLocalString, USER_TIMEZONE } from '@/lib/dateUtils';
+import { getQueryFn } from '@/lib/queryClient';
 
 type User = {
   id: number;
@@ -60,24 +61,72 @@ export default function AdminUserPredictionsSection() {
   const [selectedUser, setSelectedUser] = useState<string>('all');
   
   // Fetch all users
-  const { data: users, isLoading: isLoadingUsers } = useQuery<User[]>({
+  const { 
+    data: users, 
+    isLoading: isLoadingUsers,
+    error: usersError 
+  } = useQuery<User[]>({
     queryKey: ['/api/users'],
+    queryFn: getQueryFn({ on401: "returnNull" }),
   });
+  
+  // Log errors for debugging
+  useEffect(() => {
+    if (usersError) {
+      console.error("Error fetching users in AdminUserPredictionsSection:", usersError);
+    }
+  }, [usersError]);
   
   // Fetch all matches
-  const { data: matches, isLoading: isLoadingMatches } = useQuery<Match[]>({
+  const { 
+    data: matches, 
+    isLoading: isLoadingMatches,
+    error: matchesError 
+  } = useQuery<Match[]>({
     queryKey: ['/api/matches'],
+    queryFn: getQueryFn({ on401: "returnNull" }),
   });
+  
+  // Log match errors
+  useEffect(() => {
+    if (matchesError) {
+      console.error("Error fetching matches:", matchesError);
+    }
+  }, [matchesError]);
   
   // Fetch all predictions
-  const { data: predictions, isLoading: isLoadingPredictions } = useQuery<Prediction[]>({
+  const { 
+    data: predictions, 
+    isLoading: isLoadingPredictions,
+    error: predictionsError 
+  } = useQuery<Prediction[]>({
     queryKey: ['/api/predictions'],
+    queryFn: getQueryFn({ on401: "returnNull" }),
   });
   
+  // Log prediction errors
+  useEffect(() => {
+    if (predictionsError) {
+      console.error("Error fetching predictions:", predictionsError);
+    }
+  }, [predictionsError]);
+  
   // Fetch all payouts
-  const { data: payouts, isLoading: isLoadingPayouts } = useQuery<WinnerPayout[]>({
+  const { 
+    data: payouts, 
+    isLoading: isLoadingPayouts,
+    error: payoutsError 
+  } = useQuery<WinnerPayout[]>({
     queryKey: ['/api/prizes/payouts'],
+    queryFn: getQueryFn({ on401: "returnNull" }),
   });
+  
+  // Log payout errors
+  useEffect(() => {
+    if (payoutsError) {
+      console.error("Error fetching payouts:", payoutsError);
+    }
+  }, [payoutsError]);
   
   // Get unique match days
   const matchDays = React.useMemo(() => {
