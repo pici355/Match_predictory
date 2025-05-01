@@ -88,8 +88,8 @@ function MatchCard({ match }: { match: Match }) {
           </div>
         </div>
         
-        <div className="mt-4 flex justify-between items-center text-sm border-t pt-3">
-          <div>
+        <div className="mt-4 flex flex-wrap justify-between items-center text-sm border-t pt-3">
+          <div className="flex-1 min-w-[200px]">
             <span className="font-medium">Data:</span>{" "}
             {formatDateToLocalString(match.matchDate, {
               day: '2-digit',
@@ -99,7 +99,7 @@ function MatchCard({ match }: { match: Match }) {
               minute: '2-digit'
             }, USER_TIMEZONE)}
           </div>
-          <Badge variant={isEditable ? "secondary" : "outline"}>
+          <Badge variant={isEditable ? "secondary" : "outline"} className="mt-1 md:mt-0">
             {isEditable ? `Tempo: ${timeRemaining}` : "Chiuso"}
           </Badge>
         </div>
