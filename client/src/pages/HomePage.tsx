@@ -1,10 +1,20 @@
 import PredictionForm from "@/components/PredictionForm";
 import MatchInfo from "@/components/MatchInfo";
 import Footer from "@/components/Footer";
+import UserPredictionHistory from "@/components/UserPredictionHistory";
 import { Card, CardContent } from "@/components/ui/card";
 import { InfoIcon } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
 
 export default function HomePage() {
+  // Check if user is authenticated to show prediction history
+  const { data: user } = useQuery({
+    queryKey: ['/api/me'],
+    retry: false
+  });
+
+  const isAuthenticated = !!user;
+
   return (
     <div className="min-h-screen bg-gray-50 text-gray-800 py-8 px-4">
       <div className="max-w-md mx-auto">
@@ -34,11 +44,11 @@ export default function HomePage() {
                   </li>
                   <li className="flex items-start">
                     <span className="font-bold mr-1">•</span>
-                    <span><strong>4 pronostici corretti:</strong> 35% del montepremi totale</span>
+                    <span><strong>90% pronostici corretti:</strong> 35% del montepremi totale</span>
                   </li>
                   <li className="flex items-start">
                     <span className="font-bold mr-1">•</span>
-                    <span><strong>5 pronostici corretti:</strong> 65% del montepremi totale</span>
+                    <span><strong>100% pronostici corretti:</strong> 65% del montepremi totale</span>
                   </li>
                 </ul>
               </div>
@@ -46,8 +56,15 @@ export default function HomePage() {
           </CardContent>
         </Card>
         
+        {/* Prediction Form */}
         <PredictionForm />
+        
+        {/* User Prediction History (only for authenticated users) */}
+        {isAuthenticated && <UserPredictionHistory />}
+        
+        {/* Match Information */}
         <MatchInfo />
+        
         <Footer />
       </div>
     </div>
