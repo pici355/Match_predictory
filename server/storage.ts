@@ -29,6 +29,8 @@ export interface IStorage {
   getUserByUsername(username: string): Promise<User | undefined>;
   verifyUserPin(username: string, pin: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
+  updateUser(id: number, user: Partial<InsertUser>): Promise<User | undefined>;
+  deleteUser(id: number): Promise<boolean>;
   getAllUsers(): Promise<User[]>;
   
   // Match operations
@@ -101,6 +103,28 @@ export class DatabaseStorage implements IStorage {
   
   async getAllUsers(): Promise<User[]> {
     return await db.select().from(users);
+  }
+  
+  async updateUser(id: number, userData: Partial<InsertUser>): Promise<User | undefined> {
+    const [updatedUser] = await db.update(users)
+      .set(userData)
+      .where(eq(users.id, id))
+      .returning();
+    return updatedUser;
+  }
+  
+  async deleteUser(id: number): Promise<boolean> {
+    try {
+      // Delete all predictions made by this user
+      await db.delete(predictions).where(eq(predictions.userId, id));
+      
+      // Delete the user
+      const result = await db.delete(users).where(eq(users.id, id));
+      return true;
+    } catch (error) {
+      console.error("Error deleting user:", error);
+      return false;
+    }
   }
   
   // Match operations
