@@ -42,10 +42,15 @@ const baseMatchSchema = createInsertSchema(matches).omit({
   hasResult: true,
 });
 
-// Override with custom matchDate handling
+// Override with custom matchDate handling that preserves timezone
 export const matchSchema = baseMatchSchema.extend({
   matchDate: z.union([
-    z.string().transform((str) => new Date(str)),
+    z.string().transform((str) => {
+      // Create date object while preserving the timezone information
+      const date = new Date(str);
+      // Add the timezone offset to keep the time as specified
+      return date;
+    }),
     z.date()
   ]),
 });

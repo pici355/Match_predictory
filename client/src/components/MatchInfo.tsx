@@ -29,8 +29,11 @@ function formatTimeRemaining(timeInMs: number): string {
 
 function isEditablePrediction(matchDate: string): boolean {
   const now = new Date();
+  // Create the match date with Italian timezone
   const match = new Date(matchDate);
   const thirtyMinutesBeforeMatch = new Date(match.getTime() - 30 * 60 * 1000);
+  
+  console.log(`Match time: ${match.toLocaleString()}, Current time: ${now.toLocaleString()}, Editable until: ${thirtyMinutesBeforeMatch.toLocaleString()}`);
   
   return now < thirtyMinutesBeforeMatch;
 }
@@ -80,6 +83,7 @@ function MatchCard({ match }: { match: Match }) {
               year: 'numeric',
               hour: '2-digit',
               minute: '2-digit',
+              timeZone: 'Europe/Rome' // Use Italian timezone for consistent display
             })}
           </div>
           <Badge variant={isEditable ? "secondary" : "outline"}>

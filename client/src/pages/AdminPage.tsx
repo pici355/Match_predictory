@@ -667,7 +667,10 @@ export default function AdminPage() {
                                 type="datetime-local" 
                                 value={field.value ? new Date(field.value).toISOString().slice(0, 16) : ''} 
                                 onChange={(e) => {
-                                  const date = new Date(e.target.value);
+                                  // Parse the date but keep the timezone as is
+                                  const dateString = e.target.value;
+                                  const date = new Date(dateString);
+                                  console.log("Selected date input:", dateString, "Date object:", date);
                                   field.onChange(date);
                                 }}
                               />
