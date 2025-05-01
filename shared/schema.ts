@@ -91,7 +91,7 @@ export const predictSchema = z.object({
   userId: z.number(),
   matchId: z.number(),
   prediction: z.string(), // "1", "X", or "2"
-  credits: z.number().min(2).max(8), // Credits between 2-8
+  credits: z.number().default(1), // Valore fisso a 1 credito per previsione
 });
 
 // Prize distribution table to keep track of payouts
