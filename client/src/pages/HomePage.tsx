@@ -40,10 +40,6 @@ export default function HomePage() {
                   </li>
                   <li className="flex items-start">
                     <span className="font-bold mr-1">•</span>
-                    <span><strong>Solo 100% pronostici corretti:</strong> 10 crediti</span>
-                  </li>
-                  <li className="flex items-start">
-                    <span className="font-bold mr-1">•</span>
                     <span>I pronostici sono <strong>gratuiti</strong></span>
                   </li>
                 </ul>
