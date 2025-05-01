@@ -2,7 +2,7 @@
 
 Gentile tester,
 
-Ti ringraziamo per aver accettato di provare FantaSchedina Web. Questa guida ti aiuterà a testare efficacemente le nuove funzionalità dell'applicazione, in particolare il sistema di distribuzione dei premi basato sulle percentuali.
+Ti ringraziamo per aver accettato di provare FantaSchedina Web. Questa guida ti aiuterà a testare efficacemente le nuove funzionalità dell'applicazione, in particolare il sistema di distribuzione dei premi semplificato e la funzionalità di condivisione delle schedine.
 
 ## Accesso
 
@@ -14,9 +14,10 @@ Ti ringraziamo per aver accettato di provare FantaSchedina Web. Questa guida ti 
 ## Cosa Testare
 
 ### 1. Sistema di Previsioni
-- Prova a inserire pronostici per almeno 5 partite in una giornata
-- Assegna differenti crediti (da 2 a 8) a ciascun pronostico
+- Prova a inserire pronostici per almeno 5 partite in una giornata (le scommesse sono ora gratuite)
 - Verifica che sia possibile modificare i pronostici prima del blocco (30 minuti prima dell'inizio della partita)
+- Controlla che appaia la schedina "Indistruttibili Bet" dopo aver fatto le previsioni
+- Prova a condividere la schedina via WhatsApp o a scaricarla come immagine
 
 ### 2. Visualizzazione delle Partite
 - Controlla che gli orari delle partite siano visualizzati correttamente nel tuo fuso orario
@@ -25,7 +26,7 @@ Ti ringraziamo per aver accettato di provare FantaSchedina Web. Questa guida ti 
 ### 3. Sistema di Distribuzione dei Premi (Solo Amministratori)
 - Se hai accesso da amministratore, vai alla sezione "Gestione Premi"
 - Seleziona una giornata e calcola la distribuzione dei premi
-- Verifica che vengano mostrate le percentuali corrette: 65% per chi ha 100% di pronostici corretti e 35% per chi ha 90% di pronostici corretti
+- Verifica che venga mostrato solo il premio di 10 crediti per chi ha il 100% di pronostici corretti
 
 ## Feedback Richiesto
 

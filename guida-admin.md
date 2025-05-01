@@ -69,17 +69,14 @@ In qualità di amministratore, hai accesso a funzionalità aggiuntive per gestir
 
 ### 4. Gestione Premi
 
-**Nota importante: Il sistema di distribuzione dei premi è stato aggiornato al metodo basato sulla percentuale (90% e 100%)**
+**Nota importante: Il sistema di distribuzione dei premi è stato semplificato - solo chi ottiene il 100% di previsioni corrette riceve 10 crediti**
 
 #### Calcolare la distribuzione dei premi:
 1. Seleziona la giornata di interesse
 2. Clicca su "Calcola"
 3. Il sistema mostrerà:
-   - Montepremi totale della giornata
-   - 35% del montepremi per utenti con 90% di previsioni corrette
-   - 65% del montepremi per utenti con 100% di previsioni corrette
-   - Numero di utenti in ciascuna categoria
-   - Importo per utente in ciascuna categoria
+   - Numero di utenti con 100% di previsioni corrette
+   - Importo fisso di 10 crediti per utente vincente
 
 #### Distribuire i premi:
 1. Dopo aver calcolato la distribuzione, clicca su "Distribuisci"
