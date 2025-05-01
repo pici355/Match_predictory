@@ -10,11 +10,14 @@ import {
   type InsertPrizeDistribution,
   type WinnerPayout,
   type InsertWinnerPayout,
+  type Team,
+  type InsertTeam,
   predictions,
   matches,
   users,
   prizeDistributions,
-  winnerPayouts
+  winnerPayouts,
+  teams
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, lte, gte, sql, inArray, count } from "drizzle-orm";
@@ -34,6 +37,14 @@ export interface IStorage {
   getMatch(id: number): Promise<Match | undefined>;
   createMatch(match: InsertMatch): Promise<Match>;
   updateMatchResult(matchId: number, result: string): Promise<Match | undefined>;
+  
+  // Team operations
+  getAllTeams(): Promise<Team[]>;
+  getTeam(id: number): Promise<Team | undefined>;
+  getTeamByName(name: string): Promise<Team | undefined>;
+  createTeam(team: InsertTeam): Promise<Team>;
+  updateTeamCredits(id: number, credits: number): Promise<Team | undefined>;
+  deleteTeam(id: number): Promise<boolean>;
   
   // Prediction operations
   getAllPredictions(): Promise<Prediction[]>;
@@ -125,6 +136,39 @@ export class DatabaseStorage implements IStorage {
       .where(eq(predictions.matchId, matchId));
     
     return updatedMatch;
+  }
+  
+  // Team operations
+  async getAllTeams(): Promise<Team[]> {
+    return await db.select().from(teams);
+  }
+  
+  async getTeam(id: number): Promise<Team | undefined> {
+    const [team] = await db.select().from(teams).where(eq(teams.id, id));
+    return team;
+  }
+  
+  async getTeamByName(name: string): Promise<Team | undefined> {
+    const [team] = await db.select().from(teams).where(eq(teams.name, name));
+    return team;
+  }
+  
+  async createTeam(team: InsertTeam): Promise<Team> {
+    const [newTeam] = await db.insert(teams).values(team).returning();
+    return newTeam;
+  }
+  
+  async updateTeamCredits(id: number, credits: number): Promise<Team | undefined> {
+    const [updatedTeam] = await db.update(teams)
+      .set({ credits })
+      .where(eq(teams.id, id))
+      .returning();
+    return updatedTeam;
+  }
+  
+  async deleteTeam(id: number): Promise<boolean> {
+    const result = await db.delete(teams).where(eq(teams.id, id));
+    return !!result;
   }
   
   // Prediction operations

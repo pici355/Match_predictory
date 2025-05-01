@@ -123,6 +123,21 @@ export const winnerPayoutSchema = createInsertSchema(winnerPayouts).omit({
   createdAt: true,
 });
 
+// Teams table
+export const teams = pgTable("teams", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull().unique(),
+  logo: text("logo"), // Path to logo image
+  managerName: text("manager_name").notNull(), // Team manager's name
+  credits: integer("credits").default(0), // Current credit count
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const teamSchema = createInsertSchema(teams).omit({
+  id: true,
+  createdAt: true,
+});
+
 // Types
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof userSchema>;
@@ -139,3 +154,6 @@ export type InsertPrizeDistribution = z.infer<typeof prizeDistributionSchema>;
 
 export type WinnerPayout = typeof winnerPayouts.$inferSelect;
 export type InsertWinnerPayout = z.infer<typeof winnerPayoutSchema>;
+
+export type Team = typeof teams.$inferSelect;
+export type InsertTeam = z.infer<typeof teamSchema>;

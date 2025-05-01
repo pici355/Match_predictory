@@ -359,6 +359,103 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Team management routes (Admin only)
+  app.get("/api/teams", async (_req, res) => {
+    try {
+      const teams = await storage.getAllTeams();
+      res.json(teams);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch teams" });
+    }
+  });
+  
+  app.get("/api/teams/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid team ID" });
+      }
+      
+      const team = await storage.getTeam(id);
+      
+      if (!team) {
+        return res.status(404).json({ message: "Team not found" });
+      }
+      
+      res.json(team);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch team" });
+    }
+  });
+  
+  app.post("/api/teams", isAdmin, async (req, res) => {
+    try {
+      const teamSchema = z.object({
+        name: z.string().min(2, { message: "Il nome della squadra deve avere almeno 2 caratteri" }),
+        logo: z.string().optional(),
+        managerName: z.string().min(2, { message: "Il nome del gestore deve avere almeno 2 caratteri" }),
+        credits: z.number().optional(),
+      });
+      
+      const validatedData = teamSchema.parse(req.body);
+      const team = await storage.createTeam(validatedData);
+      res.status(201).json(team);
+    } catch (error) {
+      if (error instanceof Error) {
+        res.status(400).json({ message: error.message });
+      } else {
+        res.status(500).json({ message: "An unexpected error occurred" });
+      }
+    }
+  });
+  
+  app.put("/api/teams/:id/credits", isAdmin, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid team ID" });
+      }
+      
+      const creditSchema = z.object({
+        credits: z.number(),
+      });
+      
+      const { credits } = creditSchema.parse(req.body);
+      const team = await storage.updateTeamCredits(id, credits);
+      
+      if (!team) {
+        return res.status(404).json({ message: "Team not found" });
+      }
+      
+      res.json(team);
+    } catch (error) {
+      if (error instanceof Error) {
+        res.status(400).json({ message: error.message });
+      } else {
+        res.status(500).json({ message: "An unexpected error occurred" });
+      }
+    }
+  });
+  
+  app.delete("/api/teams/:id", isAdmin, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid team ID" });
+      }
+      
+      const success = await storage.deleteTeam(id);
+      
+      if (!success) {
+        return res.status(404).json({ message: "Team not found or could not be deleted" });
+      }
+      
+      res.json({ message: "Team deleted successfully" });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete team" });
+    }
+  });
+  
   // User management routes (Admin only)
   app.get("/api/users", isAdmin, async (_req, res) => {
     try {
