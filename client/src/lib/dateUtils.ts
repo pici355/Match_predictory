@@ -48,31 +48,68 @@ let hasAttemptedTimezoneDetection = false;
  * @returns Promise that resolves when timezone detection is complete
  */
 export async function detectTimezoneFromIP(): Promise<string> {
-  if (detectedTimezoneFromIP || hasAttemptedTimezoneDetection) {
-    return detectedTimezoneFromIP || USER_TIMEZONE;
+  // Use cached result if available
+  if (detectedTimezoneFromIP) {
+    return detectedTimezoneFromIP;
+  }
+  
+  // If we've already tried and failed, don't try again in this session
+  if (hasAttemptedTimezoneDetection) {
+    return USER_TIMEZONE;
   }
   
   hasAttemptedTimezoneDetection = true;
   
+  // Try multiple geolocation services to increase chances of success
   try {
-    // Use a free IP geolocation service with timezone info
+    // First attempt with ipapi.co
     const response = await fetch('https://ipapi.co/json/');
-    if (!response.ok) {
-      throw new Error('Failed to fetch IP data');
+    if (response.ok) {
+      const data = await response.json();
+      if (data.timezone) {
+        detectedTimezoneFromIP = data.timezone;
+        setUserTimezone(data.timezone);
+        console.log('Detected timezone from ipapi.co:', data.timezone);
+        return data.timezone;
+      }
     }
     
-    const data = await response.json();
-    if (data.timezone) {
-      detectedTimezoneFromIP = data.timezone;
-      USER_TIMEZONE = data.timezone;
-      console.log('Detected timezone from IP:', USER_TIMEZONE);
-      return USER_TIMEZONE;
-    } else {
-      throw new Error('No timezone in response');
+    // If the first service fails, try with WorldTimeAPI
+    const fallbackResponse = await fetch('http://worldtimeapi.org/api/ip');
+    if (fallbackResponse.ok) {
+      const data = await fallbackResponse.json();
+      if (data.timezone) {
+        detectedTimezoneFromIP = data.timezone;
+        setUserTimezone(data.timezone);
+        console.log('Detected timezone from worldtimeapi.org:', data.timezone);
+        return data.timezone;
+      }
     }
+    
+    // If both fail, fall back to browser detected timezone
+    throw new Error('No timezone information available from IP geolocation services');
   } catch (error) {
     console.error('Failed to detect timezone from IP:', error);
-    return USER_TIMEZONE; // Fallback to browser timezone
+    
+    // Fallback to browser timezone, but make intelligent guesses for European countries
+    // Try to use the browser's language to make a better guess
+    const browserLang = navigator.language.toLowerCase();
+    
+    if (browserLang.includes('ro')) {
+      // Romanian language suggests Romania timezone
+      const romaniaTimezone = 'Europe/Bucharest';
+      console.log('Detected Romanian language, defaulting to', romaniaTimezone);
+      detectedTimezoneFromIP = romaniaTimezone;
+      setUserTimezone(romaniaTimezone);
+      return romaniaTimezone;
+    }
+    
+    if (browserLang.includes('it')) {
+      // Italian language suggests Italy timezone
+      return DEFAULT_TIMEZONE; // Already set to Europe/Rome
+    }
+    
+    return USER_TIMEZONE; // Final fallback to browser timezone
   }
 }
 

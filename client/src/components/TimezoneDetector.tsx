@@ -14,6 +14,7 @@ import { Clock } from 'lucide-react';
 // List of common timezones for selection
 const COMMON_TIMEZONES = [
   'Europe/Rome',
+  'Europe/Bucharest',
   'Europe/London',
   'Europe/Paris',
   'Europe/Berlin',
@@ -68,15 +69,23 @@ export default function TimezoneDetector() {
 
   // Format function for timezone display
   function formatTimezoneDisplay(timezone: string): string {
-    // Calculate offset from UTC
+    // Get current date object
     const now = new Date();
-    const offset = -now.getTimezoneOffset() / 60; // Convert to hours
-    const offsetStr = offset >= 0 ? `+${offset}` : `${offset}`;
     
     // Convert timezone name to more readable format (e.g., Europe/Rome -> Rome)
     const cityName = timezone.split('/').pop()?.replace('_', ' ');
     
-    return `${cityName} (UTC${offsetStr})`;
+    // Get the offset string for this specific timezone (not the browser's timezone)
+    const formatter = new Intl.DateTimeFormat('en-GB', {
+      timeZone: timezone,
+      timeZoneName: 'short'
+    });
+    
+    // Extract the timezone abbreviation (e.g., "EEST" for Eastern European Summer Time)
+    const formatted = formatter.format(now);
+    const tzAbbr = formatted.split(' ').pop();
+    
+    return `${cityName} (${tzAbbr})`;
   }
 
   return (
@@ -94,43 +103,54 @@ export default function TimezoneDetector() {
       </div>
       
       <div className="flex flex-wrap gap-2 items-center">
-        <Label htmlFor="timezone-select" className="text-xs whitespace-nowrap">
-          Fuso orario:
-        </Label>
-        <Select value={selectedTimezone} onValueChange={handleTimezoneChange}>
-          <SelectTrigger className="h-8 text-xs min-w-[160px]" id="timezone-select">
-            <SelectValue placeholder="Seleziona fuso orario" />
-          </SelectTrigger>
-          <SelectContent>
-            {/* Show detected timezone at top if available */}
-            {detectedTimezone && (
-              <SelectItem value={detectedTimezone} className="text-xs">
-                {formatTimezoneDisplay(detectedTimezone)} (rilevato)
-              </SelectItem>
-            )}
-            
-            {/* Divider if we have both detected and default */}
-            {detectedTimezone && detectedTimezone !== DEFAULT_TIMEZONE && (
-              <div className="h-px bg-muted my-1" />
-            )}
-            
-            {/* Default timezone */}
-            <SelectItem value={DEFAULT_TIMEZONE} className="text-xs font-medium">
-              {formatTimezoneDisplay(DEFAULT_TIMEZONE)} (predefinito)
-            </SelectItem>
-            
-            {/* Common timezones */}
-            <div className="h-px bg-muted my-1" />
-            
-            {COMMON_TIMEZONES.filter(tz => 
-              tz !== detectedTimezone && tz !== DEFAULT_TIMEZONE
-            ).map(tz => (
-              <SelectItem key={tz} value={tz} className="text-xs">
-                {formatTimezoneDisplay(tz)}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <div className="flex flex-col">
+          <Label htmlFor="timezone-select" className="text-xs whitespace-nowrap mb-1">
+            Fuso orario:
+          </Label>
+          <div className="flex items-center gap-2">
+            <Select value={selectedTimezone} onValueChange={handleTimezoneChange}>
+              <SelectTrigger className="h-8 text-xs min-w-[160px]" id="timezone-select">
+                <SelectValue placeholder="Seleziona fuso orario" />
+              </SelectTrigger>
+              <SelectContent>
+                {/* Show detected timezone at top if available */}
+                {detectedTimezone && (
+                  <SelectItem value={detectedTimezone} className="text-xs">
+                    {formatTimezoneDisplay(detectedTimezone)} (rilevato)
+                  </SelectItem>
+                )}
+                
+                {/* Divider if we have both detected and default */}
+                {detectedTimezone && detectedTimezone !== DEFAULT_TIMEZONE && (
+                  <div className="h-px bg-muted my-1" />
+                )}
+                
+                {/* Default timezone */}
+                <SelectItem value={DEFAULT_TIMEZONE} className="text-xs font-medium">
+                  {formatTimezoneDisplay(DEFAULT_TIMEZONE)} (predefinito)
+                </SelectItem>
+                
+                {/* Europe/Bucharest for Romania */}
+                {DEFAULT_TIMEZONE !== 'Europe/Bucharest' && detectedTimezone !== 'Europe/Bucharest' && (
+                  <SelectItem value="Europe/Bucharest" className="text-xs font-medium bg-amber-50">
+                    {formatTimezoneDisplay('Europe/Bucharest')} (Romania)
+                  </SelectItem>
+                )}
+                
+                {/* Common timezones */}
+                <div className="h-px bg-muted my-1" />
+                
+                {COMMON_TIMEZONES.filter(tz => 
+                  tz !== detectedTimezone && tz !== DEFAULT_TIMEZONE && tz !== 'Europe/Bucharest'
+                ).map(tz => (
+                  <SelectItem key={tz} value={tz} className="text-xs">
+                    {formatTimezoneDisplay(tz)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
         
         <Button 
           variant="outline" 
