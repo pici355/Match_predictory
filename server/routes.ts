@@ -737,8 +737,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get all user predictions for this match day using our optimized method
       const existingPredictions = await storage.getUserPredictionsByMatchDay(userId, match.matchDay);
       
-      // Check if this is an existing prediction being updated
+      // Check if this user already has a prediction for this match
       const existingPrediction = existingPredictions.find(p => p.matchId === validatedData.matchId);
+      
+      // If the user already has a prediction for this match, update it instead of creating a new one
+      if (existingPrediction) {
+        // Check if the prediction is still editable (30 mins before match start)
+        const isEditable = await storage.isPredictionEditable(existingPrediction.id);
+        
+        if (!isEditable) {
+          return res.status(400).json({ message: "Il pronostico non è più modificabile (meno di 30 minuti all'inizio della partita)" });
+        }
+        
+        // Update the existing prediction
+        const updatedPrediction = await storage.updatePrediction(existingPrediction.id, {
+          prediction: validatedData.prediction,
+          credits: validatedData.credits
+        });
+        
+        return res.json(updatedPrediction);
+      }
       
       // Get all match days to determine if the user is trying to predict a future match day
       const currentMatchDay = match.matchDay;
