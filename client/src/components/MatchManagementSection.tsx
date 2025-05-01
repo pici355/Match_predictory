@@ -486,11 +486,11 @@ export default function MatchManagementSection() {
                   </tr>
                 </thead>
                 <tbody>
-                  {matches.map((match) => (
-                    <tr key={match.id} className="border-b">
-                      <td className="px-3 py-2 text-sm">{match.matchDay}</td>
+                  {matches.map((matchItem) => (
+                    <tr key={matchItem.id} className="border-b">
+                      <td className="px-3 py-2 text-sm">{matchItem.matchDay}</td>
                       <td className="px-3 py-2 text-sm whitespace-nowrap">
-                        {formatDateToLocalString(match.matchDate, {
+                        {formatDateToLocalString(matchItem.matchDate, {
                           day: '2-digit',
                           month: '2-digit',
                           hour: '2-digit',
@@ -499,23 +499,23 @@ export default function MatchManagementSection() {
                       </td>
                       <td className="px-3 py-2 text-sm">
                         <div className="flex flex-col gap-1">
-                          <div>{match.homeTeam}</div>
-                          <div>{match.awayTeam}</div>
-                          {match.description && (
-                            <div className="text-xs text-gray-500">{match.description}</div>
+                          <div>{matchItem.homeTeam}</div>
+                          <div>{matchItem.awayTeam}</div>
+                          {matchItem.description && (
+                            <div className="text-xs text-gray-500">{matchItem.description}</div>
                           )}
                         </div>
                       </td>
                       <td className="px-3 py-2 text-sm">
-                        {match.hasResult ? (
-                          <span className="font-medium">{match.result}</span>
+                        {matchItem.hasResult ? (
+                          <span className="font-medium">{matchItem.result}</span>
                         ) : (
                           <div className="flex space-x-2">
                             <Button 
                               size="sm" 
                               variant="outline"
                               className="text-xs h-7"
-                              onClick={() => setMatchResult.mutate({ matchId: match.id, result: "1" })}
+                              onClick={() => setMatchResult.mutate({ matchId: matchItem.id, result: "1" })}
                             >
                               1
                             </Button>
@@ -523,7 +523,7 @@ export default function MatchManagementSection() {
                               size="sm" 
                               variant="outline"
                               className="text-xs h-7"
-                              onClick={() => setMatchResult.mutate({ matchId: match.id, result: "X" })}
+                              onClick={() => setMatchResult.mutate({ matchId: matchItem.id, result: "X" })}
                             >
                               X
                             </Button>
@@ -531,7 +531,7 @@ export default function MatchManagementSection() {
                               size="sm" 
                               variant="outline"
                               className="text-xs h-7"
-                              onClick={() => setMatchResult.mutate({ matchId: match.id, result: "2" })}
+                              onClick={() => setMatchResult.mutate({ matchId: matchItem.id, result: "2" })}
                             >
                               2
                             </Button>
@@ -545,17 +545,14 @@ export default function MatchManagementSection() {
                             size="sm"
                             className="h-7 bg-blue-50 hover:bg-blue-100 text-blue-700"
                             onClick={() => {
-                              const match = matches.find(m => m.id === match.id);
-                              if (match) {
-                                matchForm.reset({
-                                  homeTeam: match.homeTeam,
-                                  awayTeam: match.awayTeam,
-                                  matchDay: match.matchDay,
-                                  description: match.description || "",
-                                  matchDate: new Date(match.matchDate),
-                                });
-                                setEditingMatchId(match.id);
-                              }
+                              matchForm.reset({
+                                homeTeam: matchItem.homeTeam,
+                                awayTeam: matchItem.awayTeam,
+                                matchDay: matchItem.matchDay,
+                                description: matchItem.description || "",
+                                matchDate: new Date(matchItem.matchDate),
+                              });
+                              setEditingMatchId(matchItem.id);
                             }}
                           >
                             <Edit2 className="h-4 w-4 mr-1" /> Modifica
@@ -568,7 +565,7 @@ export default function MatchManagementSection() {
                             onClick={() => {
                               // Verifica che non ci siano previsioni collegate
                               if (confirm(`Sei sicuro di voler eliminare questa partita?\nNota: questa azione potrebbe influenzare i pronostici esistenti.`)) {
-                                deleteMatch.mutate(match.id);
+                                deleteMatch.mutate(matchItem.id);
                               }
                             }}
                           >
