@@ -84,7 +84,7 @@ export default function PredictionForm() {
   // Get available match days
   const matchDays = Object.keys(matchesByDay).map(Number).sort((a, b) => a - b);
 
-  // Check if all matches in a match day have predictions (must be exactly 5)
+  // Check if enough matches in a match day have predictions (minimum 5)
   useEffect(() => {
     if (selectedMatchDay && matches && userPredictions && Array.isArray(userPredictions)) {
       const matchesForDay = matches.filter(m => m.matchDay === selectedMatchDay);
@@ -92,12 +92,12 @@ export default function PredictionForm() {
         matchesForDay.some(m => m.id === p.matchId)
       );
       
-      // Calculate how many more predictions are needed to reach 5
+      // Calculate how many more predictions are needed to reach minimum of 5
       const predictionsNeeded = 5 - predictionsForDay.length;
       setPredictionsRemaining(predictionsNeeded > 0 ? predictionsNeeded : 0);
       
-      // All predicted only if we have exactly 5 predictions for this match day
-      setAllPredicted(predictionsForDay.length === 5);
+      // All predicted if we have at least 5 predictions for this match day
+      setAllPredicted(predictionsForDay.length >= 5);
     }
   }, [selectedMatchDay, matches, userPredictions]);
 
@@ -202,7 +202,7 @@ export default function PredictionForm() {
                   ) : (
                     <div>
                       <div className="text-amber-600 font-medium">
-                        Devi pronosticare esattamente 5 partite per questa giornata.
+                        Devi pronosticare minimo 5 partite per questa giornata.
                         {predictionsRemaining > 0 && (
                           <span className="ml-1">Ancora {predictionsRemaining} da pronosticare.</span>
                         )}

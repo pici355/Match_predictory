@@ -554,14 +554,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get all user predictions for this match day using our optimized method
       const existingPredictions = await storage.getUserPredictionsByMatchDay(userId, match.matchDay);
       
-      // Only allow prediction if user hasn't already predicted 5 matches in this match day
-      // or if user is updating an existing prediction
+      // Check if this is an existing prediction being updated
       const existingPrediction = existingPredictions.find(p => p.matchId === validatedData.matchId);
       
-      if (existingPredictions.length >= 5 && !existingPrediction) {
-        return res.status(400).json({ 
-          message: "Hai già pronosticato 5 partite per questa giornata. Non puoi aggiungerne altre."
-        });
+      // Get all match days to determine if the user is trying to predict a future match day
+      const currentMatchDay = match.matchDay;
+      
+      // Get all distinct match days
+      const allMatches = await storage.getAllMatches();
+      const matchDays = allMatches.map(m => m.matchDay);
+      // Filter out duplicates manually instead of using Set
+      const uniqueMatchDays: number[] = [];
+      matchDays.forEach(day => {
+        if (!uniqueMatchDays.includes(day)) {
+          uniqueMatchDays.push(day);
+        }
+      });
+      const minMatchDay = Math.min(...uniqueMatchDays);
+      
+      // Require at least 5 predictions for the minimum match day first
+      if (currentMatchDay > minMatchDay) {
+        const predictionsForMinDay = await storage.getUserPredictionsByMatchDay(userId, minMatchDay);
+        if (predictionsForMinDay.length < 5) {
+          return res.status(400).json({
+            message: `Devi prima fare minimo 5 pronostici per la giornata ${minMatchDay} prima di poter pronosticare le giornate successive.`
+          });
+        }
       }
       
       const savedPrediction = await storage.createPrediction(validatedData);

@@ -18,7 +18,11 @@ export default function HomePage() {
                 <ul className="mt-2 text-sm space-y-1.5 text-blue-700">
                   <li className="flex items-start">
                     <span className="font-bold mr-1">•</span>
-                    <span>Devi pronosticare <strong>esattamente 5 partite</strong> per ogni giornata</span>
+                    <span>Devi pronosticare <strong>minimo 5 partite</strong> per ogni giornata</span>
+                  </li>
+                  <li className="flex items-start">
+                    <span className="font-bold mr-1">•</span>
+                    <span>Non è possibile selezionare partite dai giorni successivi</span>
                   </li>
                   <li className="flex items-start">
                     <span className="font-bold mr-1">•</span>
