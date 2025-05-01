@@ -101,6 +101,7 @@ export default function AdminPage() {
   const [file, setFile] = useState<File | null>(null);
   const [selectedMatchDay, setSelectedMatchDay] = useState<number | null>(null);
   const [editingTeamId, setEditingTeamId] = useState<number | null>(null);
+  const [editingUserId, setEditingUserId] = useState<number | null>(null);
   const { toast } = useToast();
 
   // ======== FORMS ========
@@ -230,11 +231,68 @@ export default function AdminPage() {
         pin: "",
         isAdmin: false,
       });
+      setEditingUserId(null);
     },
     onError: (error) => {
       toast({
         title: "Errore!",
         description: error instanceof Error ? error.message : "Si è verificato un errore durante l'aggiunta dell'utente.",
+        variant: "destructive",
+      });
+    }
+  });
+
+  // Update user mutation
+  const updateUser = useMutation({
+    mutationFn: async ({ id, data }: { id: number, data: UserFormValues }) => {
+      const response = await apiRequest("PATCH", `/api/users/${id}`, data);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/users'] });
+      toast({
+        title: "Utente aggiornato!",
+        description: "L'utente è stato aggiornato con successo.",
+      });
+      userForm.reset({
+        username: "",
+        pin: "",
+        isAdmin: false,
+      });
+      setEditingUserId(null);
+    },
+    onError: (error) => {
+      toast({
+        title: "Errore!",
+        description: error instanceof Error ? error.message : "Si è verificato un errore durante l'aggiornamento dell'utente.",
+        variant: "destructive",
+      });
+    }
+  });
+  
+  // Delete user mutation
+  const deleteUser = useMutation({
+    mutationFn: async (id: number) => {
+      const response = await apiRequest("DELETE", `/api/users/${id}`);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/users'] });
+      toast({
+        title: "Utente eliminato!",
+        description: "L'utente è stato eliminato con successo.",
+      });
+      setEditingUserId(null);
+      userForm.reset({
+        username: "",
+        pin: "",
+        isAdmin: false,
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Errore!",
+        description: error instanceof Error ? error.message : "Si è verificato un errore durante l'eliminazione dell'utente.",
         variant: "destructive",
       });
     }
@@ -442,7 +500,13 @@ export default function AdminPage() {
   }
 
   function onSubmitUser(data: UserFormValues) {
-    createUser.mutate(data);
+    if (editingUserId) {
+      // If we're editing an existing user
+      updateUser.mutate({ id: editingUserId, data });
+    } else {
+      // If we're creating a new user
+      createUser.mutate(data);
+    }
   }
 
   function onSubmitResult(data: MatchResultFormValues) {
@@ -802,8 +866,8 @@ export default function AdminPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <Card>
                     <CardHeader>
-                      <CardTitle>Aggiungi un nuovo utente</CardTitle>
-                      <CardDescription>Crea un account per un nuovo giocatore</CardDescription>
+                      <CardTitle>{editingUserId ? "Modifica utente" : "Aggiungi un nuovo utente"}</CardTitle>
+                      <CardDescription>{editingUserId ? "Aggiorna i dettagli dell'utente" : "Crea un account per un nuovo giocatore"}</CardDescription>
                     </CardHeader>
                     <CardContent>
                       <Form {...userForm}>
@@ -863,13 +927,33 @@ export default function AdminPage() {
                             )}
                           />
                           
-                          <Button 
-                            type="submit" 
-                            className="w-full"
-                            disabled={createUser.isPending}
-                          >
-                            {createUser.isPending ? "Creazione in corso..." : "Crea Utente"}
-                          </Button>
+                          <div className="flex space-x-2">
+                            <Button 
+                              type="submit" 
+                              className="flex-1"
+                              disabled={createUser.isPending || updateUser.isPending}
+                            >
+                              {createUser.isPending || updateUser.isPending ? "Salvataggio in corso..." : 
+                               editingUserId ? "Aggiorna Utente" : "Crea Utente"}
+                            </Button>
+                            
+                            {editingUserId && (
+                              <Button 
+                                type="button" 
+                                variant="outline"
+                                onClick={() => {
+                                  setEditingUserId(null);
+                                  userForm.reset({
+                                    username: "",
+                                    pin: "",
+                                    isAdmin: false,
+                                  });
+                                }}
+                              >
+                                Annulla
+                              </Button>
+                            )}
+                          </div>
                         </form>
                       </Form>
                     </CardContent>
@@ -895,6 +979,7 @@ export default function AdminPage() {
                                 <th className="px-4 py-3 text-sm font-medium">Nome</th>
                                 <th className="px-4 py-3 text-sm font-medium">PIN</th>
                                 <th className="px-4 py-3 text-sm font-medium">Ruolo</th>
+                                <th className="px-4 py-3 text-sm font-medium">Azioni</th>
                               </tr>
                             </thead>
                             <tbody>
@@ -1063,11 +1148,27 @@ export default function AdminPage() {
                               {teams.map((team) => (
                                 <tr key={team.id} className="border-b">
                                   <td className="px-4 py-3 text-sm">
-                                    <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary font-semibold">
-                                      <span className="text-xs">
-                                        {team.name.substring(0, 2).toUpperCase()}
-                                      </span>
-                                    </div>
+                                    {team.logo ? (
+                                      <div className="w-8 h-8 rounded-full overflow-hidden border border-gray-200">
+                                        <img 
+                                          src={team.logo}
+                                          alt={`${team.name} logo`}
+                                          className="w-full h-full object-cover"
+                                          onError={(e) => {
+                                            // Fallback to initials if image fails to load
+                                            e.currentTarget.style.display = 'none';
+                                            e.currentTarget.parentElement!.classList.add('bg-primary/20', 'flex', 'items-center', 'justify-center', 'text-primary', 'font-semibold');
+                                            e.currentTarget.parentElement!.innerHTML = `<span class="text-xs">${team.name.substring(0, 2).toUpperCase()}</span>`;
+                                          }}
+                                        />
+                                      </div>
+                                    ) : (
+                                      <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary font-semibold">
+                                        <span className="text-xs">
+                                          {team.name.substring(0, 2).toUpperCase()}
+                                        </span>
+                                      </div>
+                                    )}
                                   </td>
                                   <td className="px-4 py-3 text-sm">{team.name}</td>
                                   <td className="px-4 py-3 text-sm">{team.managerName}</td>
