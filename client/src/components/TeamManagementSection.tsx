@@ -357,8 +357,12 @@ export default function TeamManagementSection() {
                                 className="w-full h-full object-cover"
                                 onError={(e) => {
                                   e.currentTarget.style.display = 'none';
-                                  e.currentTarget.parentElement!.classList.add('bg-primary/20', 'flex', 'items-center', 'justify-center', 'text-primary', 'font-semibold');
-                                  e.currentTarget.parentElement!.innerHTML = `<span class="text-xs">${team.name.substring(0, 2).toUpperCase()}</span>`;
+                                  // Assicuriamoci che l'elemento parent esista prima di manipolarlo
+                                  const parent = e.currentTarget.parentElement;
+                                  if (parent) {
+                                    parent.classList.add('bg-primary/20', 'flex', 'items-center', 'justify-center', 'text-primary', 'font-semibold');
+                                    parent.innerHTML = `<span class="text-xs">${team.name.substring(0, 2).toUpperCase()}</span>`;
+                                  }
                                 }}
                               />
                             </div>
