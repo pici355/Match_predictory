@@ -36,19 +36,19 @@ export default function HomePage() {
                   </li>
                   <li className="flex items-start">
                     <span className="font-bold mr-1">•</span>
-                    <span>Assegna da <strong>2 a 8 crediti</strong> per ogni pronostico</span>
-                  </li>
-                  <li className="flex items-start">
-                    <span className="font-bold mr-1">•</span>
                     <span>Puoi modificare i pronostici fino a 30 minuti prima dell'inizio della partita</span>
                   </li>
                   <li className="flex items-start">
                     <span className="font-bold mr-1">•</span>
-                    <span><strong>90% pronostici corretti:</strong> 35% del montepremi totale</span>
+                    <span><strong>100% pronostici corretti:</strong> 10 crediti</span>
                   </li>
                   <li className="flex items-start">
                     <span className="font-bold mr-1">•</span>
-                    <span><strong>100% pronostici corretti:</strong> 65% del montepremi totale</span>
+                    <span><strong>90% pronostici corretti:</strong> 8 crediti</span>
+                  </li>
+                  <li className="flex items-start">
+                    <span className="font-bold mr-1">•</span>
+                    <span><strong>80% pronostici corretti:</strong> 6 crediti</span>
                   </li>
                 </ul>
               </div>
