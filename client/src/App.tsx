@@ -12,6 +12,8 @@ import LoginPage from "@/pages/LoginPage";
 import { Button } from "@/components/ui/button";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import Logo from "@/components/Logo";
+import Footer from "@/components/Footer";
 
 // Auth context and types
 type User = {
@@ -83,22 +85,28 @@ function Navigation() {
   
   return (
     <nav className="bg-primary text-white py-2 px-4">
-      <div className="max-w-7xl mx-auto flex justify-between">
-        <div className="flex space-x-4">
-          <button 
-            onClick={() => navigate("/")} 
-            className={`font-medium hover:underline ${location === "/" ? "underline" : ""}`}
-          >
-            Home
+      <div className="max-w-7xl mx-auto flex items-center justify-between">
+        <div className="flex items-center space-x-4">
+          <button onClick={() => navigate("/")} className="flex items-center space-x-2">
+            <Logo />
           </button>
-          {isAdmin && (
+          
+          <div className="flex space-x-4 items-center ml-4">
             <button 
-              onClick={() => navigate("/admin")} 
-              className={`font-medium hover:underline ${location === "/admin" ? "underline" : ""}`}
+              onClick={() => navigate("/")} 
+              className={`font-medium hover:underline ${location === "/" ? "underline" : ""}`}
             >
-              Admin
+              Home
             </button>
-          )}
+            {isAdmin && (
+              <button 
+                onClick={() => navigate("/admin")} 
+                className={`font-medium hover:underline ${location === "/admin" ? "underline" : ""}`}
+              >
+                Admin
+              </button>
+            )}
+          </div>
         </div>
         
         <div>
@@ -122,17 +130,20 @@ function Navigation() {
 
 function Router() {
   return (
-    <>
+    <div className="flex flex-col min-h-screen">
       <Navigation />
-      <Switch>
-        <Route path="/" component={HomePage} />
-        <Route path="/login" component={LoginPage} />
-        <Route path="/admin">
-          {(params) => <AdminRoute component={AdminPage} />}
-        </Route>
-        <Route component={NotFound} />
-      </Switch>
-    </>
+      <main className="flex-grow">
+        <Switch>
+          <Route path="/" component={HomePage} />
+          <Route path="/login" component={LoginPage} />
+          <Route path="/admin">
+            {(params) => <AdminRoute component={AdminPage} />}
+          </Route>
+          <Route component={NotFound} />
+        </Switch>
+      </main>
+      <Footer />
+    </div>
   );
 }
 
