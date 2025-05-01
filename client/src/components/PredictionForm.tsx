@@ -505,16 +505,19 @@ export default function PredictionForm() {
                     >
                       {predictionOptions.map((option) => (
                         <div key={option.value} className="prediction-option">
-                          <label className="flex items-center p-3 border border-gray-200 rounded-md hover:bg-gray-50 cursor-pointer transition group">
+                          <label 
+                            htmlFor={`prediction-${option.value}`}
+                            className={`flex items-center p-3 border ${field.value === option.value ? 'border-primary bg-primary/5' : 'border-gray-200'} rounded-md hover:bg-gray-50 cursor-pointer transition group`}
+                          >
                             <FormControl>
                               <RadioGroupItem 
                                 value={option.value} 
-                                id={option.value}
-                                className="sr-only peer"
+                                id={`prediction-${option.value}`}
+                                className="sr-only"
                               />
                             </FormControl>
                             <div className="relative">
-                              <div className="w-5 h-5 border-2 border-gray-300 rounded-full peer-checked:border-primary peer-checked:border-4"></div>
+                              <div className={`w-5 h-5 border-2 rounded-full ${field.value === option.value ? 'border-primary border-4' : 'border-gray-300'}`}></div>
                             </div>
                             <div className="ml-3 font-medium group-hover:text-primary peer-checked:text-primary">
                               {option.label}

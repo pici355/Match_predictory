@@ -375,13 +375,20 @@ export default function UserPredictionHistory() {
                       
                       {predictionsByMatchDay[day]?.length >= 1 && (
                         <Button 
-                          variant="outline" 
+                          variant={predictionsByMatchDay[day]?.length >= 5 ? "outline" : "ghost"}
                           size="sm"
-                          className="mb-4 flex items-center gap-1"
+                          className={`mb-4 flex items-center gap-1 ${predictionsByMatchDay[day]?.length < 5 ? 'text-gray-400 border-gray-200' : ''}`}
                           onClick={() => setShowReceiptForDay(showReceiptForDay === day ? null : day)}
+                          disabled={predictionsByMatchDay[day]?.length < 5}
+                          title={predictionsByMatchDay[day]?.length < 5 ? "Devi pronosticare almeno 5 partite" : ""}
                         >
                           <Receipt className="h-4 w-4" />
                           {showReceiptForDay === day ? 'Nascondi schedina' : 'Visualizza schedina'}
+                          {predictionsByMatchDay[day]?.length < 5 && (
+                            <span className="ml-1 text-xs">
+                              (Min. 5 partite)
+                            </span>
+                          )}
                         </Button>
                       )}
                     </div>
@@ -392,12 +399,23 @@ export default function UserPredictionHistory() {
                     </div>
                     
                     {/* Show receipt for this match day */}
-                    {showReceiptForDay === day && user && predictionsByMatchDay[day]?.length >= 1 && (
+                    {showReceiptForDay === day && user && predictionsByMatchDay[day]?.length >= 5 ? (
                       <MatchDayReceipt 
                         matchDay={day}
                         predictions={predictionsByMatchDay[day] || []}
                         username={user.username}
                       />
+                    ) : showReceiptForDay === day && predictionsByMatchDay[day]?.length < 5 && (
+                      <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-md">
+                        <div className="flex items-center text-amber-700">
+                          <AlertCircle className="h-4 w-4 mr-2 text-amber-500" />
+                          <div>
+                            <p className="font-medium">Impossibile generare la schedina</p>
+                            <p className="text-sm mt-1">Devi aver pronosticato almeno 5 partite in questa giornata.</p>
+                            <p className="text-sm mt-1">Attualmente hai pronosticato {predictionsByMatchDay[day]?.length || 0} partite.</p>
+                          </div>
+                        </div>
+                      </div>
                     )}
                     
                     {/* Render predictions */}
