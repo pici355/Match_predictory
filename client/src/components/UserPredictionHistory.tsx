@@ -278,6 +278,14 @@ export default function UserPredictionHistory() {
           <CardDescription>
             Visualizza i tuoi pronostici e le tue vincite
           </CardDescription>
+          <div className="mt-2 p-2 bg-blue-50 border border-blue-100 rounded-md text-xs text-blue-800">
+            <p className="font-medium">Sistema premi fissi:</p>
+            <ul className="mt-1 space-y-1 pl-2">
+              <li>· 100% previsioni corrette = 10 crediti</li>
+              <li>· 90% previsioni corrette = 8 crediti</li>
+              <li>· 80% previsioni corrette = 6 crediti</li>
+            </ul>
+          </div>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
@@ -299,6 +307,14 @@ export default function UserPredictionHistory() {
           <CardDescription>
             Visualizza i tuoi pronostici e le tue vincite
           </CardDescription>
+          <div className="mt-2 p-2 bg-blue-50 border border-blue-100 rounded-md text-xs text-blue-800">
+            <p className="font-medium">Sistema premi fissi:</p>
+            <ul className="mt-1 space-y-1 pl-2">
+              <li>· 100% previsioni corrette = 10 crediti</li>
+              <li>· 90% previsioni corrette = 8 crediti</li>
+              <li>· 80% previsioni corrette = 6 crediti</li>
+            </ul>
+          </div>
         </CardHeader>
         <CardContent>
           <div className="text-center py-8">
@@ -318,6 +334,14 @@ export default function UserPredictionHistory() {
         <CardDescription>
           Visualizza i tuoi pronostici e le tue vincite
         </CardDescription>
+        <div className="mt-2 p-2 bg-blue-50 border border-blue-100 rounded-md text-xs text-blue-800">
+          <p className="font-medium">Sistema premi fissi:</p>
+          <ul className="mt-1 space-y-1 pl-2">
+            <li>· 100% previsioni corrette = 10 crediti</li>
+            <li>· 90% previsioni corrette = 8 crediti</li>
+            <li>· 80% previsioni corrette = 6 crediti</li>
+          </ul>
+        </div>
       </CardHeader>
       <CardContent>
         <Tabs defaultValue="by-matchday">
