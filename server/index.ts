@@ -13,14 +13,22 @@ app.use(express.urlencoded({ extended: false }));
 app.use(session({
   store: PgStore,
   secret: process.env.SESSION_SECRET || 'fantaschedina-secret',
-  resave: false,
-  saveUninitialized: false,
+  resave: true, // Cambiato a true per garantire la persistenza della sessione
+  saveUninitialized: true, // Cambiato a true per creare sempre una sessione
   cookie: {
-    secure: process.env.NODE_ENV === 'production',
+    secure: false, // Impostato a false per consentire l'uso senza HTTPS in development
     httpOnly: true,
     maxAge: 1000 * 60 * 60 * 24 * 7, // 1 week
+    sameSite: 'lax', // Aggiungiamo questa impostazione per problemi di browser moderni
   }
 }));
+
+// Debug middleware per tracciare le sessioni
+app.use((req, res, next) => {
+  console.log('Session ID:', req.sessionID);
+  console.log('Session data:', req.session);
+  next();
+});
 
 app.use((req, res, next) => {
   const start = Date.now();
