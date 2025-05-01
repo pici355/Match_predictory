@@ -42,43 +42,69 @@ function formatTimeRemaining(timeInMs: number): string {
   return `${minutes}m ${seconds}s`;
 }
 
+// Componente per il logo della squadra con fallback sicuro
+function TeamLogo({ teamName, size = "md" }: { teamName: string, size?: "sm" | "md" }) {
+  const [logoError, setLogoError] = useState(false);
+  const { data: teams } = useQuery<Team[]>({
+    queryKey: ['/api/teams'],
+  });
+
+  // Trova il team corrispondente in modo flessibile
+  const teamData = teams?.find(team => 
+    team.name.toLowerCase() === teamName.toLowerCase() || 
+    teamName.toLowerCase().includes(team.name.toLowerCase()) || 
+    team.name.toLowerCase().includes(teamName.toLowerCase())
+  );
+
+  const dimensions = size === "sm" ? "w-6 h-6" : "w-7 h-7";
+  const fontSize = size === "sm" ? "text-[10px]" : "text-xs";
+
+  // Se c'è un errore o non c'è logo, mostra le iniziali
+  if (logoError || !teamData?.logo) {
+    return (
+      <div className={`${dimensions} rounded-full bg-primary/20 flex items-center justify-center text-primary font-semibold ${fontSize}`}>
+        {teamName.substring(0, 2).toUpperCase()}
+      </div>
+    );
+  }
+
+  // Altrimenti mostra il logo con gestione errori
+  return (
+    <img
+      src={teamData.logo}
+      alt={teamName}
+      onError={(e) => {
+        try {
+          // Prova con JPG
+          const fileName = teamName.toLowerCase().replace(/\s+/g, '-');
+          const jpgSrc = `/team-logos/${fileName}.jpg`;
+          e.currentTarget.src = jpgSrc;
+          
+          // Se fallisce con JPG, prova con PNG
+          e.currentTarget.onerror = () => {
+            try {
+              const pngSrc = `/team-logos/${fileName}.png`;
+              e.currentTarget.src = pngSrc;
+              
+              // Se ancora fallisce, imposta lo stato di errore
+              e.currentTarget.onerror = () => setLogoError(true);
+            } catch {
+              setLogoError(true);
+            }
+          };
+        } catch {
+          setLogoError(true);
+        }
+      }}
+      className="w-full h-full object-cover"
+    />
+  );
+}
+
 function MatchCard({ match }: { match: Match }) {
   const [timeRemaining, setTimeRemaining] = useState<string>("");
   const [isEditable, setIsEditable] = useState<boolean>(true);
   const [currentTimezone, setCurrentTimezone] = useState<string>(USER_TIMEZONE);
-  const [homeTeamLogoError, setHomeTeamLogoError] = useState<boolean>(false);
-  const [awayTeamLogoError, setAwayTeamLogoError] = useState<boolean>(false);
-  
-  // Ottieni i dati dei team per i loghi
-  const { data: teams } = useQuery<Team[]>({
-    queryKey: ['/api/teams'],
-  });
-  
-  // Trova i team corrispondenti per ottenere i loghi
-  // Utilizziamo una corrispondenza più flessibile per i nomi delle squadre
-  const homeTeamData = teams?.find(team => 
-    team.name.toLowerCase() === match.homeTeam.toLowerCase() || 
-    match.homeTeam.toLowerCase().includes(team.name.toLowerCase()) || 
-    team.name.toLowerCase().includes(match.homeTeam.toLowerCase())
-  );
-  
-  const awayTeamData = teams?.find(team => 
-    team.name.toLowerCase() === match.awayTeam.toLowerCase() || 
-    match.awayTeam.toLowerCase().includes(team.name.toLowerCase()) || 
-    team.name.toLowerCase().includes(match.awayTeam.toLowerCase())
-  );
-  
-  // Update component when the global timezone changes
-  useEffect(() => {
-    // Set up a timer to check for timezone changes every second
-    const timezoneCheck = setInterval(() => {
-      if (USER_TIMEZONE !== currentTimezone) {
-        setCurrentTimezone(USER_TIMEZONE);
-      }
-    }, 1000);
-    
-    return () => clearInterval(timezoneCheck);
-  }, [currentTimezone]);
   
   useEffect(() => {
     // Always use user's current timezone preference
@@ -114,109 +140,29 @@ function MatchCard({ match }: { match: Match }) {
         </div>
         
         {/* Teams section */}
-        <div className="px-3 py-3 flex justify-between items-center">
+        <div className="px-3 py-2 flex justify-between items-center">
           {/* Home team */}
           <div className="text-center flex-1 flex flex-col items-center">
-            <div className="w-8 h-8 rounded-full overflow-hidden mb-1">
-              {homeTeamData && homeTeamData.logo && !homeTeamLogoError ? (
-                <img 
-                  src={homeTeamData.logo} 
-                  alt={match.homeTeam}
-                  onError={(e) => {
-                    try {
-                      // Prepara il nome file base
-                      const fileName = match.homeTeam.toLowerCase().replace(/\s+/g, '-');
-                      
-                      // Prova prima con .jpg
-                      const jpgSrc = `/team-logos/${fileName}.jpg`;
-                      e.currentTarget.src = jpgSrc;
-                      
-                      // Se fallisce con jpg, prova con png
-                      e.currentTarget.onerror = () => {
-                        try {
-                          const pngSrc = `/team-logos/${fileName}.png`;
-                          e.currentTarget.src = pngSrc;
-                          
-                          // Se ancora fallisce, imposta lo stato di errore
-                          e.currentTarget.onerror = () => {
-                            setHomeTeamLogoError(true);
-                          };
-                        } catch (pngErr) {
-                          console.error("Error handling PNG fallback:", pngErr);
-                          setHomeTeamLogoError(true);
-                        }
-                      };
-                    } catch (err) {
-                      console.error("Error handling home team logo:", err);
-                      setHomeTeamLogoError(true);
-                    }
-                  }}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                // Logo non trovato o errore, mostra le iniziali
-                <div className='w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary font-semibold text-xs'>
-                  {match.homeTeam.substring(0, 2).toUpperCase()}
-                </div>
-              )}
+            <div className="w-7 h-7 rounded-full overflow-hidden mb-1">
+              <TeamLogo teamName={match.homeTeam} />
             </div>
             <div className="font-bold text-sm truncate max-w-[90px]">{match.homeTeam}</div>
           </div>
           
           {/* VS section */}
-          <div className="text-center mx-1 font-bold text-gray-500 text-sm px-1">VS</div>
+          <div className="text-center mx-1 font-semibold text-muted-foreground text-xs px-1">VS</div>
           
           {/* Away team */}
           <div className="text-center flex-1 flex flex-col items-center">
-            <div className="w-8 h-8 rounded-full overflow-hidden mb-1">
-              {awayTeamData && awayTeamData.logo && !awayTeamLogoError ? (
-                <img 
-                  src={awayTeamData.logo} 
-                  alt={match.awayTeam}
-                  onError={(e) => {
-                    try {
-                      // Prepara il nome file base
-                      const fileName = match.awayTeam.toLowerCase().replace(/\s+/g, '-');
-                      
-                      // Prova prima con .jpg
-                      const jpgSrc = `/team-logos/${fileName}.jpg`;
-                      e.currentTarget.src = jpgSrc;
-                      
-                      // Se fallisce con jpg, prova con png
-                      e.currentTarget.onerror = () => {
-                        try {
-                          const pngSrc = `/team-logos/${fileName}.png`;
-                          e.currentTarget.src = pngSrc;
-                          
-                          // Se ancora fallisce, imposta lo stato di errore
-                          e.currentTarget.onerror = () => {
-                            setAwayTeamLogoError(true);
-                          };
-                        } catch (pngErr) {
-                          console.error("Error handling PNG fallback:", pngErr);
-                          setAwayTeamLogoError(true);
-                        }
-                      };
-                    } catch (err) {
-                      console.error("Error handling away team logo:", err);
-                      setAwayTeamLogoError(true);
-                    }
-                  }}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                // Logo non trovato o errore, mostra le iniziali
-                <div className='w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary font-semibold text-xs'>
-                  {match.awayTeam.substring(0, 2).toUpperCase()}
-                </div>
-              )}
+            <div className="w-7 h-7 rounded-full overflow-hidden mb-1">
+              <TeamLogo teamName={match.awayTeam} />
             </div>
             <div className="font-bold text-sm truncate max-w-[90px]">{match.awayTeam}</div>
           </div>
         </div>
         
         {/* Match info footer */}
-        <div className="border-t px-2 py-1.5 bg-muted/20 text-xs">
+        <div className="border-t px-2 py-1 bg-muted/20 text-xs">
           <div className="flex items-center">
             <span className="font-medium">Data:</span>
             <span className="ml-1">
@@ -229,7 +175,7 @@ function MatchCard({ match }: { match: Match }) {
             </span>
           </div>
           {match.description && (
-            <div className="text-indigo-600 text-xs mt-0.5 font-medium truncate">
+            <div className="text-primary-foreground text-xs mt-0.5 font-medium truncate">
               {match.description}
             </div>
           )}
@@ -256,8 +202,8 @@ export default function MatchInfo() {
   const matchDays = Object.keys(matchesByDay).map(Number).sort((a, b) => a - b);
   
   return (
-    <Card className="mb-8 shadow-md">
-      <CardHeader className="px-4 py-3">
+    <Card className="mb-6 shadow-md">
+      <CardHeader className="px-4 py-2">
         <CardTitle className="text-lg">Prossime partite</CardTitle>
       </CardHeader>
       <CardContent className="px-3 py-2">
@@ -276,7 +222,7 @@ export default function MatchInfo() {
                     value={day.toString()}
                     className="flex-1"
                   >
-                    Giornata {day}
+                    G. {day}
                   </TabsTrigger>
                 ))}
               </TabsList>
@@ -290,12 +236,12 @@ export default function MatchInfo() {
               ))}
             </Tabs>
           ) : (
-            <div className="text-center py-8 text-gray-500">
+            <div className="text-center py-6 text-gray-500">
               Non ci sono partite disponibili
             </div>
           )
         ) : (
-          <div className="text-center py-8 text-gray-500">
+          <div className="text-center py-6 text-gray-500">
             Non ci sono partite disponibili
           </div>
         )}
