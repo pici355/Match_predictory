@@ -894,11 +894,16 @@ export default function AdminPage() {
                                 <FormLabel>PIN</FormLabel>
                                 <FormControl>
                                   <Input 
-                                    placeholder="PIN di 4 cifre" 
+                                    placeholder={editingUserId ? "Lascia vuoto per mantenere il PIN attuale" : "PIN di 4 cifre"}
                                     maxLength={4}
                                     {...field} 
                                   />
                                 </FormControl>
+                                {editingUserId && (
+                                  <p className="text-sm text-gray-500 mt-1">
+                                    Se lasci vuoto questo campo, il PIN non verrà modificato.
+                                  </p>
+                                )}
                                 <FormMessage />
                               </FormItem>
                             )}
@@ -993,6 +998,39 @@ export default function AdminPage() {
                                     ) : (
                                       <Badge variant="outline">Utente</Badge>
                                     )}
+                                  </td>
+                                  <td className="px-4 py-3 text-sm">
+                                    <div className="flex space-x-2">
+                                      <Button 
+                                        variant="outline" 
+                                        size="sm" 
+                                        onClick={() => {
+                                          userForm.reset({
+                                            username: user.username,
+                                            pin: "", // PIN is not returned from server
+                                            isAdmin: user.isAdmin,
+                                          });
+                                          // Set the editing user
+                                          setEditingUserId(user.id);
+                                          // Switch to user tab if not already there
+                                          setActiveTab("add-user");
+                                        }}
+                                      >
+                                        Modifica
+                                      </Button>
+                                      <Button 
+                                        variant="destructive" 
+                                        size="sm"
+                                        disabled={deleteUser.isPending}
+                                        onClick={() => {
+                                          if (confirm(`Sei sicuro di voler eliminare l'utente ${user.username}?`)) {
+                                            deleteUser.mutate(user.id);
+                                          }
+                                        }}
+                                      >
+                                        Elimina
+                                      </Button>
+                                    </div>
                                   </td>
                                 </tr>
                               ))}
