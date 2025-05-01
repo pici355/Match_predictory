@@ -4,6 +4,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
+import { 
+  formatDateToLocalString, 
+  isMatchPredictionEditable, 
+  DEFAULT_TIMEZONE 
+} from "@/lib/dateUtils";
 
 type Match = {
   id: number;
@@ -27,17 +32,6 @@ function formatTimeRemaining(timeInMs: number): string {
   return `${minutes}m ${seconds}s`;
 }
 
-function isEditablePrediction(matchDate: string): boolean {
-  const now = new Date();
-  // Create the match date with Italian timezone
-  const match = new Date(matchDate);
-  const thirtyMinutesBeforeMatch = new Date(match.getTime() - 30 * 60 * 1000);
-  
-  console.log(`Match time: ${match.toLocaleString()}, Current time: ${now.toLocaleString()}, Editable until: ${thirtyMinutesBeforeMatch.toLocaleString()}`);
-  
-  return now < thirtyMinutesBeforeMatch;
-}
-
 function MatchCard({ match }: { match: Match }) {
   const [timeRemaining, setTimeRemaining] = useState<string>("");
   const [isEditable, setIsEditable] = useState<boolean>(true);
@@ -49,7 +43,7 @@ function MatchCard({ match }: { match: Match }) {
       const now = new Date();
       const timeInMs = matchDate.getTime() - now.getTime();
       setTimeRemaining(formatTimeRemaining(timeInMs));
-      setIsEditable(isEditablePrediction(match.matchDate));
+      setIsEditable(isMatchPredictionEditable(match.matchDate));
     };
     
     updateTimer();
@@ -77,13 +71,12 @@ function MatchCard({ match }: { match: Match }) {
         <div className="mt-4 flex justify-between items-center text-sm border-t pt-3">
           <div>
             <span className="font-medium">Data:</span>{" "}
-            {new Date(match.matchDate).toLocaleString('it-IT', {
+            {formatDateToLocalString(match.matchDate, {
               day: '2-digit',
               month: '2-digit',
               year: 'numeric',
               hour: '2-digit',
-              minute: '2-digit',
-              timeZone: 'Europe/Rome' // Use Italian timezone for consistent display
+              minute: '2-digit'
             })}
           </div>
           <Badge variant={isEditable ? "secondary" : "outline"}>
