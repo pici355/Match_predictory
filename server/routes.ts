@@ -23,6 +23,37 @@ const upload = multer({
   },
 });
 
+// Set up multer for team logo uploads
+const logoStorage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, 'attached_assets/team-logos');
+  },
+  filename: function (req, file, cb) {
+    // Genera il nome del file basato sul nome della squadra
+    const teamName = req.body.teamName || 'team';
+    const sanitizedName = teamName.toLowerCase().replace(/\s+/g, '-');
+    
+    // Ottieni l'estensione originale
+    const ext = file.originalname.split('.').pop();
+    cb(null, `${sanitizedName}.${ext}`);
+  }
+});
+
+const logoUpload = multer({
+  storage: logoStorage,
+  limits: {
+    fileSize: 2 * 1024 * 1024 // 2MB limit
+  },
+  fileFilter: (req, file, cb) => {
+    // Accetta solo immagini
+    if (file.mimetype.startsWith('image/')) {
+      cb(null, true);
+    } else {
+      cb(null, false);
+    }
+  }
+});
+
 // Middleware to check if the user is an admin
 const isAdmin = async (req: Request, res: Response, next: Function) => {
   const userId = req.session?.userId;
@@ -66,7 +97,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
     };
     
-    const fileName = req.path;
+    // rimuovi il primo slash dal path
+    const fileName = req.path.replace(/^\//, '');
     res.sendFile(fileName, options, (err) => {
       if (err) {
         console.error(`Error serving team logo: ${fileName}`, err);
