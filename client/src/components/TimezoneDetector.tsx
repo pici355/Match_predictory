@@ -87,6 +87,12 @@ export default function TimezoneDetector() {
     
     return `${cityName} (${tzAbbr})`;
   }
+  
+  // Helper function to safely check if a timezone equals another
+  function isSameTimezone(tz1: string | null | undefined, tz2: string | null | undefined): boolean {
+    if (!tz1 || !tz2) return false;
+    return tz1 === tz2;
+  }
 
   return (
     <div className="flex flex-col gap-2 p-2 rounded-md bg-muted/20">
@@ -121,7 +127,7 @@ export default function TimezoneDetector() {
                 )}
                 
                 {/* Divider if we have both detected and default */}
-                {detectedTimezone && detectedTimezone !== DEFAULT_TIMEZONE && (
+                {detectedTimezone && !isSameTimezone(detectedTimezone, DEFAULT_TIMEZONE) && (
                   <div className="h-px bg-muted my-1" />
                 )}
                 
@@ -131,22 +137,31 @@ export default function TimezoneDetector() {
                 </SelectItem>
                 
                 {/* Europe/Bucharest for Romania */}
-                {DEFAULT_TIMEZONE !== 'Europe/Bucharest' && detectedTimezone !== 'Europe/Bucharest' && (
-                  <SelectItem value="Europe/Bucharest" className="text-xs font-medium bg-amber-50">
-                    {formatTimezoneDisplay('Europe/Bucharest')} (Romania)
-                  </SelectItem>
-                )}
+                {(() => {
+                  const romaniaTimezone: string = 'Europe/Bucharest';
+                  return !isSameTimezone(DEFAULT_TIMEZONE, romaniaTimezone) && 
+                         !isSameTimezone(detectedTimezone, romaniaTimezone) && (
+                    <SelectItem value={romaniaTimezone} className="text-xs font-medium bg-amber-50">
+                      {formatTimezoneDisplay(romaniaTimezone)} (Romania)
+                    </SelectItem>
+                  );
+                })()}
                 
                 {/* Common timezones */}
                 <div className="h-px bg-muted my-1" />
                 
-                {COMMON_TIMEZONES.filter(tz => 
-                  tz !== detectedTimezone && tz !== DEFAULT_TIMEZONE && tz !== 'Europe/Bucharest'
-                ).map(tz => (
-                  <SelectItem key={tz} value={tz} className="text-xs">
-                    {formatTimezoneDisplay(tz)}
-                  </SelectItem>
-                ))}
+                {(() => {
+                  const romaniaTimezone: string = 'Europe/Bucharest';
+                  return COMMON_TIMEZONES.filter(tz => 
+                    !isSameTimezone(tz, detectedTimezone) && 
+                    !isSameTimezone(tz, DEFAULT_TIMEZONE) && 
+                    !isSameTimezone(tz, romaniaTimezone)
+                  ).map(tz => (
+                    <SelectItem key={tz} value={tz} className="text-xs">
+                      {formatTimezoneDisplay(tz)}
+                    </SelectItem>
+                  ));
+                })()}
               </SelectContent>
             </Select>
           </div>

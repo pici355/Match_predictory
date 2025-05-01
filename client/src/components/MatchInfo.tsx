@@ -7,7 +7,8 @@ import { Badge } from "@/components/ui/badge";
 import { 
   formatDateToLocalString, 
   isMatchPredictionEditable, 
-  DEFAULT_TIMEZONE 
+  USER_TIMEZONE,
+  convertToTimezone 
 } from "@/lib/dateUtils";
 
 type Match = {
@@ -35,22 +36,41 @@ function formatTimeRemaining(timeInMs: number): string {
 function MatchCard({ match }: { match: Match }) {
   const [timeRemaining, setTimeRemaining] = useState<string>("");
   const [isEditable, setIsEditable] = useState<boolean>(true);
+  const [currentTimezone, setCurrentTimezone] = useState<string>(USER_TIMEZONE);
+  
+  // Update component when the global timezone changes
+  useEffect(() => {
+    // Set up a timer to check for timezone changes every second
+    const timezoneCheck = setInterval(() => {
+      if (USER_TIMEZONE !== currentTimezone) {
+        setCurrentTimezone(USER_TIMEZONE);
+      }
+    }, 1000);
+    
+    return () => clearInterval(timezoneCheck);
+  }, [currentTimezone]);
   
   useEffect(() => {
-    const matchDate = new Date(match.matchDate);
-    
+    // Always use user's current timezone preference
     const updateTimer = () => {
       const now = new Date();
-      const timeInMs = matchDate.getTime() - now.getTime();
+      
+      // Convert match date to the user's timezone for calculations
+      const matchDateInUserTz = convertToTimezone(match.matchDate, USER_TIMEZONE);
+      const nowInUserTz = convertToTimezone(now, USER_TIMEZONE);
+      
+      // Calculate time remaining in the user's timezone
+      const timeInMs = matchDateInUserTz.getTime() - nowInUserTz.getTime();
+      
       setTimeRemaining(formatTimeRemaining(timeInMs));
-      setIsEditable(isMatchPredictionEditable(match.matchDate));
+      setIsEditable(isMatchPredictionEditable(match.matchDate, USER_TIMEZONE));
     };
     
     updateTimer();
     const interval = setInterval(updateTimer, 1000);
     
     return () => clearInterval(interval);
-  }, [match.matchDate]);
+  }, [match.matchDate, currentTimezone]);
   
   return (
     <Card className="mb-4 hover:shadow-md transition-shadow">
@@ -77,7 +97,7 @@ function MatchCard({ match }: { match: Match }) {
               year: 'numeric',
               hour: '2-digit',
               minute: '2-digit'
-            })}
+            }, USER_TIMEZONE)}
           </div>
           <Badge variant={isEditable ? "secondary" : "outline"}>
             {isEditable ? `Tempo: ${timeRemaining}` : "Chiuso"}
