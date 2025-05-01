@@ -328,13 +328,16 @@ export class DatabaseStorage implements IStorage {
     // Get the total pot for this match day
     const totalCredits = await this.getTotalCreditsForMatchDay(matchDay);
     
-    // Calculate the allocation for 4 and 5 correct predictions (35% and 65%)
-    const potFor4Correct = Math.floor(totalCredits * 0.35);
-    const potFor5Correct = totalCredits - potFor4Correct; // Ensure we use the full pot
+    // Calculate the allocation for 90% and 100% correct predictions (35% and 65%)
+    const potFor90Pct = Math.floor(totalCredits * 0.35);
+    const potFor100Pct = totalCredits - potFor90Pct; // Ensure we use the full pot
     
-    // Count users with 4 and 5 correct predictions
-    const users4Correct = (await this.getUsersWithCorrectPredictionCount(matchDay, 4)).length;
-    const users5Correct = (await this.getUsersWithCorrectPredictionCount(matchDay, 5)).length;
+    // Count users with 90% and 100% correct predictions
+    const users90PctResults = await this.getUsersWithCorrectPredictionPercentage(matchDay, 90);
+    const users100PctResults = await this.getUsersWithCorrectPredictionPercentage(matchDay, 100);
+    
+    const users90PctCorrect = users90PctResults.length;
+    const users100PctCorrect = users100PctResults.length;
     
     // Create or update prize distribution record
     const [existingDistribution] = await db.select()
@@ -346,10 +349,10 @@ export class DatabaseStorage implements IStorage {
       const [updated] = await db.update(prizeDistributions)
         .set({
           totalPot: totalCredits,
-          potFor4Correct,
-          potFor5Correct,
-          users4Correct,
-          users5Correct,
+          potFor90Pct: potFor90Pct,
+          potFor100Pct: potFor100Pct,
+          users90PctCorrect: users90PctCorrect,
+          users100PctCorrect: users100PctCorrect,
         })
         .where(eq(prizeDistributions.matchDay, matchDay))
         .returning();
@@ -358,14 +361,14 @@ export class DatabaseStorage implements IStorage {
     } else {
       // Create new distribution
       const [newDistribution] = await db.insert(prizeDistributions)
-        .values({
-          matchDay,
+        .values([{
+          matchDay: matchDay,
           totalPot: totalCredits,
-          potFor4Correct,
-          potFor5Correct,
-          users4Correct,
-          users5Correct,
-        })
+          potFor90Pct: potFor90Pct,
+          potFor100Pct: potFor100Pct,
+          users90PctCorrect: users90PctCorrect,
+          users100PctCorrect: users100PctCorrect,
+        }])
         .returning();
       
       return newDistribution;
@@ -386,36 +389,40 @@ export class DatabaseStorage implements IStorage {
     
     const payouts: InsertWinnerPayout[] = [];
     
-    // Process winners with 4 correct predictions
-    const users4Correct = distribution.users4Correct || 0;
-    if (users4Correct > 0) {
-      const winners4 = await this.getUsersWithCorrectPredictionCount(matchDay, 4);
-      const potFor4Correct = distribution.potFor4Correct || 0;
-      const amountPer4 = Math.floor(potFor4Correct / users4Correct);
+    // Process winners with 90% correct predictions
+    const users90PctCorrect = distribution.users90PctCorrect || 0;
+    if (users90PctCorrect > 0) {
+      const winners90Pct = await this.getUsersWithCorrectPredictionPercentage(matchDay, 90);
+      const potFor90Pct = distribution.potFor90Pct || 0;
+      const amountPer90Pct = Math.floor(potFor90Pct / users90PctCorrect);
       
-      winners4.forEach(user => {
+      winners90Pct.forEach(result => {
         payouts.push({
-          userId: user.id,
-          matchDay,
-          correctPredictions: 4,
-          amount: amountPer4,
+          userId: result.user.id,
+          matchDay: matchDay,
+          correctPercentage: result.percentage,
+          predictionsCorrect: result.correctCount,
+          predictionsTotal: result.totalCount,
+          amount: amountPer90Pct,
         });
       });
     }
     
-    // Process winners with 5 correct predictions
-    const users5Correct = distribution.users5Correct || 0;
-    if (users5Correct > 0) {
-      const winners5 = await this.getUsersWithCorrectPredictionCount(matchDay, 5);
-      const potFor5Correct = distribution.potFor5Correct || 0;
-      const amountPer5 = Math.floor(potFor5Correct / users5Correct);
+    // Process winners with 100% correct predictions
+    const users100PctCorrect = distribution.users100PctCorrect || 0;
+    if (users100PctCorrect > 0) {
+      const winners100Pct = await this.getUsersWithCorrectPredictionPercentage(matchDay, 100);
+      const potFor100Pct = distribution.potFor100Pct || 0;
+      const amountPer100Pct = Math.floor(potFor100Pct / users100PctCorrect);
       
-      winners5.forEach(user => {
+      winners100Pct.forEach(result => {
         payouts.push({
-          userId: user.id,
-          matchDay,
-          correctPredictions: 5,
-          amount: amountPer5,
+          userId: result.user.id,
+          matchDay: matchDay,
+          correctPercentage: result.percentage,
+          predictionsCorrect: result.correctCount,
+          predictionsTotal: result.totalCount,
+          amount: amountPer100Pct,
         });
       });
     }
@@ -481,50 +488,84 @@ export class DatabaseStorage implements IStorage {
     return result[0]?.totalCredits || 0;
   }
   
-  async getCorrectPredictionCountForUser(userId: number, matchDay: number): Promise<number> {
-    // Get all matches for this match day
-    const matchesForDay = await this.getMatchesByMatchDay(matchDay);
+  async getCorrectPredictionStatsForUser(userId: number, matchDay: number): Promise<{
+    correctCount: number,
+    totalCount: number,
+    percentage: number
+  }> {
+    // Get all user predictions for this match day
+    const userPredictions = await this.getUserPredictionsByMatchDay(userId, matchDay);
     
-    // Filter only matches that have results
-    const matchesWithResults = matchesForDay.filter(m => m.hasResult);
-    const matchIds = matchesWithResults.map(m => m.id);
-    
-    if (matchIds.length === 0) return 0;
-    
-    // Count correct predictions
-    const result = await db.select({
-      correctCount: count()
-    })
-    .from(predictions)
-    .where(
-      and(
-        eq(predictions.userId, userId),
-        inArray(predictions.matchId, matchIds),
-        eq(predictions.isCorrect, true)
-      )
+    // Filter only predictions for matches that have results
+    const predictionsForMatchesWithResults = await Promise.all(
+      userPredictions.map(async prediction => {
+        const match = await this.getMatch(prediction.matchId);
+        return match?.hasResult ? prediction : null;
+      })
     );
     
-    return result[0]?.correctCount || 0;
-  }
-  
-  async getUsersWithCorrectPredictionCount(matchDay: number, correctCount: number): Promise<User[]> {
-    // This is more complex as we need to find users who have exactly 'correctCount' correct predictions
+    // Filter out null values and count
+    const validPredictions = predictionsForMatchesWithResults.filter(p => p !== null) as Prediction[];
+    const totalCount = validPredictions.length;
     
-    // Step 1: Get all users
-    const allUsers = await this.getAllUsers();
-    
-    // Step 2: Filter to users who have exactly 'correctCount' correct predictions for this match day
-    const usersWithCorrectCount: User[] = [];
-    
-    // Check each user's correct prediction count
-    for (const user of allUsers) {
-      const userCorrectCount = await this.getCorrectPredictionCountForUser(user.id, matchDay);
-      if (userCorrectCount === correctCount) {
-        usersWithCorrectCount.push(user);
-      }
+    if (totalCount === 0) {
+      return { correctCount: 0, totalCount: 0, percentage: 0 };
     }
     
-    return usersWithCorrectCount;
+    // Count correct predictions
+    const correctCount = validPredictions.filter(p => p.isCorrect).length;
+    
+    // Calculate percentage (rounded to nearest whole number)
+    const percentage = Math.round((correctCount / totalCount) * 100);
+    
+    return { correctCount, totalCount, percentage };
+  }
+  
+  async getUsersWithCorrectPredictionPercentage(matchDay: number, targetPercentage: number): Promise<{
+    user: User,
+    correctCount: number,
+    totalCount: number,
+    percentage: number
+  }[]> {
+    // Get all users who have made predictions for this match day
+    const allUsers = await this.getAllUsers();
+    const usersWithPredictions = await Promise.all(
+      allUsers.map(async user => {
+        const predictions = await this.getUserPredictionsByMatchDay(user.id, matchDay);
+        return predictions.length > 0 ? user : null;
+      })
+    );
+    
+    const validUsers = usersWithPredictions.filter(u => u !== null) as User[];
+    
+    // Calculate stats for each user and filter by target percentage
+    const results = await Promise.all(
+      validUsers.map(async user => {
+        const stats = await this.getCorrectPredictionStatsForUser(user.id, matchDay);
+        return {
+          user,
+          ...stats
+        };
+      })
+    );
+    
+    // Return users who match the target percentage
+    return results.filter(result => {
+      // Only include users who have made at least one prediction
+      if (result.totalCount === 0) return false;
+      
+      // For 100% requirement, the percentage must be exactly 100
+      if (targetPercentage === 100) {
+        return result.percentage === 100;
+      }
+      
+      // For 90% requirement, the percentage must be >= 90 and < 100
+      if (targetPercentage === 90) {
+        return result.percentage >= 90 && result.percentage < 100;
+      }
+      
+      return false;
+    });
   }
 }
 

@@ -79,10 +79,10 @@ type PrizeDistribution = {
   id: number;
   matchDay: number;
   totalPot: number;
-  potFor4Correct: number;
-  potFor5Correct: number;
-  users4Correct: number;
-  users5Correct: number;
+  potFor90Pct: number;
+  potFor100Pct: number;
+  users90PctCorrect: number;
+  users100PctCorrect: number;
   isDistributed: boolean;
 };
 
@@ -1570,25 +1570,25 @@ export default function AdminPage() {
                         <h3 className="text-md font-medium mb-2">Distribuzione</h3>
                         <div className="space-y-2">
                           <div className="flex justify-between items-center">
-                            <span>4 pronostici corretti (35%)</span>
+                            <span>90% pronostici corretti (35%)</span>
                             <div className="text-right">
-                              <div>{prizeDistribution.potFor4Correct} crediti</div>
+                              <div>{prizeDistribution.potFor90Pct} crediti</div>
                               <div className="text-sm text-gray-500">
-                                {prizeDistribution.users4Correct} utenti
-                                {prizeDistribution.users4Correct > 0 && (
-                                  <span> ({Math.floor(prizeDistribution.potFor4Correct / prizeDistribution.users4Correct)} per utente)</span>
+                                {prizeDistribution.users90PctCorrect} utenti
+                                {prizeDistribution.users90PctCorrect > 0 && (
+                                  <span> ({Math.floor(prizeDistribution.potFor90Pct / prizeDistribution.users90PctCorrect)} per utente)</span>
                                 )}
                               </div>
                             </div>
                           </div>
                           <div className="flex justify-between items-center">
-                            <span>5 pronostici corretti (65%)</span>
+                            <span>100% pronostici corretti (65%)</span>
                             <div className="text-right">
-                              <div>{prizeDistribution.potFor5Correct} crediti</div>
+                              <div>{prizeDistribution.potFor100Pct} crediti</div>
                               <div className="text-sm text-gray-500">
-                                {prizeDistribution.users5Correct} utenti
-                                {prizeDistribution.users5Correct > 0 && (
-                                  <span> ({Math.floor(prizeDistribution.potFor5Correct / prizeDistribution.users5Correct)} per utente)</span>
+                                {prizeDistribution.users100PctCorrect} utenti
+                                {prizeDistribution.users100PctCorrect > 0 && (
+                                  <span> ({Math.floor(prizeDistribution.potFor100Pct / prizeDistribution.users100PctCorrect)} per utente)</span>
                                 )}
                               </div>
                             </div>

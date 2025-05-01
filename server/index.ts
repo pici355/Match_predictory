@@ -2,7 +2,8 @@ import express, { type Request, Response, NextFunction } from "express";
 import session from "express-session";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
-import { PgStore } from "./db"; // We'll create this shortly
+import { PgStore } from "./db";
+import { runPrizeMigration } from "./prize-migration";
 
 const app = express();
 app.use(express.json());
@@ -52,6 +53,14 @@ app.use((req, res, next) => {
 });
 
 (async () => {
+  // Run the prize distribution migration to update schema
+  try {
+    await runPrizeMigration();
+    log("Prize distribution migration completed");
+  } catch (error) {
+    log(`Prize distribution migration error: ${error}`);
+  }
+  
   const server = await registerRoutes(app);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
