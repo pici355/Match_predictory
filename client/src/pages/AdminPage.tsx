@@ -1551,8 +1551,8 @@ export default function AdminPage() {
                           <p className="text-lg font-medium">{prizeDistribution.matchDay}</p>
                         </div>
                         <div>
-                          <h3 className="text-sm font-medium text-gray-500">Montepremi totale</h3>
-                          <p className="text-lg font-medium">{prizeDistribution.totalPot} crediti</p>
+                          <h3 className="text-sm font-medium text-gray-500">Totale previsioni per giornata</h3>
+                          <p className="text-lg font-medium">{prizeDistribution.totalPot} presenze</p>
                         </div>
                         <div>
                           <h3 className="text-sm font-medium text-gray-500">Premi distribuiti</h3>
@@ -1567,29 +1567,32 @@ export default function AdminPage() {
                       </div>
                       
                       <div className="pt-4 border-t">
-                        <h3 className="text-md font-medium mb-2">Distribuzione</h3>
+                        <h3 className="text-md font-medium mb-2">Distribuzione Premi Fissi</h3>
                         <div className="space-y-2">
                           <div className="flex justify-between items-center">
-                            <span>90% pronostici corretti (35%)</span>
+                            <span>100% pronostici corretti (10 crediti)</span>
                             <div className="text-right">
-                              <div>{prizeDistribution.potFor90Pct} crediti</div>
+                              <div>{prizeDistribution.potFor100Pct} crediti totali</div>
                               <div className="text-sm text-gray-500">
-                                {prizeDistribution.users90PctCorrect} utenti
-                                {prizeDistribution.users90PctCorrect > 0 && (
-                                  <span> ({Math.floor(prizeDistribution.potFor90Pct / prizeDistribution.users90PctCorrect)} per utente)</span>
-                                )}
+                                {prizeDistribution.users100PctCorrect} utenti
                               </div>
                             </div>
                           </div>
                           <div className="flex justify-between items-center">
-                            <span>100% pronostici corretti (65%)</span>
+                            <span>90% pronostici corretti (8 crediti)</span>
                             <div className="text-right">
-                              <div>{prizeDistribution.potFor100Pct} crediti</div>
+                              <div>{prizeDistribution.potFor90Pct} crediti totali</div>
                               <div className="text-sm text-gray-500">
-                                {prizeDistribution.users100PctCorrect} utenti
-                                {prizeDistribution.users100PctCorrect > 0 && (
-                                  <span> ({Math.floor(prizeDistribution.potFor100Pct / prizeDistribution.users100PctCorrect)} per utente)</span>
-                                )}
+                                {prizeDistribution.users90PctCorrect} utenti
+                              </div>
+                            </div>
+                          </div>
+                          <div className="flex justify-between items-center">
+                            <span>80% pronostici corretti (6 crediti)</span>
+                            <div className="text-right">
+                              <div>{prizeDistribution.potFor80Pct || 0} crediti totali</div>
+                              <div className="text-sm text-gray-500">
+                                {prizeDistribution.users80PctCorrect || 0} utenti
                               </div>
                             </div>
                           </div>

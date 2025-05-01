@@ -358,8 +358,10 @@ export class DatabaseStorage implements IStorage {
       const [updated] = await db.update(prizeDistributions)
         .set({
           totalPot: totalCredits,
+          potFor80Pct: potFor80Pct,
           potFor90Pct: potFor90Pct,
           potFor100Pct: potFor100Pct,
+          users80PctCorrect: users80PctCorrect,
           users90PctCorrect: users90PctCorrect,
           users100PctCorrect: users100PctCorrect,
         })
@@ -373,8 +375,10 @@ export class DatabaseStorage implements IStorage {
         .values([{
           matchDay: matchDay,
           totalPot: totalCredits,
+          potFor80Pct: potFor80Pct,
           potFor90Pct: potFor90Pct,
           potFor100Pct: potFor100Pct,
+          users80PctCorrect: users80PctCorrect,
           users90PctCorrect: users90PctCorrect,
           users100PctCorrect: users100PctCorrect,
         }])
