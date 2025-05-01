@@ -14,23 +14,32 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const loginSchema = z.object({
   username: z.string().min(3, {
-    message: "Username must be at least 3 characters.",
+    message: "Il nome della tua squadra deve avere almeno 3 caratteri.",
   }),
-  password: z.string().min(6, {
-    message: "Password must be at least 6 characters.",
+  pin: z.string().length(4, {
+    message: "Il PIN deve essere di 4 cifre.",
+  }).regex(/^\d+$/, {
+    message: "Il PIN deve contenere solo numeri.",
   }),
 });
 
-const registerSchema = loginSchema.extend({
-  email: z.string().email({
-    message: "Please enter a valid email.",
+const registerSchema = z.object({
+  username: z.string().min(3, {
+    message: "Il nome della tua squadra deve avere almeno 3 caratteri.",
   }),
-  confirmPassword: z.string().min(6, {
-    message: "Password must be at least 6 characters.",
+  pin: z.string().length(4, {
+    message: "Il PIN deve essere di 4 cifre.",
+  }).regex(/^\d+$/, {
+    message: "Il PIN deve contenere solo numeri.",
   }),
-}).refine((data) => data.password === data.confirmPassword, {
-  message: "Passwords don't match",
-  path: ["confirmPassword"],
+  confirmPin: z.string().length(4, {
+    message: "Conferma PIN deve essere di 4 cifre.",
+  }).regex(/^\d+$/, {
+    message: "Il PIN deve contenere solo numeri.",
+  }),
+}).refine((data) => data.pin === data.confirmPin, {
+  message: "I PIN non corrispondono",
+  path: ["confirmPin"],
 });
 
 type LoginFormValues = z.infer<typeof loginSchema>;
@@ -46,7 +55,7 @@ export default function LoginPage() {
     resolver: zodResolver(loginSchema),
     defaultValues: {
       username: "",
-      password: "",
+      pin: "",
     },
   });
 
@@ -55,9 +64,8 @@ export default function LoginPage() {
     resolver: zodResolver(registerSchema),
     defaultValues: {
       username: "",
-      email: "",
-      password: "",
-      confirmPassword: "",
+      pin: "",
+      confirmPin: "",
     },
   });
 
@@ -69,15 +77,15 @@ export default function LoginPage() {
     },
     onSuccess: (data) => {
       toast({
-        title: "Login successful",
-        description: `Welcome back, ${data.username}!`,
+        title: "Accesso effettuato!",
+        description: `Bentornato, ${data.username}!`,
       });
       navigate(data.isAdmin ? "/admin" : "/");
     },
     onError: (error) => {
       toast({
-        title: "Login failed",
-        description: error instanceof Error ? error.message : "Invalid credentials",
+        title: "Accesso fallito",
+        description: error instanceof Error ? error.message : "Credenziali non valide",
         variant: "destructive",
       });
     },
@@ -86,22 +94,22 @@ export default function LoginPage() {
   // Register mutation
   const register = useMutation({
     mutationFn: async (data: RegisterFormValues) => {
-      // Remove confirmPassword before sending
-      const { confirmPassword, ...registerData } = data;
+      // Remove confirmPin before sending
+      const { confirmPin, ...registerData } = data;
       const response = await apiRequest("POST", "/api/register", registerData);
       return response.json();
     },
     onSuccess: (data) => {
       toast({
-        title: "Registration successful",
-        description: `Welcome, ${data.username}!`,
+        title: "Registrazione completata!",
+        description: `Benvenuto, ${data.username}!`,
       });
       navigate(data.isAdmin ? "/admin" : "/");
     },
     onError: (error) => {
       toast({
-        title: "Registration failed",
-        description: error instanceof Error ? error.message : "Registration failed",
+        title: "Registrazione fallita",
+        description: error instanceof Error ? error.message : "Si è verificato un errore durante la registrazione",
         variant: "destructive",
       });
     },
@@ -121,14 +129,14 @@ export default function LoginPage() {
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl font-bold text-center">FantaSchedina</CardTitle>
           <CardDescription className="text-center">
-            Login or create an account to continue
+            Accedi o crea un account per continuare
           </CardDescription>
         </CardHeader>
         <CardContent>
           <Tabs value={activeTab} onValueChange={setActiveTab}>
             <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="login">Login</TabsTrigger>
-              <TabsTrigger value="register">Register</TabsTrigger>
+              <TabsTrigger value="login">Accedi</TabsTrigger>
+              <TabsTrigger value="register">Registrati</TabsTrigger>
             </TabsList>
             <TabsContent value="login" className="mt-4">
               <Form {...loginForm}>
@@ -138,9 +146,9 @@ export default function LoginPage() {
                     name="username"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Username</FormLabel>
+                        <FormLabel>Nome Squadra</FormLabel>
                         <FormControl>
-                          <Input placeholder="Enter your username" {...field} />
+                          <Input placeholder="Inserisci il nome della tua squadra" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -148,12 +156,17 @@ export default function LoginPage() {
                   />
                   <FormField
                     control={loginForm.control}
-                    name="password"
+                    name="pin"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Password</FormLabel>
+                        <FormLabel>PIN</FormLabel>
                         <FormControl>
-                          <Input type="password" placeholder="Enter your password" {...field} />
+                          <Input 
+                            type="password" 
+                            placeholder="Inserisci il tuo PIN di 4 cifre" 
+                            maxLength={4}
+                            {...field} 
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -164,7 +177,7 @@ export default function LoginPage() {
                     className="w-full" 
                     disabled={login.isPending}
                   >
-                    {login.isPending ? "Logging in..." : "Login"}
+                    {login.isPending ? "Accesso in corso..." : "Accedi"}
                   </Button>
                 </form>
               </Form>
@@ -177,9 +190,9 @@ export default function LoginPage() {
                     name="username"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Username</FormLabel>
+                        <FormLabel>Nome Squadra</FormLabel>
                         <FormControl>
-                          <Input placeholder="Choose a username" {...field} />
+                          <Input placeholder="Scegli il nome della tua squadra" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -187,12 +200,17 @@ export default function LoginPage() {
                   />
                   <FormField
                     control={registerForm.control}
-                    name="email"
+                    name="pin"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Email</FormLabel>
+                        <FormLabel>PIN</FormLabel>
                         <FormControl>
-                          <Input type="email" placeholder="Enter your email" {...field} />
+                          <Input 
+                            type="password" 
+                            placeholder="Scegli un PIN di 4 cifre" 
+                            maxLength={4}
+                            {...field} 
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -200,25 +218,17 @@ export default function LoginPage() {
                   />
                   <FormField
                     control={registerForm.control}
-                    name="password"
+                    name="confirmPin"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Password</FormLabel>
+                        <FormLabel>Conferma PIN</FormLabel>
                         <FormControl>
-                          <Input type="password" placeholder="Create a password" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={registerForm.control}
-                    name="confirmPassword"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Confirm Password</FormLabel>
-                        <FormControl>
-                          <Input type="password" placeholder="Confirm your password" {...field} />
+                          <Input 
+                            type="password" 
+                            placeholder="Conferma il tuo PIN" 
+                            maxLength={4}
+                            {...field} 
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -229,7 +239,7 @@ export default function LoginPage() {
                     className="w-full"
                     disabled={register.isPending}
                   >
-                    {register.isPending ? "Creating account..." : "Create Account"}
+                    {register.isPending ? "Registrazione in corso..." : "Crea Account"}
                   </Button>
                 </form>
               </Form>
@@ -237,7 +247,7 @@ export default function LoginPage() {
           </Tabs>
         </CardContent>
         <CardFooter className="flex justify-center text-sm text-gray-500">
-          By continuing, you agree to the terms and conditions.
+          Continuando, accetti i termini e le condizioni.
         </CardFooter>
       </Card>
     </div>

@@ -6,9 +6,8 @@ import { z } from "zod";
 // Users table
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
-  username: text("username").notNull().unique(),
-  email: text("email").notNull(),
-  password: text("password").notNull(),
+  username: text("username").notNull().unique(), // This will be the fantacalcio team name
+  pin: text("pin").notNull(), // PIN for login instead of password
   isAdmin: boolean("is_admin").default(false).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
@@ -50,10 +49,10 @@ export const matchSchema = baseMatchSchema.extend({
 // Predictions table
 export const predictions = pgTable("predictions", {
   id: serial("id").primaryKey(),
-  userId: integer("user_id"),
-  name: text("name").notNull(),
+  userId: integer("user_id").notNull(), // Required - must be associated with a user
   matchId: integer("match_id").notNull(),
   prediction: text("prediction").notNull(), // "1", "X", or "2"
+  credits: integer("credits").notNull(), // Credits used for this prediction (2-8)
   isEditable: boolean("is_editable").default(true).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
@@ -70,15 +69,14 @@ export const predictionsRelations = relations(predictions, ({ one }) => ({
   }),
 }));
 
-export const predictSchema = createInsertSchema(predictions)
-  .pick({
-    name: true,
-    matchId: true,
-    prediction: true,
-  })
-  .extend({
-    userId: z.number().optional(),
-  });
+// Create the prediction schema directly rather than using createInsertSchema 
+// since we've modified fields
+export const predictSchema = z.object({
+  userId: z.number(),
+  matchId: z.number(),
+  prediction: z.string(), // "1", "X", or "2"
+  credits: z.number().min(2).max(8), // Credits between 2-8
+});
 
 // Types
 export type User = typeof users.$inferSelect;
