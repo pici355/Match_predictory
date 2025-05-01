@@ -621,9 +621,38 @@ export default function AdminPage() {
                               render={({ field }) => (
                                 <FormItem>
                                   <FormLabel>Squadra casa</FormLabel>
-                                  <FormControl>
-                                    <Input placeholder="Es. Newell's" {...field} />
-                                  </FormControl>
+                                  <Select
+                                    onValueChange={field.onChange}
+                                    value={field.value}
+                                  >
+                                    <FormControl>
+                                      <SelectTrigger>
+                                        <SelectValue placeholder="Seleziona squadra" />
+                                      </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                      {isLoadingTeams ? (
+                                        <SelectItem value="loading" disabled>
+                                          Caricamento squadre...
+                                        </SelectItem>
+                                      ) : teams && teams.length > 0 ? (
+                                        teams.map((team) => (
+                                          <SelectItem key={team.id} value={team.name}>
+                                            <div className="flex items-center gap-2">
+                                              <div className="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center text-primary font-semibold text-[10px]">
+                                                {team.name.substring(0, 2).toUpperCase()}
+                                              </div>
+                                              <span>{team.name}</span>
+                                            </div>
+                                          </SelectItem>
+                                        ))
+                                      ) : (
+                                        <SelectItem value="no-teams" disabled>
+                                          Nessuna squadra disponibile
+                                        </SelectItem>
+                                      )}
+                                    </SelectContent>
+                                  </Select>
                                   <FormMessage />
                                 </FormItem>
                               )}
@@ -635,9 +664,38 @@ export default function AdminPage() {
                               render={({ field }) => (
                                 <FormItem>
                                   <FormLabel>Squadra ospite</FormLabel>
-                                  <FormControl>
-                                    <Input placeholder="Es. Como" {...field} />
-                                  </FormControl>
+                                  <Select
+                                    onValueChange={field.onChange}
+                                    value={field.value}
+                                  >
+                                    <FormControl>
+                                      <SelectTrigger>
+                                        <SelectValue placeholder="Seleziona squadra" />
+                                      </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                      {isLoadingTeams ? (
+                                        <SelectItem value="loading" disabled>
+                                          Caricamento squadre...
+                                        </SelectItem>
+                                      ) : teams && teams.length > 0 ? (
+                                        teams.map((team) => (
+                                          <SelectItem key={team.id} value={team.name}>
+                                            <div className="flex items-center gap-2">
+                                              <div className="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center text-primary font-semibold text-[10px]">
+                                                {team.name.substring(0, 2).toUpperCase()}
+                                              </div>
+                                              <span>{team.name}</span>
+                                            </div>
+                                          </SelectItem>
+                                        ))
+                                      ) : (
+                                        <SelectItem value="no-teams" disabled>
+                                          Nessuna squadra disponibile
+                                        </SelectItem>
+                                      )}
+                                    </SelectContent>
+                                  </Select>
                                   <FormMessage />
                                 </FormItem>
                               )}

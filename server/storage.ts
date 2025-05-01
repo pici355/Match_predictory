@@ -43,6 +43,7 @@ export interface IStorage {
   getTeam(id: number): Promise<Team | undefined>;
   getTeamByName(name: string): Promise<Team | undefined>;
   createTeam(team: InsertTeam): Promise<Team>;
+  updateTeam(id: number, team: InsertTeam): Promise<Team | undefined>;
   updateTeamCredits(id: number, credits: number): Promise<Team | undefined>;
   deleteTeam(id: number): Promise<boolean>;
   
