@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
+import MatchDayReceipt from "./MatchDayReceipt";
 
 import { predictSchema } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
@@ -45,7 +46,12 @@ export default function PredictionForm() {
   const [selectedMatchDay, setSelectedMatchDay] = useState<number | null>(null);
   const [allPredicted, setAllPredicted] = useState(false);
   const [predictionsRemaining, setPredictionsRemaining] = useState(5);
+  const [showReceipt, setShowReceipt] = useState(false);
+  const [justCompleted, setJustCompleted] = useState(false);
   const { toast } = useToast();
+  
+  // Riferimento alla sezione delle previsioni
+  const receiptRef = useRef<HTMLDivElement>(null);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -95,10 +101,34 @@ export default function PredictionForm() {
       const predictionsNeeded = 5 - predictionsForDay.length;
       setPredictionsRemaining(predictionsNeeded > 0 ? predictionsNeeded : 0);
       
+      // Check if all predictions are complete
+      const wasPreviouslyIncomplete = !allPredicted && predictionsRemaining > 0;
+      const isNowComplete = predictionsForDay.length >= 5;
+      
       // All predicted if we have at least 5 predictions for this match day
-      setAllPredicted(predictionsForDay.length >= 5);
+      setAllPredicted(isNowComplete);
+      
+      // Se abbiamo appena completato i pronostici (passando da incompleto a completo)
+      if (wasPreviouslyIncomplete && isNowComplete) {
+        setJustCompleted(true);
+        // Mostra automaticamente la schedina
+        setShowReceipt(true);
+        
+        // Mostra un messaggio all'utente
+        toast({
+          title: "Complimenti!",
+          description: "Hai completato i 5 pronostici minimi per questa giornata. Ecco la tua schedina!",
+        });
+        
+        // Scrolliamo alla visualizzazione della schedina
+        setTimeout(() => {
+          if (receiptRef.current) {
+            receiptRef.current.scrollIntoView({ behavior: 'smooth' });
+          }
+        }, 500);
+      }
     }
-  }, [selectedMatchDay, matches, userPredictions]);
+  }, [selectedMatchDay, matches, userPredictions, allPredicted, predictionsRemaining, toast]);
 
   // Filtered matches based on selected match day
   const filteredMatches = selectedMatchDay && matches ? 
