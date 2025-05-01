@@ -80,7 +80,25 @@ export default function LoginPage() {
         title: "Accesso effettuato!",
         description: `Bentornato, ${data.username}!`,
       });
-      navigate(data.isAdmin ? "/admin" : "/");
+
+      // Aggiungiamo un breve ritardo per garantire che la sessione venga correttamente impostata
+      // prima di reindirizzare alla pagina admin (che richiede la sessione)
+      setTimeout(() => {
+        // Facciamo anche una chiamata addizionale a /api/me per confermare la sessione
+        fetch('/api/me')
+          .then(res => res.json())
+          .then(() => {
+            if (data.isAdmin) {
+              window.location.href = "/admin"; // Utilizziamo un full redirect invece di navigate()
+            } else {
+              navigate("/");
+            }
+          })
+          .catch(err => {
+            console.error("Session verification error:", err);
+            navigate("/");
+          });
+      }, 500);
     },
     onError: (error) => {
       toast({
@@ -104,7 +122,23 @@ export default function LoginPage() {
         title: "Registrazione completata!",
         description: `Benvenuto, ${data.username}!`,
       });
-      navigate(data.isAdmin ? "/admin" : "/");
+      
+      // Applichiamo la stessa logica anche per la registrazione
+      setTimeout(() => {
+        fetch('/api/me')
+          .then(res => res.json())
+          .then(() => {
+            if (data.isAdmin) {
+              window.location.href = "/admin";
+            } else {
+              navigate("/");
+            }
+          })
+          .catch(err => {
+            console.error("Session verification error after registration:", err);
+            navigate("/");
+          });
+      }, 500);
     },
     onError: (error) => {
       toast({
