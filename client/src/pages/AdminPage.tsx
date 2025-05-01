@@ -79,8 +79,10 @@ type PrizeDistribution = {
   id: number;
   matchDay: number;
   totalPot: number;
+  potFor80Pct: number;
   potFor90Pct: number;
   potFor100Pct: number;
+  users80PctCorrect: number;
   users90PctCorrect: number;
   users100PctCorrect: number;
   isDistributed: boolean;

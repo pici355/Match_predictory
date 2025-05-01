@@ -156,6 +156,24 @@ export default function PredictionForm() {
         <div className="mb-6 border-b pb-4">
           <h1 className="text-2xl font-bold text-center text-primary">FantaSchedina</h1>
           <h2 className="text-xl font-semibold text-center mt-2">Pronostica i risultati delle partite</h2>
+          
+          <div className="mt-4 p-3 bg-blue-50 rounded-md border border-blue-100">
+            <h3 className="text-md font-semibold text-blue-800">Sistema premi fissi</h3>
+            <ul className="mt-1 text-sm text-blue-700">
+              <li className="flex items-center">
+                <span className="inline-block w-4 h-4 mr-1 rounded-full bg-blue-800 text-white text-xs text-center">✓</span> 
+                100% di previsioni corrette: 10 crediti
+              </li>
+              <li className="flex items-center">
+                <span className="inline-block w-4 h-4 mr-1 rounded-full bg-blue-800 text-white text-xs text-center">✓</span> 
+                90% di previsioni corrette: 8 crediti
+              </li>
+              <li className="flex items-center">
+                <span className="inline-block w-4 h-4 mr-1 rounded-full bg-blue-800 text-white text-xs text-center">✓</span> 
+                80% di previsioni corrette: 6 crediti
+              </li>
+            </ul>
+          </div>
         </div>
 
         <Form {...form}>
