@@ -5,6 +5,8 @@ import {
 } from '@/components/ui/accordion';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import TeamManagementSection from '@/components/TeamManagementSection';
+import MatchManagementSection from '@/components/MatchManagementSection';
+import UserManagementSection from '@/components/UserManagementSection';
 import AdminUserPredictionsSection from '@/components/AdminUserPredictionsSection';
 
 export default function AdminPage() {
@@ -15,7 +17,7 @@ export default function AdminPage() {
       <Accordion
         type="single"
         collapsible
-        defaultValue="teams"
+        defaultValue="matches"
         className="space-y-4"
       >
         {/* Matches management section */}
@@ -24,9 +26,7 @@ export default function AdminPage() {
             <h2 className="text-xl font-bold text-left">Gestione Partite</h2>
           </AccordionTrigger>
           <AccordionContent className="p-4">
-            <div className="text-center py-12">
-              <p className="text-gray-500">Sezione in costruzione</p>
-            </div>
+            <MatchManagementSection />
           </AccordionContent>
         </AccordionItem>
         
@@ -36,9 +36,7 @@ export default function AdminPage() {
             <h2 className="text-xl font-bold text-left">Gestione Utenti</h2>
           </AccordionTrigger>
           <AccordionContent className="p-4">
-            <div className="text-center py-12">
-              <p className="text-gray-500">Sezione in costruzione</p>
-            </div>
+            <UserManagementSection />
           </AccordionContent>
         </AccordionItem>
         

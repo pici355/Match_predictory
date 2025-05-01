@@ -264,7 +264,7 @@ export default function PredictionForm() {
                                 : "Seleziona una partita"
                           } />
                         </SelectTrigger>
-                        <SelectContent>
+                        <SelectContent className="max-w-none w-[400px]">
                           {filteredMatches.length > 0 ? (
                             filteredMatches.map(match => {
                               // Check if user already predicted this match
@@ -277,12 +277,13 @@ export default function PredictionForm() {
                                   key={match.id} 
                                   value={match.id.toString()}
                                   disabled={!!alreadyPredicted}
+                                  className="p-0 focus:bg-slate-100"
                                 >
-                                  <div className="flex flex-col w-full py-1.5">
-                                    {/* Layout migliorato per evitare i contenuti dai bordi */}
-                                    <div className="flex justify-between items-center gap-3 w-full">
-                                      {/* Home Team - Aumentata larghezza */}
-                                      <div className="flex items-center gap-2 overflow-hidden flex-1 max-w-[42%]">
+                                  <div className="flex flex-col w-full p-2">
+                                    {/* Layout completamente rivisto per evitare i contenuti dai bordi */}
+                                    <div className="grid grid-cols-5 items-center w-full">
+                                      {/* Home Team - Layout fisso */}
+                                      <div className="col-span-2 flex items-center gap-2 overflow-hidden">
                                         <div className="w-6 h-6 rounded-full overflow-hidden flex-shrink-0">
                                           <img 
                                             src={`/team-logos/${match.homeTeam.toLowerCase().replace(/\s+/g, '-')}.jpg`} 
@@ -311,15 +312,15 @@ export default function PredictionForm() {
                                             className="w-full h-full object-cover"
                                           />
                                         </div>
-                                        <span className="truncate font-medium">{match.homeTeam}</span>
+                                        <span className="truncate font-medium text-sm">{match.homeTeam}</span>
                                       </div>
                                       
-                                      {/* VS - Aumentata larghezza */}
-                                      <div className="text-gray-500 flex-shrink-0 px-2 text-center font-bold">VS</div>
+                                      {/* VS - Spazio dedicato e centrato */}
+                                      <div className="text-gray-500 flex-shrink-0 text-center font-bold text-sm">VS</div>
                                       
-                                      {/* Away Team - Aumentata larghezza */}
-                                      <div className="flex items-center gap-2 overflow-hidden flex-1 justify-end max-w-[42%]">
-                                        <span className="truncate font-medium text-right">{match.awayTeam}</span>
+                                      {/* Away Team - Layout fisso */}
+                                      <div className="col-span-2 flex items-center justify-end gap-2 overflow-hidden">
+                                        <span className="truncate font-medium text-sm text-right">{match.awayTeam}</span>
                                         <div className="w-6 h-6 rounded-full overflow-hidden flex-shrink-0">
                                           <img 
                                             src={`/team-logos/${match.awayTeam.toLowerCase().replace(/\s+/g, '-')}.jpg`} 
@@ -352,19 +353,14 @@ export default function PredictionForm() {
                                     </div>
                                     
                                     {!!alreadyPredicted && (
-                                      <div className="text-gray-400 text-xs text-center mt-1.5">
+                                      <div className="text-gray-400 text-xs text-center mt-1">
                                         (già pronosticata)
                                       </div>
                                     )}
                                     
                                     {/* Informazioni aggiuntive */}
-                                    <div className="mt-1.5 flex flex-col">
-                                      {match.description && (
-                                        <div className="text-xs text-indigo-600 font-medium">
-                                          {match.description}
-                                        </div>
-                                      )}
-                                      <div className="text-xs text-gray-500 mt-0.5">
+                                    <div className="mt-1 grid grid-cols-2 gap-2">
+                                      <div className="text-xs text-gray-500">
                                         {formatDateToLocalString(match.matchDate, {
                                           weekday: 'short',
                                           day: '2-digit',
@@ -373,9 +369,15 @@ export default function PredictionForm() {
                                           minute: '2-digit'
                                         })}
                                         {!isMatchPredictionEditable(match.matchDate) && 
-                                          <span className="ml-2 text-red-500 font-medium">(Chiuso)</span>
+                                          <span className="ml-1 text-red-500 font-medium">(Chiuso)</span>
                                         }
                                       </div>
+                                      
+                                      {match.description && (
+                                        <div className="text-xs text-indigo-600 font-medium text-right">
+                                          {match.description}
+                                        </div>
+                                      )}
                                     </div>
                                   </div>
                                 </SelectItem>
