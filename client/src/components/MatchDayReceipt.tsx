@@ -12,6 +12,7 @@ import { formatDateToLocalString } from "@/lib/dateUtils";
 import { Printer, Download, Share2 } from "lucide-react";
 import html2canvas from "html2canvas";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { useToast } from "@/hooks/use-toast";
 
 // Types
 type Match = {
@@ -51,6 +52,9 @@ const predictionMap: Record<string, string> = {
 };
 
 export default function MatchDayReceipt({ matchDay, predictions, username }: MatchDayReceiptProps) {
+  // Add toast notifications
+  const { toast } = useToast();
+  
   // Add print styles
   useEffect(() => {
     // Add a <style> element for print styles
@@ -130,6 +134,12 @@ export default function MatchDayReceipt({ matchDay, predictions, username }: Mat
     if (!receiptElement) return;
     
     try {
+      // Mostro un messaggio di elaborazione
+      toast({
+        title: "Generazione immagine...",
+        description: "Sto creando l'immagine della schedina"
+      });
+      
       const canvas = await html2canvas(receiptElement, {
         scale: 2,
         logging: false,
@@ -138,17 +148,38 @@ export default function MatchDayReceipt({ matchDay, predictions, username }: Mat
       });
       
       const image = canvas.toDataURL('image/png');
-      const text = `Indistruttibili Bet: Pronostici di ${username} per la Giornata ${matchDay}`;
+      
+      // Scarica l'immagine automaticamente
+      const fileName = `schedina_giornata_${matchDay}_${username}.png`;
+      const downloadLink = document.createElement('a');
+      downloadLink.href = image;
+      downloadLink.download = fileName;
+      downloadLink.click();
+      
+      // Testo per WhatsApp
+      const text = `📋 Indistruttibili Bet: Pronostici di ${username} per la Giornata ${matchDay}\n\nHo appena scaricato la mia schedina! 📊`;
+      
+      toast({
+        title: "Immagine scaricata",
+        description: "Ora puoi condividerla su WhatsApp"
+      });
       
       // Share on WhatsApp (mobile)
-      if (/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) {
-        window.open(`whatsapp://send?text=${encodeURIComponent(text)}`);
-      } else {
-        // WhatsApp Web for desktop users
-        window.open(`https://web.whatsapp.com/send?text=${encodeURIComponent(text)}`);
-      }
+      setTimeout(() => {
+        if (/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) {
+          window.open(`whatsapp://send?text=${encodeURIComponent(text)}`);
+        } else {
+          // WhatsApp Web for desktop users
+          window.open(`https://web.whatsapp.com/send?text=${encodeURIComponent(text)}`);
+        }
+      }, 300);
     } catch (error) {
       console.error("Error sharing receipt:", error);
+      toast({
+        title: "Errore",
+        description: "Si è verificato un errore nella condivisione",
+        variant: "destructive"
+      });
     }
   };
   
