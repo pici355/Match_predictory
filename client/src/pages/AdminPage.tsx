@@ -106,6 +106,7 @@ export default function AdminPage() {
   const [activeTab, setActiveTab] = useState("add-match");
   const [file, setFile] = useState<File | null>(null);
   const [selectedMatchDay, setSelectedMatchDay] = useState<number | null>(null);
+  const [editingTeamId, setEditingTeamId] = useState<number | null>(null);
   const { toast } = useToast();
 
   // ======== FORMS ========
@@ -370,11 +371,42 @@ export default function AdminPage() {
         credits: 0,
         logo: "",
       });
+      setTeamLogoFile(null);
     },
     onError: (error) => {
       toast({
         title: "Errore!",
         description: error instanceof Error ? error.message : "Si è verificato un errore durante l'aggiunta della squadra.",
+        variant: "destructive",
+      });
+    }
+  });
+  
+  // Update team mutation
+  const updateTeam = useMutation({
+    mutationFn: async ({ id, data }: { id: number, data: TeamFormValues }) => {
+      const response = await apiRequest("PATCH", `/api/teams/${id}`, data);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/teams'] });
+      toast({
+        title: "Squadra aggiornata!",
+        description: "La squadra è stata aggiornata con successo.",
+      });
+      teamForm.reset({
+        name: "",
+        managerName: "",
+        credits: 0,
+        logo: "",
+      });
+      setEditingTeamId(null);
+      setTeamLogoFile(null);
+    },
+    onError: (error) => {
+      toast({
+        title: "Errore!",
+        description: error instanceof Error ? error.message : "Si è verificato un errore durante l'aggiornamento della squadra.",
         variant: "destructive",
       });
     }
@@ -407,7 +439,13 @@ export default function AdminPage() {
   }
   
   function onSubmitTeam(data: TeamFormValues) {
-    createTeam.mutate(data);
+    if (editingTeamId) {
+      // If we're editing an existing team
+      updateTeam.mutate({ id: editingTeamId, data });
+    } else {
+      // If we're creating a new team
+      createTeam.mutate(data);
+    }
   }
   
   // Handle team logo file selection
@@ -749,7 +787,7 @@ export default function AdminPage() {
                         name="managerName"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Gestore</FormLabel>
+                            <FormLabel>Allenatore</FormLabel>
                             <FormControl>
                               <Input placeholder="Es. El Loco Bielsa" {...field} />
                             </FormControl>
@@ -796,13 +834,35 @@ export default function AdminPage() {
                         )}
                       </div>
                       
-                      <Button 
-                        type="submit" 
-                        className="w-full"
-                        disabled={createTeam.isPending}
-                      >
-                        {createTeam.isPending ? "Salvataggio in corso..." : "Salva Squadra"}
-                      </Button>
+                      <div className="flex space-x-2">
+                        <Button 
+                          type="submit" 
+                          className="flex-1"
+                          disabled={createTeam.isPending || updateTeam.isPending}
+                        >
+                          {createTeam.isPending || updateTeam.isPending ? "Salvataggio in corso..." : 
+                           editingTeamId ? "Aggiorna Squadra" : "Salva Squadra"}
+                        </Button>
+                        
+                        {editingTeamId && (
+                          <Button 
+                            type="button" 
+                            variant="outline"
+                            onClick={() => {
+                              setEditingTeamId(null);
+                              teamForm.reset({
+                                name: "",
+                                managerName: "",
+                                credits: 0,
+                                logo: "",
+                              });
+                              setTeamLogoFile(null);
+                            }}
+                          >
+                            Annulla
+                          </Button>
+                        )}
+                      </div>
                     </form>
                   </Form>
                 </CardContent>
@@ -827,8 +887,9 @@ export default function AdminPage() {
                           <tr>
                             <th className="px-4 py-3 text-sm font-medium">Logo</th>
                             <th className="px-4 py-3 text-sm font-medium">Nome</th>
-                            <th className="px-4 py-3 text-sm font-medium">Gestore</th>
+                            <th className="px-4 py-3 text-sm font-medium">Allenatore</th>
                             <th className="px-4 py-3 text-sm font-medium">Crediti</th>
+                            <th className="px-4 py-3 text-sm font-medium">Azioni</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -854,6 +915,24 @@ export default function AdminPage() {
                               <td className="px-4 py-3 text-sm">{team.name}</td>
                               <td className="px-4 py-3 text-sm">{team.managerName}</td>
                               <td className="px-4 py-3 text-sm">{team.credits}</td>
+                              <td className="px-4 py-3 text-sm">
+                                <Button 
+                                  variant="outline" 
+                                  size="sm" 
+                                  onClick={() => {
+                                    teamForm.reset({
+                                      name: team.name,
+                                      managerName: team.managerName,
+                                      credits: team.credits,
+                                      logo: team.logo || "",
+                                    });
+                                    // Set the editing team
+                                    setEditingTeamId(team.id);
+                                  }}
+                                >
+                                  Modifica
+                                </Button>
+                              </td>
                             </tr>
                           ))}
                         </tbody>
