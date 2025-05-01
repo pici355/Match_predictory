@@ -73,35 +73,51 @@ function MatchCard({ match }: { match: Match }) {
   }, [match.matchDate, currentTimezone]);
   
   return (
-    <Card className="mb-4 hover:shadow-md transition-shadow">
-      <CardContent className="pt-4 pb-4">
-        <div className="flex justify-between items-center">
-          <div className="text-center w-2/5">
-            <div className="font-bold">{match.homeTeam}</div>
+    <Card className="mb-4 hover:shadow-md transition-shadow overflow-hidden">
+      <CardContent className="p-0">
+        {/* Match day info and time banner */}
+        <div className="bg-muted px-3 py-1 flex justify-between items-center text-xs">
+          <div className="font-medium">Giornata {match.matchDay}</div>
+          <Badge variant={isEditable ? "secondary" : "destructive"} className="text-xs" size="sm">
+            {isEditable ? `${timeRemaining}` : "Chiuso"}
+          </Badge>
+        </div>
+        
+        {/* Teams section */}
+        <div className="p-4 flex justify-between items-center">
+          {/* Home team */}
+          <div className="text-center flex-1">
+            <div className="font-bold truncate">{match.homeTeam}</div>
           </div>
-          <div className="text-center">
-            <div className="font-bold text-gray-500">VS</div>
-            <div className="text-xs mt-1 text-gray-400">Giornata {match.matchDay}</div>
-          </div>
-          <div className="text-center w-2/5">
-            <div className="font-bold">{match.awayTeam}</div>
+          
+          {/* VS section */}
+          <div className="text-center mx-2 font-bold text-gray-500 px-3">VS</div>
+          
+          {/* Away team */}
+          <div className="text-center flex-1">
+            <div className="font-bold truncate">{match.awayTeam}</div>
           </div>
         </div>
         
-        <div className="mt-4 flex flex-wrap justify-between items-center text-sm border-t pt-3">
-          <div className="flex-1 min-w-[200px]">
-            <span className="font-medium">Data:</span>{" "}
-            {formatDateToLocalString(match.matchDate, {
-              day: '2-digit',
-              month: '2-digit',
-              year: 'numeric',
-              hour: '2-digit',
-              minute: '2-digit'
-            }, USER_TIMEZONE)}
+        {/* Match info footer */}
+        <div className="border-t px-4 py-2 bg-muted/20 text-sm">
+          <div className="flex items-center">
+            <span className="font-medium">Data:</span>
+            <span className="ml-2">
+              {formatDateToLocalString(match.matchDate, {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+              }, USER_TIMEZONE)}
+            </span>
           </div>
-          <Badge variant={isEditable ? "secondary" : "outline"} className="mt-1 md:mt-0">
-            {isEditable ? `Tempo: ${timeRemaining}` : "Chiuso"}
-          </Badge>
+          {match.description && (
+            <div className="text-muted-foreground text-xs mt-1 italic">
+              {match.description}
+            </div>
+          )}
         </div>
       </CardContent>
     </Card>
