@@ -9,8 +9,29 @@ export const DEFAULT_TIMEZONE = 'Europe/Rome';
 
 /**
  * User's detected timezone (initialized with browser's timezone)
+ * We check localStorage first to see if the user has previously selected a timezone
  */
-export let USER_TIMEZONE = Intl.DateTimeFormat().resolvedOptions().timeZone;
+export let USER_TIMEZONE = (() => {
+  // Check if we're in a browser environment
+  if (typeof window !== 'undefined' && window.localStorage) {
+    const savedTimezone = localStorage.getItem('user_timezone');
+    if (savedTimezone) {
+      return savedTimezone;
+    }
+  }
+  return Intl.DateTimeFormat().resolvedOptions().timeZone;
+})();
+
+/**
+ * Set the user's timezone and persist it to localStorage
+ * @param timezone The timezone to set
+ */
+export function setUserTimezone(timezone: string): void {
+  USER_TIMEZONE = timezone;
+  if (typeof window !== 'undefined' && window.localStorage) {
+    localStorage.setItem('user_timezone', timezone);
+  }
+}
 
 /**
  * Store for detected timezone from IP address

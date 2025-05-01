@@ -1,95 +1,158 @@
-import { useEffect, useState } from "react";
-import { detectTimezoneFromIP, USER_TIMEZONE } from "@/lib/dateUtils";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import React, { useEffect, useState } from 'react';
 import { 
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger
-} from "@/components/ui/dropdown-menu";
+  detectTimezoneFromIP, 
+  USER_TIMEZONE, 
+  DEFAULT_TIMEZONE,
+  setUserTimezone,
+  formatDateToLocalString 
+} from '@/lib/dateUtils';
+import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Label } from '@/components/ui/label';
+import { Clock } from 'lucide-react';
 
-// Common timezones for quick selection
-const commonTimezones = [
-  { label: "Europe/Rome (Italia)", value: "Europe/Rome" },
-  { label: "Europe/London (UK)", value: "Europe/London" },
-  { label: "America/New_York (USA Est)", value: "America/New_York" },
-  { label: "America/Los_Angeles (USA Ovest)", value: "America/Los_Angeles" },
-  { label: "Asia/Tokyo (Giappone)", value: "Asia/Tokyo" },
-  { label: "Australia/Sydney (Australia)", value: "Australia/Sydney" },
+// List of common timezones for selection
+const COMMON_TIMEZONES = [
+  'Europe/Rome',
+  'Europe/London',
+  'Europe/Paris',
+  'Europe/Berlin',
+  'Europe/Madrid',
+  'America/New_York',
+  'America/Los_Angeles',
+  'Asia/Tokyo',
+  'Australia/Sydney',
 ];
 
 export default function TimezoneDetector() {
-  const [detectedTimezone, setDetectedTimezone] = useState<string>(USER_TIMEZONE);
-  const [isDetecting, setIsDetecting] = useState<boolean>(false);
-  const [dropdownOpen, setDropdownOpen] = useState<boolean>(false);
+  const [detectedTimezone, setDetectedTimezone] = useState<string | null>(null);
+  const [isDetecting, setIsDetecting] = useState(false);
+  const [currentTime, setCurrentTime] = useState(new Date());
+  const [selectedTimezone, setSelectedTimezone] = useState(USER_TIMEZONE);
 
+  // Update current time every second
   useEffect(() => {
-    // Detect timezone on component mount
+    const timer = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 1000);
+    
+    return () => clearInterval(timer);
+  }, []);
+
+  // Detect timezone on initial load
+  useEffect(() => {
     async function detectTimezone() {
       setIsDetecting(true);
       try {
-        const timezone = await detectTimezoneFromIP();
-        setDetectedTimezone(timezone);
+        const tz = await detectTimezoneFromIP();
+        setDetectedTimezone(tz);
+        setSelectedTimezone(tz);
       } catch (error) {
-        console.error("Failed to detect timezone:", error);
+        console.error('Error detecting timezone:', error);
       } finally {
         setIsDetecting(false);
       }
     }
-
+    
     detectTimezone();
   }, []);
 
-  const handleTimezoneChange = (timezone: string) => {
-    // This updates the global USER_TIMEZONE value
-    (window as any).USER_TIMEZONE = timezone;
+  // Update the global timezone when user changes it
+  function handleTimezoneChange(timezone: string) {
+    // Update the global timezone using our helper function
+    setUserTimezone(timezone);
+    
+    // Also set the selected state for the component
+    setSelectedTimezone(timezone);
+  }
 
-    // Also update our local state
-    setDetectedTimezone(timezone);
+  // Format function for timezone display
+  function formatTimezoneDisplay(timezone: string): string {
+    // Calculate offset from UTC
+    const now = new Date();
+    const offset = -now.getTimezoneOffset() / 60; // Convert to hours
+    const offsetStr = offset >= 0 ? `+${offset}` : `${offset}`;
     
-    // Close dropdown
-    setDropdownOpen(false);
+    // Convert timezone name to more readable format (e.g., Europe/Rome -> Rome)
+    const cityName = timezone.split('/').pop()?.replace('_', ' ');
     
-    // Force refresh the page to apply the new timezone
-    window.location.reload();
-  };
+    return `${cityName} (UTC${offsetStr})`;
+  }
 
   return (
-    <div className="flex items-center space-x-2">
-      <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
-        <DropdownMenuTrigger asChild>
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            className="h-8 px-2 text-xs flex items-center"
-          >
-            <Badge 
-              variant="outline" 
-              className="px-2 py-1 border-gray-300 text-xs font-normal flex items-center"
-            >
-              <span className="mr-1">🌐</span>
-              {isDetecting ? "Rilevamento..." : `${detectedTimezone.split('/').pop()?.replace('_', ' ')}`}
-            </Badge>
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent className="w-56">
-          <div className="px-2 py-1.5 text-xs font-semibold">Fuso orario</div>
-          {commonTimezones.map((tz) => (
-            <DropdownMenuItem 
-              key={tz.value}
-              onClick={() => handleTimezoneChange(tz.value)}
-              className={detectedTimezone === tz.value ? "bg-gray-100" : ""}
-            >
-              {tz.label}
-              {detectedTimezone === tz.value && <span className="ml-1 text-primary">✓</span>}
-            </DropdownMenuItem>
-          ))}
-          <div className="px-2 py-1.5 mt-2 text-xs text-gray-500">
-            Il fuso orario viene usato per visualizzare gli orari delle partite
-          </div>
-        </DropdownMenuContent>
-      </DropdownMenu>
+    <div className="flex flex-col gap-2 p-2 rounded-md bg-muted/20">
+      <div className="flex items-center gap-2">
+        <Clock className="h-4 w-4 text-muted-foreground" />
+        <span className="text-sm font-medium">
+          {formatDateToLocalString(currentTime, {
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+            timeZone: selectedTimezone,
+          })}
+        </span>
+      </div>
+      
+      <div className="flex flex-wrap gap-2 items-center">
+        <Label htmlFor="timezone-select" className="text-xs whitespace-nowrap">
+          Fuso orario:
+        </Label>
+        <Select value={selectedTimezone} onValueChange={handleTimezoneChange}>
+          <SelectTrigger className="h-8 text-xs min-w-[160px]" id="timezone-select">
+            <SelectValue placeholder="Seleziona fuso orario" />
+          </SelectTrigger>
+          <SelectContent>
+            {/* Show detected timezone at top if available */}
+            {detectedTimezone && (
+              <SelectItem value={detectedTimezone} className="text-xs">
+                {formatTimezoneDisplay(detectedTimezone)} (rilevato)
+              </SelectItem>
+            )}
+            
+            {/* Divider if we have both detected and default */}
+            {detectedTimezone && detectedTimezone !== DEFAULT_TIMEZONE && (
+              <div className="h-px bg-muted my-1" />
+            )}
+            
+            {/* Default timezone */}
+            <SelectItem value={DEFAULT_TIMEZONE} className="text-xs font-medium">
+              {formatTimezoneDisplay(DEFAULT_TIMEZONE)} (predefinito)
+            </SelectItem>
+            
+            {/* Common timezones */}
+            <div className="h-px bg-muted my-1" />
+            
+            {COMMON_TIMEZONES.filter(tz => 
+              tz !== detectedTimezone && tz !== DEFAULT_TIMEZONE
+            ).map(tz => (
+              <SelectItem key={tz} value={tz} className="text-xs">
+                {formatTimezoneDisplay(tz)}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        
+        <Button 
+          variant="outline" 
+          size="sm"
+          className="h-8 text-xs"
+          disabled={isDetecting}
+          onClick={async () => {
+            setIsDetecting(true);
+            try {
+              const tz = await detectTimezoneFromIP();
+              setDetectedTimezone(tz);
+              handleTimezoneChange(tz);
+            } catch (error) {
+              console.error('Error detecting timezone:', error);
+            } finally {
+              setIsDetecting(false);
+            }
+          }}
+        >
+          {isDetecting ? 'Rilevamento...' : 'Rileva automaticamente'}
+        </Button>
+      </div>
     </div>
   );
 }
