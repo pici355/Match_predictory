@@ -304,11 +304,11 @@ export default function AdminUserPredictionsSection() {
                                   {prediction.isCorrect === true && (
                                     <Badge className="bg-green-500">Corretto</Badge>
                                   )}
-                                  {prediction.isCorrect === false && (
+                                  {prediction.isCorrect === false && match.hasResult && (
                                     <Badge variant="destructive">Errato</Badge>
                                   )}
-                                  {prediction.isCorrect === null && (
-                                    <Badge variant="outline">In attesa</Badge>
+                                  {(prediction.isCorrect === null || (prediction.isCorrect === false && !match.hasResult)) && (
+                                    <Badge variant="outline">In corso</Badge>
                                   )}
                                 </div>
                               </div>

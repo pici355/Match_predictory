@@ -181,23 +181,17 @@ export default function UserPredictionHistory() {
               <div className="text-sm text-muted-foreground">
                 Giornata {prediction.match.matchDay}
               </div>
-              {prediction.isCorrect === null ? (
-                prediction.match?.result ? (
-                  <Badge variant="outline" className="flex items-center gap-1">
-                    <Clock className="h-3 w-3" /> In attesa
-                  </Badge>
-                ) : (
-                  <Badge variant="secondary" className="flex items-center gap-1">
-                    <Clock className="h-3 w-3" /> In corso
-                  </Badge>
-                )
-              ) : prediction.isCorrect ? (
+              {prediction.isCorrect === true ? (
                 <Badge className="bg-green-600 text-white flex items-center gap-1">
                   <Check className="h-3 w-3" /> Vinto
                 </Badge>
-              ) : (
+              ) : prediction.isCorrect === false && prediction.match?.hasResult ? (
                 <Badge variant="destructive" className="flex items-center gap-1">
                   <X className="h-3 w-3" /> Perso
+                </Badge>
+              ) : (
+                <Badge variant="secondary" className="flex items-center gap-1">
+                  <Clock className="h-3 w-3" /> In corso
                 </Badge>
               )}
             </div>
