@@ -261,9 +261,11 @@ export class DatabaseStorage implements IStorage {
     const payouts: InsertWinnerPayout[] = [];
     
     // Process winners with 4 correct predictions
-    if (distribution.users4Correct > 0) {
+    const users4Correct = distribution.users4Correct || 0;
+    if (users4Correct > 0) {
       const winners4 = await this.getUsersWithCorrectPredictionCount(matchDay, 4);
-      const amountPer4 = Math.floor(distribution.potFor4Correct / distribution.users4Correct);
+      const potFor4Correct = distribution.potFor4Correct || 0;
+      const amountPer4 = Math.floor(potFor4Correct / users4Correct);
       
       winners4.forEach(user => {
         payouts.push({
@@ -276,9 +278,11 @@ export class DatabaseStorage implements IStorage {
     }
     
     // Process winners with 5 correct predictions
-    if (distribution.users5Correct > 0) {
+    const users5Correct = distribution.users5Correct || 0;
+    if (users5Correct > 0) {
       const winners5 = await this.getUsersWithCorrectPredictionCount(matchDay, 5);
-      const amountPer5 = Math.floor(distribution.potFor5Correct / distribution.users5Correct);
+      const potFor5Correct = distribution.potFor5Correct || 0;
+      const amountPer5 = Math.floor(potFor5Correct / users5Correct);
       
       winners5.forEach(user => {
         payouts.push({

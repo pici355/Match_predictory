@@ -542,6 +542,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
         validatedData.userId = req.session.userId;
       }
       
+      // Get the match to check which match day it belongs to
+      const match = await storage.getMatch(validatedData.matchId);
+      if (!match) {
+        return res.status(404).json({ message: "Partita non trovata" });
+      }
+      
+      // Get existing user predictions for this match day
+      const userId = validatedData.userId;
+      const userPredictions = await storage.getPredictionsByUserId(userId);
+      
+      // Count predictions for the same match day
+      const matchDayPredictions = userPredictions.filter(p => {
+        const predictionMatch = match.matchDay === p.matchId; // This would need a join operation in a real DB
+        // For now, let's get the match for each prediction
+        return match.matchDay === p.matchId; // This approach is inefficient but works for small data
+      });
+      
+      // Get all matches for this match day to get proper prediction count
+      const matchesForDay = await storage.getMatchesByMatchDay(match.matchDay);
+      const matchIdsForDay = matchesForDay.map(m => m.id);
+      
+      // Count existing predictions for this match day
+      const existingPredictions = userPredictions.filter(p => 
+        matchIdsForDay.includes(p.matchId)
+      );
+      
+      // Only allow prediction if user hasn't already predicted 5 matches in this match day
+      // or if user is updating an existing prediction
+      const existingPrediction = existingPredictions.find(p => p.matchId === validatedData.matchId);
+      
+      if (existingPredictions.length >= 5 && !existingPrediction) {
+        return res.status(400).json({ 
+          message: "Hai già pronosticato 5 partite per questa giornata. Non puoi aggiungerne altre."
+        });
+      }
+      
       const savedPrediction = await storage.createPrediction(validatedData);
       
       // Send email notification

@@ -45,6 +45,7 @@ export default function PredictionForm() {
   const [selectedMatch, setSelectedMatch] = useState<Match | null>(null);
   const [selectedMatchDay, setSelectedMatchDay] = useState<number | null>(null);
   const [allPredicted, setAllPredicted] = useState(false);
+  const [predictionsRemaining, setPredictionsRemaining] = useState(5);
   const { toast } = useToast();
 
   const form = useForm<FormValues>({
@@ -83,7 +84,7 @@ export default function PredictionForm() {
   // Get available match days
   const matchDays = Object.keys(matchesByDay).map(Number).sort((a, b) => a - b);
 
-  // Check if all matches in a match day have predictions
+  // Check if all matches in a match day have predictions (must be exactly 5)
   useEffect(() => {
     if (selectedMatchDay && matches && userPredictions && Array.isArray(userPredictions)) {
       const matchesForDay = matches.filter(m => m.matchDay === selectedMatchDay);
@@ -91,7 +92,12 @@ export default function PredictionForm() {
         matchesForDay.some(m => m.id === p.matchId)
       );
       
-      setAllPredicted(matchesForDay.length > 0 && predictionsForDay.length === matchesForDay.length);
+      // Calculate how many more predictions are needed to reach 5
+      const predictionsNeeded = 5 - predictionsForDay.length;
+      setPredictionsRemaining(predictionsNeeded > 0 ? predictionsNeeded : 0);
+      
+      // All predicted only if we have exactly 5 predictions for this match day
+      setAllPredicted(predictionsForDay.length === 5);
     }
   }, [selectedMatchDay, matches, userPredictions]);
 
@@ -183,6 +189,26 @@ export default function PredictionForm() {
                   )}
                 </SelectContent>
               </Select>
+              
+              {selectedMatchDay && (
+                <div className="mt-2 text-sm">
+                  {allPredicted ? (
+                    <div className="text-green-600 font-medium flex items-center">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                      </svg>
+                      Complimenti! Hai pronosticato tutte le 5 partite di questa giornata.
+                    </div>
+                  ) : (
+                    <div className="text-amber-600 font-medium">
+                      Devi pronosticare esattamente 5 partite per questa giornata.
+                      {predictionsRemaining > 0 && (
+                        <span className="ml-1">Ancora {predictionsRemaining} da pronosticare.</span>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Match Selection */}
@@ -226,10 +252,10 @@ export default function PredictionForm() {
                                 <SelectItem 
                                   key={match.id} 
                                   value={match.id.toString()}
-                                  disabled={alreadyPredicted}
+                                  disabled={!!alreadyPredicted}
                                 >
                                   {match.homeTeam} vs {match.awayTeam} 
-                                  {alreadyPredicted && " (già pronosticata)"}
+                                  {alreadyPredicted ? " (già pronosticata)" : ""}
                                 </SelectItem>
                               );
                             })
