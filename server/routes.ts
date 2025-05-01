@@ -426,8 +426,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
     
     try {
+      // Get user predictions
       const predictions = await storage.getPredictionsByUserId(userId);
-      res.json(predictions);
+      
+      // Enrich with match data
+      if (predictions.length > 0) {
+        const enrichedPredictions = await Promise.all(
+          predictions.map(async (prediction) => {
+            const match = await storage.getMatch(prediction.matchId);
+            return {
+              ...prediction,
+              match
+            };
+          })
+        );
+        res.json(enrichedPredictions);
+      } else {
+        res.json([]);
+      }
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch predictions" });
     }
@@ -781,8 +797,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Invalid user ID or match day" });
       }
       
-      const correctCount = await storage.getCorrectPredictionCountForUser(userId, matchDay);
-      res.json({ userId, matchDay, correctCount });
+      const stats = await storage.getCorrectPredictionStatsForUser(userId, matchDay);
+      res.json({ userId, matchDay, ...stats });
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch statistics" });
     }
