@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { useForm } from 'react-hook-form';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
-import { apiRequest, queryClient } from '@/lib/queryClient';
+import { apiRequest, queryClient, getQueryFn } from '@/lib/queryClient';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { RefreshCw } from 'lucide-react';
@@ -54,9 +54,18 @@ export default function TeamManagementSection() {
   const { 
     data: teams, 
     isLoading: isLoadingTeams,
+    error: teamsError
   } = useQuery<Team[]>({
     queryKey: ['/api/teams'],
+    queryFn: getQueryFn({ on401: "returnNull" }),
   });
+  
+  // Log errors for debugging
+  useEffect(() => {
+    if (teamsError) {
+      console.error("Error fetching teams:", teamsError);
+    }
+  }, [teamsError]);
 
   // Create team mutation
   const createTeam = useMutation({

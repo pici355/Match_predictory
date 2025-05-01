@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
-import { apiRequest, queryClient } from '@/lib/queryClient';
+import { apiRequest, queryClient, getQueryFn } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import { Edit2, Trash2, Key, User } from 'lucide-react';
 
@@ -51,9 +51,18 @@ export default function UserManagementSection() {
   const { 
     data: users, 
     isLoading: isLoadingUsers,
+    error: usersError
   } = useQuery<User[]>({
     queryKey: ['/api/users'],
+    queryFn: getQueryFn({ on401: "returnNull" }),
   });
+  
+  // Log errors for debugging
+  useEffect(() => {
+    if (usersError) {
+      console.error("Error fetching users:", usersError);
+    }
+  }, [usersError]);
 
   // Create user mutation
   const createUser = useMutation({
