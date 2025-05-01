@@ -162,7 +162,7 @@ export default function PredictionForm() {
             <ul className="mt-1 text-sm text-blue-700">
               <li className="flex items-center">
                 <span className="inline-block w-4 h-4 mr-1 rounded-full bg-blue-800 text-white text-xs text-center">✓</span> 
-                100% di previsioni corrette: 10 crediti
+                I pronostici sono completamente gratuiti
               </li>
               <li className="text-xs mt-1 text-blue-600">
                 Pronosticare almeno 5 partite per giornata. Tutti i pronostici sono gratuiti.
@@ -414,19 +414,28 @@ export default function PredictionForm() {
                       <div className="flex items-center gap-2">
                         <div className="w-6 h-6 rounded-full overflow-hidden">
                           <img 
-                            src={`/team-logos/${selectedMatch.homeTeam.toLowerCase().replace(/\s+/g, '-')}.png`} 
+                            src={`/team-logos/${selectedMatch.homeTeam.toLowerCase().replace(/\s+/g, '-')}.jpg`} 
                             alt={selectedMatch.homeTeam}
                             onError={(e) => {
-                              // Fallback se l'immagine non esiste
-                              const parent = e.currentTarget.parentElement;
-                              if (parent) {
-                                // Remove the img element
-                                parent.removeChild(e.currentTarget);
-                                // Update parent styling
-                                parent.className = 'w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-primary font-semibold text-[10px]';
-                                // Add the text directly
-                                parent.textContent = selectedMatch.homeTeam.substring(0, 2).toUpperCase();
-                              }
+                              // Prova prima con .png
+                              const fileName = selectedMatch.homeTeam.toLowerCase().replace(/\s+/g, '-');
+                              const pngSrc = `/team-logos/${fileName}.png`;
+                              
+                              // Cambia il src dell'immagine per provare con .png
+                              e.currentTarget.src = pngSrc;
+                              
+                              // Se ancora fallisce, mostra le iniziali
+                              e.currentTarget.onerror = () => {
+                                const parent = e.currentTarget.parentElement;
+                                if (parent) {
+                                  // Remove the img element
+                                  parent.removeChild(e.currentTarget);
+                                  // Update parent styling
+                                  parent.className = 'w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-primary font-semibold text-[10px]';
+                                  // Add the text directly
+                                  parent.textContent = selectedMatch.homeTeam.substring(0, 2).toUpperCase();
+                                }
+                              };
                             }}
                             className="w-full h-full object-cover"
                           />
@@ -437,19 +446,28 @@ export default function PredictionForm() {
                       <div className="flex items-center gap-2">
                         <div className="w-6 h-6 rounded-full overflow-hidden">
                           <img 
-                            src={`/team-logos/${selectedMatch.awayTeam.toLowerCase().replace(/\s+/g, '-')}.png`} 
+                            src={`/team-logos/${selectedMatch.awayTeam.toLowerCase().replace(/\s+/g, '-')}.jpg`} 
                             alt={selectedMatch.awayTeam}
                             onError={(e) => {
-                              // Fallback se l'immagine non esiste
-                              const parent = e.currentTarget.parentElement;
-                              if (parent) {
-                                // Remove the img element
-                                parent.removeChild(e.currentTarget);
-                                // Update parent styling
-                                parent.className = 'w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-primary font-semibold text-[10px]';
-                                // Add the text directly
-                                parent.textContent = selectedMatch.awayTeam.substring(0, 2).toUpperCase();
-                              }
+                              // Prova prima con .png
+                              const fileName = selectedMatch.awayTeam.toLowerCase().replace(/\s+/g, '-');
+                              const pngSrc = `/team-logos/${fileName}.png`;
+                              
+                              // Cambia il src dell'immagine per provare con .png
+                              e.currentTarget.src = pngSrc;
+                              
+                              // Se ancora fallisce, mostra le iniziali
+                              e.currentTarget.onerror = () => {
+                                const parent = e.currentTarget.parentElement;
+                                if (parent) {
+                                  // Remove the img element
+                                  parent.removeChild(e.currentTarget);
+                                  // Update parent styling
+                                  parent.className = 'w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-primary font-semibold text-[10px]';
+                                  // Add the text directly
+                                  parent.textContent = selectedMatch.awayTeam.substring(0, 2).toUpperCase();
+                                }
+                              };
                             }}
                             className="w-full h-full object-cover"
                           />
@@ -497,19 +515,28 @@ export default function PredictionForm() {
                                 <div className="flex items-center gap-2 mt-1">
                                   <div className="w-4 h-4 rounded-full overflow-hidden">
                                     <img 
-                                      src={`/team-logos/${selectedMatch.homeTeam.toLowerCase().replace(/\s+/g, '-')}.png`} 
+                                      src={`/team-logos/${selectedMatch.homeTeam.toLowerCase().replace(/\s+/g, '-')}.jpg`} 
                                       alt={selectedMatch.homeTeam}
                                       onError={(e) => {
-                                        // Fallback se l'immagine non esiste
-                                        const parent = e.currentTarget.parentElement;
-                                        if (parent) {
-                                          // Remove the img element
-                                          parent.removeChild(e.currentTarget);
-                                          // Update parent styling
-                                          parent.className = 'w-4 h-4 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold text-[8px]';
-                                          // Add the text directly
-                                          parent.textContent = selectedMatch.homeTeam.substring(0, 2).toUpperCase();
-                                        }
+                                        // Prova prima con .png
+                                        const fileName = selectedMatch.homeTeam.toLowerCase().replace(/\s+/g, '-');
+                                        const pngSrc = `/team-logos/${fileName}.png`;
+                                        
+                                        // Cambia il src dell'immagine per provare con .png
+                                        e.currentTarget.src = pngSrc;
+                                        
+                                        // Se ancora fallisce, mostra le iniziali
+                                        e.currentTarget.onerror = () => {
+                                          const parent = e.currentTarget.parentElement;
+                                          if (parent) {
+                                            // Remove the img element
+                                            parent.removeChild(e.currentTarget);
+                                            // Update parent styling
+                                            parent.className = 'w-4 h-4 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold text-[8px]';
+                                            // Add the text directly
+                                            parent.textContent = selectedMatch.homeTeam.substring(0, 2).toUpperCase();
+                                          }
+                                        };
                                       }}
                                       className="w-full h-full object-cover"
                                     />
@@ -521,19 +548,28 @@ export default function PredictionForm() {
                                 <div className="flex items-center gap-2 mt-1">
                                   <div className="w-4 h-4 rounded-full overflow-hidden">
                                     <img 
-                                      src={`/team-logos/${selectedMatch.awayTeam.toLowerCase().replace(/\s+/g, '-')}.png`} 
+                                      src={`/team-logos/${selectedMatch.awayTeam.toLowerCase().replace(/\s+/g, '-')}.jpg`} 
                                       alt={selectedMatch.awayTeam}
                                       onError={(e) => {
-                                        // Fallback se l'immagine non esiste
-                                        const parent = e.currentTarget.parentElement;
-                                        if (parent) {
-                                          // Remove the img element
-                                          parent.removeChild(e.currentTarget);
-                                          // Update parent styling
-                                          parent.className = 'w-4 h-4 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold text-[8px]';
-                                          // Add the text directly
-                                          parent.textContent = selectedMatch.awayTeam.substring(0, 2).toUpperCase();
-                                        }
+                                        // Prova prima con .png
+                                        const fileName = selectedMatch.awayTeam.toLowerCase().replace(/\s+/g, '-');
+                                        const pngSrc = `/team-logos/${fileName}.png`;
+                                        
+                                        // Cambia il src dell'immagine per provare con .png
+                                        e.currentTarget.src = pngSrc;
+                                        
+                                        // Se ancora fallisce, mostra le iniziali
+                                        e.currentTarget.onerror = () => {
+                                          const parent = e.currentTarget.parentElement;
+                                          if (parent) {
+                                            // Remove the img element
+                                            parent.removeChild(e.currentTarget);
+                                            // Update parent styling
+                                            parent.className = 'w-4 h-4 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold text-[8px]';
+                                            // Add the text directly
+                                            parent.textContent = selectedMatch.awayTeam.substring(0, 2).toUpperCase();
+                                          }
+                                        };
                                       }}
                                       className="w-full h-full object-cover"
                                     />

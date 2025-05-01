@@ -268,9 +268,7 @@ export default function MatchDayReceipt({ matchDay, predictions, username }: Mat
       <CardFooter className="border-t bg-muted/20 flex-col items-start pt-3">
         <div className="w-full">
           <p className="text-sm font-semibold">Totale pronostici: {predictions.length}</p>
-          <p className="text-xs text-muted-foreground mt-1">
-            Solo il 100% di previsioni corrette assegna 10 crediti
-          </p>
+          {/* La regola del premio è stata rimossa secondo la richiesta */}
         </div>
         <div className="w-full mt-3 text-center text-xs text-muted-foreground">
           FantaSchedina Web - La Lega degli Indistruttibili
