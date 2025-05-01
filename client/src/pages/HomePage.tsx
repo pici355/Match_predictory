@@ -1,6 +1,5 @@
 import PredictionForm from "@/components/PredictionForm";
 import MatchInfo from "@/components/MatchInfo";
-import Footer from "@/components/Footer";
 import UserPredictionHistory from "@/components/UserPredictionHistory";
 import { Card, CardContent } from "@/components/ui/card";
 import { InfoIcon } from "lucide-react";
@@ -56,8 +55,6 @@ export default function HomePage() {
         
         {/* Match Information */}
         <MatchInfo />
-        
-        <Footer />
       </div>
     </div>
   );
