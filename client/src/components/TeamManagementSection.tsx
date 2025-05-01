@@ -1,5 +1,4 @@
-import React from 'react';
-import TeamLogoUploader from '@/components/TeamLogoUploader';
+import React, { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
@@ -13,6 +12,7 @@ import { useToast } from '@/hooks/use-toast';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { RefreshCw } from 'lucide-react';
 
 const teamFormSchema = z.object({
   name: z.string().min(1, "Nome squadra è obbligatorio"),
@@ -33,8 +33,10 @@ type Team = {
 };
 
 export default function TeamManagementSection() {
-  const [editingTeamId, setEditingTeamId] = React.useState<number | null>(null);
-  const [teamLogoFile, setTeamLogoFile] = React.useState<File | null>(null);
+  const [editingTeamId, setEditingTeamId] = useState<number | null>(null);
+  const [teamLogoFile, setTeamLogoFile] = useState<File | null>(null);
+  const [isUploading, setIsUploading] = useState<boolean>(false);
+  const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
   const { toast } = useToast();
 
   // Team form
