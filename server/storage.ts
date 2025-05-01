@@ -328,25 +328,15 @@ export class DatabaseStorage implements IStorage {
     // Get the total submissions for this match day
     const totalCredits = await this.getTotalCreditsForMatchDay(matchDay);
     
-    // Nel nuovo sistema, i premi sono fissi e non vengono calcolati come percentuali del montepremi
-    // Manteniamo comunque la struttura della tabella, ma con informazioni aggiornate
-    // 100% previsioni corrette: 10 crediti per utente
-    // 90% previsioni corrette: 8 crediti per utente
-    // 80% previsioni corrette: 6 crediti per utente
+    // Nel nuovo sistema, solo chi ottiene il 100% delle previsioni corrette riceve premi
+    // Solo 100% previsioni corrette: 10 crediti per utente
     
-    // Count users with 80%, 90% and 100% correct predictions
-    const users80PctResults = await this.getUsersWithCorrectPredictionPercentage(matchDay, 80);
-    const users90PctResults = await this.getUsersWithCorrectPredictionPercentage(matchDay, 90);
+    // Count users with 100% correct predictions
     const users100PctResults = await this.getUsersWithCorrectPredictionPercentage(matchDay, 100);
-    
-    const users80PctCorrect = users80PctResults.length;
-    const users90PctCorrect = users90PctResults.length;
     const users100PctCorrect = users100PctResults.length;
     
     // Calcolo del totale dei crediti distribuiti
     const potFor100Pct = users100PctCorrect * 10; // 10 crediti per ogni utente al 100%
-    const potFor90Pct = users90PctCorrect * 8;    // 8 crediti per ogni utente al 90%
-    const potFor80Pct = users80PctCorrect * 6;    // 6 crediti per ogni utente all'80%
     
     // Create or update prize distribution record
     const [existingDistribution] = await db.select()
@@ -358,11 +348,7 @@ export class DatabaseStorage implements IStorage {
       const [updated] = await db.update(prizeDistributions)
         .set({
           totalPot: totalCredits,
-          potFor80Pct: potFor80Pct,
-          potFor90Pct: potFor90Pct,
           potFor100Pct: potFor100Pct,
-          users80PctCorrect: users80PctCorrect,
-          users90PctCorrect: users90PctCorrect,
           users100PctCorrect: users100PctCorrect,
         })
         .where(eq(prizeDistributions.matchDay, matchDay))
@@ -375,11 +361,7 @@ export class DatabaseStorage implements IStorage {
         .values([{
           matchDay: matchDay,
           totalPot: totalCredits,
-          potFor80Pct: potFor80Pct,
-          potFor90Pct: potFor90Pct,
           potFor100Pct: potFor100Pct,
-          users80PctCorrect: users80PctCorrect,
-          users90PctCorrect: users90PctCorrect,
           users100PctCorrect: users100PctCorrect,
         }])
         .returning();
@@ -402,10 +384,8 @@ export class DatabaseStorage implements IStorage {
     
     const payouts: InsertWinnerPayout[] = [];
     
-    // Sistema di premi fissi:
-    // - 100% previsioni corrette: 10 crediti
-    // - 90% previsioni corrette: 8 crediti
-    // - 80% previsioni corrette: 6 crediti
+    // Sistema semplificato:
+    // - Solo chi ha 100% previsioni corrette: 10 crediti
     
     // Processo vincitori con 100% previsioni corrette - premio di 10 crediti
     const winners100Pct = await this.getUsersWithCorrectPredictionPercentage(matchDay, 100);
@@ -418,38 +398,6 @@ export class DatabaseStorage implements IStorage {
         predictionsTotal: result.totalCount,
         amount: 10, // Premio fisso: 10 crediti
       });
-    });
-    
-    // Processo vincitori con 90% previsioni corrette - premio di 8 crediti
-    const winners90Pct = await this.getUsersWithCorrectPredictionPercentage(matchDay, 90);
-    winners90Pct.forEach(result => {
-      payouts.push({
-        userId: result.user.id,
-        matchDay: matchDay,
-        correctPercentage: result.percentage,
-        predictionsCorrect: result.correctCount,
-        predictionsTotal: result.totalCount,
-        amount: 8, // Premio fisso: 8 crediti
-      });
-    });
-    
-    // Processo vincitori con 80% previsioni corrette - premio di 6 crediti
-    const winners80Pct = await this.getUsersWithCorrectPredictionPercentage(matchDay, 80);
-    winners80Pct.forEach(result => {
-      // Escludiamo gli utenti che hanno già vinto premi più alti (90% e 100%)
-      const alreadyRewarded = winners100Pct.some(w => w.user.id === result.user.id) || 
-                             winners90Pct.some(w => w.user.id === result.user.id);
-      
-      if (!alreadyRewarded) {
-        payouts.push({
-          userId: result.user.id,
-          matchDay: matchDay,
-          correctPercentage: result.percentage,
-          predictionsCorrect: result.correctCount,
-          predictionsTotal: result.totalCount,
-          amount: 6, // Premio fisso: 6 crediti
-        });
-      }
     });
     
     // Insert all payouts in a transaction

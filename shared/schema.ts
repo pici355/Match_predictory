@@ -98,12 +98,8 @@ export const predictSchema = z.object({
 export const prizeDistributions = pgTable("prize_distributions", {
   id: serial("id").primaryKey(),
   matchDay: integer("match_day").notNull(),
-  totalPot: integer("total_pot").notNull(), // Total submissions (not used for prize calculation with fixed rewards)
-  potFor80Pct: integer("pot_for_80_pct").default(0), // Total credits awarded to 80% correct predictions
-  potFor90Pct: integer("pot_for_90_pct").notNull(), // Total credits awarded to 90% correct predictions
+  totalPot: integer("total_pot").notNull(), // Total submissions
   potFor100Pct: integer("pot_for_100_pct").notNull(), // Total credits awarded to 100% correct predictions
-  users80PctCorrect: integer("users_80_pct_correct").default(0), // Number of users with 80% correct predictions
-  users90PctCorrect: integer("users_90_pct_correct").default(0), // Number of users with 90% correct predictions
   users100PctCorrect: integer("users_100_pct_correct").default(0), // Number of users with 100% correct predictions
   isDistributed: boolean("is_distributed").default(false), // Whether prizes have been distributed
   createdAt: timestamp("created_at").defaultNow().notNull(),
