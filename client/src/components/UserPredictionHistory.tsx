@@ -75,6 +75,7 @@ export default function UserPredictionHistory() {
   const [pastPredictions, setPastPredictions] = useState<Prediction[]>([]);
   const [predictionsByMatchDay, setPredictionsByMatchDay] = useState<Record<number, Prediction[]>>({});
   const [matchDays, setMatchDays] = useState<number[]>([]);
+  const [showReceiptForDay, setShowReceiptForDay] = useState<number | null>(null);
 
   // Fetch user info
   const { data: user } = useQuery<User>({
@@ -329,9 +330,6 @@ export default function UserPredictionHistory() {
       </Card>
     );
   }
-
-  // State for showing/hiding receipts
-  const [showReceiptForDay, setShowReceiptForDay] = useState<number | null>(null);
   
   return (
     <Card className="shadow-md mb-8">

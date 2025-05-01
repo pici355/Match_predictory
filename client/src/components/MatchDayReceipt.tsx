@@ -269,7 +269,7 @@ export default function MatchDayReceipt({ matchDay, predictions, username }: Mat
         <div className="w-full">
           <p className="text-sm font-semibold">Totale pronostici: {predictions.length}</p>
           <p className="text-xs text-muted-foreground mt-1">
-            Il 100% di previsioni corrette assegna 10 crediti
+            Solo il 100% di previsioni corrette assegna 10 crediti
           </p>
         </div>
         <div className="w-full mt-3 text-center text-xs text-muted-foreground">
