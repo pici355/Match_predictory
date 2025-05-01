@@ -142,14 +142,68 @@ export default function TeamManagementSection() {
     const files = e.target.files;
     if (files && files.length > 0) {
       setTeamLogoFile(files[0]);
+      
+      // Se si sta modificando un team esistente, puoi caricare subito il logo
+      if (editingTeamId) {
+        const team = teams?.find(t => t.id === editingTeamId);
+        if (team) {
+          uploadTeamLogo(files[0], team.name);
+        }
+      }
     }
+  }
+  
+  function uploadTeamLogo(file: File, teamName: string) {
+    const formData = new FormData();
+    formData.append("teamName", teamName);
+    formData.append("logo", file);
+    
+    toast({
+      title: "Caricamento logo...",
+      description: "Caricamento in corso...",
+    });
+    
+    fetch("/api/teams/logo", {
+      method: "POST",
+      body: formData,
+      credentials: "include"
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        queryClient.invalidateQueries({ queryKey: ['/api/teams'] });
+        toast({
+          title: "Logo caricato!",
+          description: data.teamFound 
+            ? "Il logo è stato caricato e associato alla squadra con successo." 
+            : "Il logo è stato caricato ma nessuna squadra trovata con questo nome esatto.",
+        });
+      } else {
+        throw new Error(data.message || "Errore durante il caricamento del logo");
+      }
+    })
+    .catch(error => {
+      toast({
+        title: "Errore!",
+        description: error.message || "Si è verificato un errore durante il caricamento del logo.",
+        variant: "destructive",
+      });
+    });
   }
 
   function onSubmitTeam(data: TeamFormValues) {
     if (editingTeamId) {
       updateTeam.mutate({ id: editingTeamId, data });
     } else {
-      createTeam.mutate(data);
+      // Quando si crea una nuova squadra
+      createTeam.mutate(data, {
+        onSuccess: (newTeam) => {
+          // Se è stato selezionato un file immagine, caricalo dopo aver creato la squadra
+          if (teamLogoFile) {
+            uploadTeamLogo(teamLogoFile, newTeam.name);
+          }
+        }
+      });
     }
   }
 

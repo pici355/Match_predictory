@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
+import { queryClient } from '@/lib/queryClient';
 
 export function TeamLogoUploader() {
   const { toast } = useToast();
@@ -39,15 +40,23 @@ export function TeamLogoUploader() {
     fetch("/api/teams/logo", {
       method: "POST",
       body: formData,
+      credentials: "include" // Importante per inviare i cookies di autenticazione
     })
     .then(response => response.json())
     .then(data => {
       setIsUploading(false);
       if (data.success) {
+        // Invalida la cache dei team per forzare un reload
+        queryClient.invalidateQueries({ queryKey: ['/api/teams'] });
+        
         toast({
           title: "Logo caricato!",
-          description: "Il logo è stato caricato con successo.",
+          description: data.teamFound 
+            ? "Il logo è stato caricato e associato alla squadra con successo." 
+            : "Il logo è stato caricato ma nessuna squadra trovata con questo nome esatto.",
+          variant: data.teamFound ? "default" : "destructive"
         });
+        
         teamNameInput.value = "";
         teamLogoInput.value = "";
       } else {
