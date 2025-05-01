@@ -85,9 +85,9 @@ export default function PredictionForm() {
 
   // Check if all matches in a match day have predictions
   useEffect(() => {
-    if (selectedMatchDay && matches && userPredictions) {
+    if (selectedMatchDay && matches && userPredictions && Array.isArray(userPredictions)) {
       const matchesForDay = matches.filter(m => m.matchDay === selectedMatchDay);
-      const predictionsForDay = userPredictions.filter((p: any) => 
+      const predictionsForDay = userPredictions.filter((p) => 
         matchesForDay.some(m => m.id === p.matchId)
       );
       
@@ -218,8 +218,8 @@ export default function PredictionForm() {
                           {filteredMatches.length > 0 ? (
                             filteredMatches.map(match => {
                               // Check if user already predicted this match
-                              const alreadyPredicted = userPredictions && userPredictions.some(
-                                (p: any) => p.matchId === match.id
+                              const alreadyPredicted = userPredictions && Array.isArray(userPredictions) && userPredictions.some(
+                                (p) => p.matchId === match.id
                               );
                               
                               return (

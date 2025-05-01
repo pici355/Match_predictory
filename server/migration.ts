@@ -8,21 +8,48 @@ async function runMigration() {
   try {
     console.log("Running database migration...");
     
-    // 1. Modify users table: remove email, change password to pin
-    console.log("Modifying users table...");
+    // 1. Modify matches table: add result and hasResult columns
+    console.log("Modifying matches table...");
     await db.execute(sql`
-      ALTER TABLE IF EXISTS users 
-      DROP COLUMN IF EXISTS email,
-      DROP COLUMN IF EXISTS password,
-      ADD COLUMN IF NOT EXISTS pin TEXT NOT NULL DEFAULT '1234';
+      ALTER TABLE IF EXISTS matches 
+      ADD COLUMN IF NOT EXISTS result TEXT,
+      ADD COLUMN IF NOT EXISTS has_result BOOLEAN NOT NULL DEFAULT false;
     `);
     
-    // 2. Modify predictions table: add credits column, remove name column
+    // 2. Modify predictions table: add isCorrect column
     console.log("Modifying predictions table...");
     await db.execute(sql`
       ALTER TABLE IF EXISTS predictions
-      DROP COLUMN IF EXISTS name,
-      ADD COLUMN IF NOT EXISTS credits INTEGER NOT NULL DEFAULT 2;
+      ADD COLUMN IF NOT EXISTS is_correct BOOLEAN NOT NULL DEFAULT false;
+    `);
+    
+    // 3. Create prize_distributions table
+    console.log("Creating prize_distributions table...");
+    await db.execute(sql`
+      CREATE TABLE IF NOT EXISTS prize_distributions (
+        id SERIAL PRIMARY KEY,
+        match_day INTEGER NOT NULL,
+        total_pot INTEGER NOT NULL,
+        pot_for_4_correct INTEGER NOT NULL,
+        pot_for_5_correct INTEGER NOT NULL,
+        users_4_correct INTEGER NOT NULL DEFAULT 0,
+        users_5_correct INTEGER NOT NULL DEFAULT 0,
+        is_distributed BOOLEAN NOT NULL DEFAULT false,
+        created_at TIMESTAMP NOT NULL DEFAULT NOW()
+      );
+    `);
+    
+    // 4. Create winner_payouts table
+    console.log("Creating winner_payouts table...");
+    await db.execute(sql`
+      CREATE TABLE IF NOT EXISTS winner_payouts (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER NOT NULL,
+        match_day INTEGER NOT NULL,
+        correct_predictions INTEGER NOT NULL,
+        amount INTEGER NOT NULL,
+        created_at TIMESTAMP NOT NULL DEFAULT NOW()
+      );
     `);
     
     console.log("Migration completed successfully!");

@@ -311,6 +311,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  app.get("/api/predictions/matchday/:matchDay", async (req, res) => {
+    try {
+      const matchDay = parseInt(req.params.matchDay);
+      if (isNaN(matchDay)) {
+        return res.status(400).json({ message: "Invalid match day" });
+      }
+      
+      const predictions = await storage.getPredictionsByMatchDay(matchDay);
+      res.json(predictions);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch predictions" });
+    }
+  });
+  
   app.get("/api/predictions/user", async (req, res) => {
     const userId = req.session?.userId;
     
@@ -342,6 +356,179 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(prediction);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch prediction" });
+    }
+  });
+  
+  // User management routes (Admin only)
+  app.get("/api/users", isAdmin, async (_req, res) => {
+    try {
+      const allUsers = await storage.getAllUsers();
+      res.json(allUsers);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch users" });
+    }
+  });
+  
+  app.post("/api/users", isAdmin, async (req, res) => {
+    try {
+      // Admin creates a user with pin
+      const userSchema = z.object({
+        username: z.string().min(3, { message: "Il nome della squadra deve avere almeno 3 caratteri" }),
+        pin: z.string().length(4, { message: "Il PIN deve essere di 4 cifre" })
+          .regex(/^\d+$/, { message: "Il PIN deve contenere solo numeri" }),
+        isAdmin: z.boolean().optional(),
+      });
+      
+      const validatedData = userSchema.parse(req.body);
+      
+      // Check if username already exists
+      const existingUser = await storage.getUserByUsername(validatedData.username);
+      if (existingUser) {
+        return res.status(400).json({ message: "Il nome squadra è già in uso" });
+      }
+      
+      const newUser = await storage.createUser(validatedData);
+      res.status(201).json(newUser);
+    } catch (error) {
+      if (error instanceof Error) {
+        res.status(400).json({ message: error.message });
+      } else {
+        res.status(500).json({ message: "An unexpected error occurred" });
+      }
+    }
+  });
+  
+  // Match results
+  app.post("/api/matches/:matchId/result", isAdmin, async (req, res) => {
+    try {
+      const matchId = parseInt(req.params.matchId);
+      if (isNaN(matchId)) {
+        return res.status(400).json({ message: "Invalid match ID" });
+      }
+      
+      const resultSchema = z.object({
+        result: z.enum(["1", "X", "2"]),
+      });
+      
+      const { result } = resultSchema.parse(req.body);
+      
+      const updatedMatch = await storage.updateMatchResult(matchId, result);
+      
+      if (!updatedMatch) {
+        return res.status(404).json({ message: "Match not found" });
+      }
+      
+      res.json(updatedMatch);
+    } catch (error) {
+      if (error instanceof Error) {
+        res.status(400).json({ message: error.message });
+      } else {
+        res.status(500).json({ message: "An unexpected error occurred" });
+      }
+    }
+  });
+  
+  // Prize distribution routes
+  app.get("/api/prizes/matchday/:matchDay", async (req, res) => {
+    try {
+      const matchDay = parseInt(req.params.matchDay);
+      if (isNaN(matchDay)) {
+        return res.status(400).json({ message: "Invalid match day" });
+      }
+      
+      const distribution = await storage.getPrizeDistribution(matchDay);
+      
+      if (!distribution) {
+        // If no distribution exists yet, calculate it on the fly
+        const calculatedDistribution = await storage.calculatePrizeDistribution(matchDay);
+        return res.json(calculatedDistribution);
+      }
+      
+      res.json(distribution);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch prize distribution" });
+    }
+  });
+  
+  app.post("/api/prizes/matchday/:matchDay/calculate", isAdmin, async (req, res) => {
+    try {
+      const matchDay = parseInt(req.params.matchDay);
+      if (isNaN(matchDay)) {
+        return res.status(400).json({ message: "Invalid match day" });
+      }
+      
+      const distribution = await storage.calculatePrizeDistribution(matchDay);
+      res.json(distribution);
+    } catch (error) {
+      if (error instanceof Error) {
+        res.status(400).json({ message: error.message });
+      } else {
+        res.status(500).json({ message: "An unexpected error occurred" });
+      }
+    }
+  });
+  
+  app.post("/api/prizes/matchday/:matchDay/distribute", isAdmin, async (req, res) => {
+    try {
+      const matchDay = parseInt(req.params.matchDay);
+      if (isNaN(matchDay)) {
+        return res.status(400).json({ message: "Invalid match day" });
+      }
+      
+      const payouts = await storage.distributePrizes(matchDay);
+      res.json(payouts);
+    } catch (error) {
+      if (error instanceof Error) {
+        res.status(400).json({ message: error.message });
+      } else {
+        res.status(500).json({ message: "An unexpected error occurred" });
+      }
+    }
+  });
+  
+  app.get("/api/prizes/user", async (req, res) => {
+    const userId = req.session?.userId;
+    
+    if (!userId) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+    
+    try {
+      const payouts = await storage.getUserPayouts(userId);
+      res.json(payouts);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch user payouts" });
+    }
+  });
+  
+  // Statistics routes
+  app.get("/api/statistics/matchday/:matchDay/total-credits", async (req, res) => {
+    try {
+      const matchDay = parseInt(req.params.matchDay);
+      if (isNaN(matchDay)) {
+        return res.status(400).json({ message: "Invalid match day" });
+      }
+      
+      const totalCredits = await storage.getTotalCreditsForMatchDay(matchDay);
+      res.json({ matchDay, totalCredits });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch statistics" });
+    }
+  });
+  
+  app.get("/api/statistics/user/:userId/correct-predictions/:matchDay", async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      const matchDay = parseInt(req.params.matchDay);
+      
+      if (isNaN(userId) || isNaN(matchDay)) {
+        return res.status(400).json({ message: "Invalid user ID or match day" });
+      }
+      
+      const correctCount = await storage.getCorrectPredictionCountForUser(userId, matchDay);
+      res.json({ userId, matchDay, correctCount });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch statistics" });
     }
   });
 
