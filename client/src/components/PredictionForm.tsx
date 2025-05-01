@@ -266,8 +266,22 @@ export default function PredictionForm() {
                                   value={match.id.toString()}
                                   disabled={!!alreadyPredicted}
                                 >
-                                  {match.homeTeam} vs {match.awayTeam} 
-                                  {alreadyPredicted ? " (già pronosticata)" : ""}
+                                  <div className="flex items-center space-x-2">
+                                    <div className="flex items-center space-x-1">
+                                      <div className="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center text-primary font-semibold text-[10px]">
+                                        {match.homeTeam.substring(0, 2).toUpperCase()}
+                                      </div>
+                                      <span>{match.homeTeam}</span>
+                                    </div>
+                                    <span className="text-gray-500">vs</span>
+                                    <div className="flex items-center space-x-1">
+                                      <div className="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center text-primary font-semibold text-[10px]">
+                                        {match.awayTeam.substring(0, 2).toUpperCase()}
+                                      </div>
+                                      <span>{match.awayTeam}</span>
+                                    </div>
+                                    {!!alreadyPredicted && <span className="ml-1 text-gray-400 text-xs">(già pronosticata)</span>}
+                                  </div>
                                 </SelectItem>
                               );
                             })
@@ -291,9 +305,26 @@ export default function PredictionForm() {
                 <h3 className="font-medium text-gray-700">Dettagli partita:</h3>
                 <div className="mt-1 text-sm">
                   <div><span className="font-semibold">Data:</span> {new Date(selectedMatch.matchDate).toLocaleString('it-IT')}</div>
-                  <div><span className="font-semibold">Squadre:</span> {selectedMatch.homeTeam} vs {selectedMatch.awayTeam}</div>
+                  <div className="mt-2">
+                    <span className="font-semibold mb-1 block">Squadre:</span>
+                    <div className="flex items-center gap-4 mt-1">
+                      <div className="flex items-center gap-2">
+                        <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-primary font-semibold text-[10px]">
+                          {selectedMatch.homeTeam.substring(0, 2).toUpperCase()}
+                        </div>
+                        <span>{selectedMatch.homeTeam}</span>
+                      </div>
+                      <span className="text-gray-500">vs</span>
+                      <div className="flex items-center gap-2">
+                        <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-primary font-semibold text-[10px]">
+                          {selectedMatch.awayTeam.substring(0, 2).toUpperCase()}
+                        </div>
+                        <span>{selectedMatch.awayTeam}</span>
+                      </div>
+                    </div>
+                  </div>
                   {selectedMatch.description && (
-                    <div><span className="font-semibold">Descrizione:</span> {selectedMatch.description}</div>
+                    <div className="mt-2"><span className="font-semibold">Descrizione:</span> {selectedMatch.description}</div>
                   )}
                 </div>
               </div>
@@ -325,10 +356,25 @@ export default function PredictionForm() {
                             <div className="relative">
                               <div className="w-5 h-5 border-2 border-gray-300 rounded-full peer-checked:border-primary peer-checked:border-4"></div>
                             </div>
-                            <span className="ml-3 font-medium group-hover:text-primary peer-checked:text-primary">
-                              {option.label} {selectedMatch && option.value === "1" && `(${selectedMatch.homeTeam})`}
-                              {selectedMatch && option.value === "2" && `(${selectedMatch.awayTeam})`}
-                            </span>
+                            <div className="ml-3 font-medium group-hover:text-primary peer-checked:text-primary">
+                              {option.label}
+                              {selectedMatch && option.value === "1" && (
+                                <div className="flex items-center gap-2 mt-1">
+                                  <div className="w-4 h-4 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold text-[8px]">
+                                    {selectedMatch.homeTeam.substring(0, 2).toUpperCase()}
+                                  </div>
+                                  <span className="text-sm text-gray-600">({selectedMatch.homeTeam})</span>
+                                </div>
+                              )}
+                              {selectedMatch && option.value === "2" && (
+                                <div className="flex items-center gap-2 mt-1">
+                                  <div className="w-4 h-4 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold text-[8px]">
+                                    {selectedMatch.awayTeam.substring(0, 2).toUpperCase()}
+                                  </div>
+                                  <span className="text-sm text-gray-600">({selectedMatch.awayTeam})</span>
+                                </div>
+                              )}
+                            </div>
                           </label>
                         </div>
                       ))}
