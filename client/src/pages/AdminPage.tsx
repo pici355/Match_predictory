@@ -405,6 +405,36 @@ export default function AdminPage() {
       });
     }
   });
+  
+  // Delete team mutation
+  const deleteTeam = useMutation({
+    mutationFn: async (id: number) => {
+      const response = await apiRequest("DELETE", `/api/teams/${id}`);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/teams'] });
+      toast({
+        title: "Squadra eliminata!",
+        description: "La squadra è stata eliminata con successo.",
+      });
+      // If we were editing the team that was just deleted, reset the form
+      setEditingTeamId(null);
+      teamForm.reset({
+        name: "",
+        managerName: "",
+        credits: 0,
+        logo: "",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Errore!",
+        description: error instanceof Error ? error.message : "Si è verificato un errore durante l'eliminazione della squadra.",
+        variant: "destructive",
+      });
+    }
+  });
 
   // ======== HANDLERS ========
   function onSubmitMatch(data: MatchFormValues) {
@@ -995,22 +1025,36 @@ export default function AdminPage() {
                                   <td className="px-4 py-3 text-sm">{team.managerName}</td>
                                   <td className="px-4 py-3 text-sm">{team.credits}</td>
                                   <td className="px-4 py-3 text-sm">
-                                    <Button 
-                                      variant="outline" 
-                                      size="sm" 
-                                      onClick={() => {
-                                        teamForm.reset({
-                                          name: team.name,
-                                          managerName: team.managerName,
-                                          credits: team.credits,
-                                          logo: team.logo || "",
-                                        });
-                                        // Set the editing team
-                                        setEditingTeamId(team.id);
-                                      }}
-                                    >
-                                      Modifica
-                                    </Button>
+                                    <div className="flex space-x-2">
+                                      <Button 
+                                        variant="outline" 
+                                        size="sm" 
+                                        onClick={() => {
+                                          teamForm.reset({
+                                            name: team.name,
+                                            managerName: team.managerName,
+                                            credits: team.credits,
+                                            logo: team.logo || "",
+                                          });
+                                          // Set the editing team
+                                          setEditingTeamId(team.id);
+                                        }}
+                                      >
+                                        Modifica
+                                      </Button>
+                                      <Button 
+                                        variant="destructive" 
+                                        size="sm"
+                                        disabled={deleteTeam.isPending}
+                                        onClick={() => {
+                                          if (confirm(`Sei sicuro di voler eliminare la squadra ${team.name}?`)) {
+                                            deleteTeam.mutate(team.id);
+                                          }
+                                        }}
+                                      >
+                                        Elimina
+                                      </Button>
+                                    </div>
                                   </td>
                                 </tr>
                               ))}

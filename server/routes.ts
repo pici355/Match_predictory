@@ -6,6 +6,7 @@ import { storage } from "./storage";
 import { predictSchema, matchSchema, userSchema, teamSchema } from "@shared/schema";
 import { z } from "zod";
 import { sendPredictionNotification, sendExcelImportReport } from "./email";
+import path from "path";
 
 // Extend Express session type
 declare module 'express-session' {
@@ -54,6 +55,25 @@ const isAdmin = async (req: Request, res: Response, next: Function) => {
 };
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Serve static files for team logos
+  app.use('/team-logos', (req, res, next) => {
+    const options = {
+      root: path.join(process.cwd(), 'attached_assets/team-logos'),
+      dotfiles: 'deny',
+      headers: {
+        'x-timestamp': Date.now(),
+        'x-sent': true
+      }
+    };
+    
+    const fileName = req.path;
+    res.sendFile(fileName, options, (err) => {
+      if (err) {
+        console.error(`Error serving team logo: ${fileName}`, err);
+        next(err);
+      }
+    });
+  });
   // Get current user
   app.get("/api/me", async (req, res) => {
     const userId = req.session?.userId;
