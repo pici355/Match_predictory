@@ -247,7 +247,7 @@ export default function TeamManagementSection() {
 
   return (
     <div className="grid grid-cols-1 gap-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 gap-6">
         <Card>
           <CardHeader>
             <div className="flex justify-between items-center">
@@ -298,25 +298,7 @@ export default function TeamManagementSection() {
                   )}
                 />
                 
-                <FormField
-                  control={teamForm.control}
-                  name="credits"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Crediti</FormLabel>
-                      <FormControl>
-                        <Input 
-                          type="number" 
-                          min="0" 
-                          placeholder="Es. 100" 
-                          {...field}
-                          onChange={(e) => field.onChange(e.target.valueAsNumber)}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                {/* Campo Credits rimosso come richiesto */}
                 
                 <div>
                   <FormLabel className="mb-2 block">Logo</FormLabel>
@@ -367,88 +349,6 @@ export default function TeamManagementSection() {
                 </div>
               </form>
             </Form>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader>
-            <CardTitle>Carica Logo per Squadra Esistente</CardTitle>
-            <CardDescription>Seleziona un'immagine e inserisci il nome esatto della squadra per caricarne il logo</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium" htmlFor="existingTeamLogoName">
-                  Nome Squadra
-                </label>
-                <Input
-                  id="existingTeamLogoName"
-                  placeholder="Inserisci il nome esatto della squadra"
-                  className="w-full"
-                />
-                <p className="text-xs text-gray-500">
-                  Inserisci il nome esatto della squadra come appare nell'app
-                </p>
-              </div>
-              
-              <div className="space-y-2">
-                <label className="text-sm font-medium" htmlFor="existingTeamLogo">
-                  Logo
-                </label>
-                <div className="flex items-center justify-center w-full">
-                  <label 
-                    htmlFor="existingTeamLogo" 
-                    className="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100"
-                  >
-                    <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                      <svg className="w-8 h-8 mb-3 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                      </svg>
-                      <p className="mb-1 text-sm text-gray-500">Clicca per caricare</p>
-                      <p className="text-xs text-gray-500">PNG, JPG (MAX. 2MB)</p>
-                    </div>
-                    <input 
-                      id="existingTeamLogo" 
-                      type="file" 
-                      className="hidden" 
-                      accept="image/*" 
-                    />
-                  </label>
-                </div>
-              </div>
-              
-              <Button
-                type="button"
-                className="w-full"
-                disabled={isUploading}
-                onClick={() => {
-                  const teamLogoInput = document.getElementById('existingTeamLogo') as HTMLInputElement;
-                  const teamNameInput = document.getElementById('existingTeamLogoName') as HTMLInputElement;
-                  
-                  if (!teamNameInput.value) {
-                    toast({
-                      title: "Nome squadra obbligatorio",
-                      description: "Inserisci il nome della squadra",
-                      variant: "destructive"
-                    });
-                    return;
-                  }
-                  
-                  if (!teamLogoInput.files || teamLogoInput.files.length === 0) {
-                    toast({
-                      title: "Nessun file selezionato",
-                      description: "Seleziona un'immagine da caricare",
-                      variant: "destructive"
-                    });
-                    return;
-                  }
-                  
-                  uploadTeamLogo(teamLogoInput.files[0], teamNameInput.value);
-                }}
-              >
-                {isUploading ? "Caricamento in corso..." : "Carica Logo"}
-              </Button>
-            </div>
           </CardContent>
         </Card>
       </div>

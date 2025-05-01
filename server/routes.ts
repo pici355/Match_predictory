@@ -514,7 +514,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/teams/logo", isAdmin, logoUpload.single("logo"), async (req, res) => {
     try {
       // Verifica se è stato fornito un file o un'immagine base64
-      const hasFile = !!req.file;
+      const hasFile = req.file !== undefined && req.file !== null;
       const hasBase64 = !!req.body.base64Logo;
       
       if (!hasFile && !hasBase64) {
@@ -549,7 +549,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       else if (hasFile) {
         // Genera il percorso del file
         const sanitizedName = teamName.toLowerCase().replace(/\s+/g, '-');
-        const ext = req.file.originalname.split('.').pop();
+        const ext = req.file?.originalname.split('.').pop() || 'png';
         const filename = `${sanitizedName}.${ext}`;
         const logoPath = `/team-logos/${filename}`;
         
