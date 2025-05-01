@@ -1,64 +1,57 @@
-import { useState, useEffect } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQuery } from "@tanstack/react-query";
-import { apiRequest, queryClient } from "@/lib/queryClient";
-import { z } from "zod";
-import { matchSchema } from "@shared/schema";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useToast } from "@/hooks/use-toast";
-import { Textarea } from "@/components/ui/textarea";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Badge } from "@/components/ui/badge";
-import { AlertCircle, Check, X } from "lucide-react";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import React, { useState } from 'react';
+import { useQuery, useMutation } from '@tanstack/react-query';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+import { 
+  Form, FormControl, FormField, FormItem, FormLabel, FormMessage 
+} from '@/components/ui/form';
+import { 
+  Tabs, TabsContent, TabsList, TabsTrigger 
+} from '@/components/ui/tabs';
+import { 
+  Card, CardContent, CardHeader, CardTitle, CardDescription 
+} from '@/components/ui/card';
+import { 
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue 
+} from '@/components/ui/select';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
+import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
+import { apiRequest, queryClient } from '@/lib/queryClient';
+import { useToast } from '@/hooks/use-toast';
 
-// ======== FORM SCHEMAS ========
-const matchFormSchema = matchSchema.extend({
-  homeTeam: z.string().min(1, { message: "La squadra di casa è obbligatoria" }),
-  awayTeam: z.string().min(1, { message: "La squadra ospite è obbligatoria" }),
-  matchDate: z.coerce.date({
-    required_error: "La data della partita è obbligatoria",
-    invalid_type_error: "Data non valida",
-  }),
-  matchDay: z.coerce.number({
-    required_error: "La giornata è obbligatoria",
-    invalid_type_error: "Numero di giornata non valido",
-  }).min(1, { message: "La giornata deve essere almeno 1" }),
+// Schema definitions
+const matchFormSchema = z.object({
+  homeTeam: z.string().min(1, "Squadra casa è obbligatoria"),
+  awayTeam: z.string().min(1, "Squadra ospite è obbligatoria"),
+  matchDate: z.date(),
+  matchDay: z.number().min(1, "Giornata deve essere almeno 1"),
   description: z.string().optional(),
 });
 
 const userFormSchema = z.object({
-  username: z.string().min(3, { message: "Il nome della squadra deve avere almeno 3 caratteri" }),
-  pin: z.string().length(4, { message: "Il PIN deve essere di 4 cifre" })
-    .regex(/^\d+$/, { message: "Il PIN deve contenere solo numeri" }),
+  username: z.string().min(1, "Nome utente è obbligatorio"),
+  pin: z.string().min(4, "PIN deve essere di almeno 4 caratteri"),
   isAdmin: z.boolean().default(false),
 });
 
 const matchResultFormSchema = z.object({
-  matchId: z.number({
-    required_error: "Seleziona una partita",
-    invalid_type_error: "Partita non valida",
-  }),
-  result: z.enum(["1", "X", "2"], {
-    required_error: "Seleziona un risultato",
-  }),
+  matchId: z.number(),
+  result: z.enum(["1", "X", "2"]),
 });
 
 const teamFormSchema = z.object({
-  name: z.string().min(2, { message: "Il nome della squadra deve avere almeno 2 caratteri" }),
-  managerName: z.string().min(2, { message: "Il nome del gestore deve avere almeno 2 caratteri" }),
-  credits: z.coerce.number().min(0, { message: "I crediti non possono essere negativi" }),
+  name: z.string().min(1, "Nome squadra è obbligatorio"),
+  managerName: z.string().min(1, "Nome allenatore è obbligatorio"),
+  credits: z.number().min(0, "I crediti non possono essere negativi"),
   logo: z.string().optional(),
 });
 
-// ======== TYPES ========
+// Type definitions
 type MatchFormValues = z.infer<typeof matchFormSchema>;
 type UserFormValues = z.infer<typeof userFormSchema>;
 type MatchResultFormValues = z.infer<typeof matchResultFormSchema>;
@@ -73,6 +66,7 @@ type Match = {
   description?: string;
   result?: string;
   hasResult: boolean;
+  createdAt: string;
 };
 
 type User = {
@@ -484,798 +478,884 @@ export default function AdminPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 text-gray-800 py-8 px-4">
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-6xl mx-auto">
         <h1 className="text-3xl font-bold text-center text-primary mb-8">Admin Dashboard</h1>
         
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-8">
-          <TabsList className="grid w-full grid-cols-6">
-            <TabsTrigger value="add-match">Aggiungi Partita</TabsTrigger>
-            <TabsTrigger value="add-user">Aggiungi Utente</TabsTrigger>
-            <TabsTrigger value="teams">Squadre</TabsTrigger>
-            <TabsTrigger value="match-results">Risultati</TabsTrigger>
-            <TabsTrigger value="prizes">Premi</TabsTrigger>
-            <TabsTrigger value="view-data">Visualizza Dati</TabsTrigger>
-          </TabsList>
-          
-          {/* Add Match Tab */}
-          <TabsContent value="add-match">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Aggiungi una nuova partita</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <Form {...matchForm}>
-                    <form onSubmit={matchForm.handleSubmit(onSubmitMatch)} className="space-y-5">
-                      <div className="grid grid-cols-2 gap-4">
-                        <FormField
-                          control={matchForm.control}
-                          name="homeTeam"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Squadra casa</FormLabel>
-                              <FormControl>
-                                <Input placeholder="Es. Newell's" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        
-                        <FormField
-                          control={matchForm.control}
-                          name="awayTeam"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Squadra ospite</FormLabel>
-                              <FormControl>
-                                <Input placeholder="Es. Como" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </div>
-                      
-                      <div className="grid grid-cols-2 gap-4">
-                        <FormField
-                          control={matchForm.control}
-                          name="matchDate"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Data e ora</FormLabel>
-                              <FormControl>
-                                <Input 
-                                  type="datetime-local" 
-                                  {...field} 
-                                  value={field.value instanceof Date ? field.value.toISOString().slice(0, 16) : ''} 
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        
-                        <FormField
-                          control={matchForm.control}
-                          name="matchDay"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Giornata</FormLabel>
-                              <FormControl>
-                                <Input type="number" min="1" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </div>
-                      
-                      <FormField
-                        control={matchForm.control}
-                        name="description"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Descrizione (opzionale)</FormLabel>
-                            <FormControl>
-                              <Textarea placeholder="Es. Amichevole, Trofeo, Campionato..." {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      
-                      <Button 
-                        type="submit" 
-                        className="w-full"
-                        disabled={createMatch.isPending}
-                      >
-                        {createMatch.isPending ? "Salvataggio in corso..." : "Salva Partita"}
-                      </Button>
-                    </form>
-                  </Form>
-                </CardContent>
-              </Card>
-              
-              <Card>
-                <CardHeader>
-                  <CardTitle>Importa partite da Excel</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <form onSubmit={onSubmitExcel} className="space-y-5">
-                    <div>
-                      <label htmlFor="excel-file" className="block text-sm font-medium mb-2">
-                        File Excel
-                      </label>
-                      <input
-                        id="excel-file"
-                        type="file"
-                        accept=".xlsx,.xls"
-                        onChange={handleFileChange}
-                        className="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 focus:outline-none p-2"
-                      />
-                      <p className="mt-2 text-sm text-gray-500">
-                        Il file deve contenere le colonne: homeTeam, awayTeam, matchDate, matchDay (e opzionalmente description)
-                      </p>
-                    </div>
-                    
-                    <Button 
-                      type="submit" 
-                      className="w-full"
-                      disabled={uploadExcel.isPending || !file}
-                    >
-                      {uploadExcel.isPending ? "Importazione in corso..." : "Importa File"}
-                    </Button>
-                  </form>
-                </CardContent>
-              </Card>
+        <div className="flex flex-col md:flex-row gap-6">
+          {/* Vertical Navigation Menu */}
+          <div className="w-full md:w-64 space-y-2">
+            <div className="bg-white rounded-lg shadow overflow-hidden">
+              <div className="bg-primary text-white p-4 font-semibold">Menu di Amministrazione</div>
+              <div className="p-2">
+                <button
+                  onClick={() => setActiveTab("add-match")}
+                  className={`w-full text-left px-4 py-3 rounded-md flex items-center space-x-2 transition-colors ${
+                    activeTab === "add-match" 
+                      ? "bg-primary/10 text-primary font-medium" 
+                      : "hover:bg-gray-100"
+                  }`}
+                >
+                  <span className="w-5">📆</span>
+                  <span>Aggiungi Partita</span>
+                </button>
+                
+                <button
+                  onClick={() => setActiveTab("add-user")}
+                  className={`w-full text-left px-4 py-3 rounded-md flex items-center space-x-2 transition-colors ${
+                    activeTab === "add-user" 
+                      ? "bg-primary/10 text-primary font-medium" 
+                      : "hover:bg-gray-100"
+                  }`}
+                >
+                  <span className="w-5">👤</span>
+                  <span>Aggiungi Utente</span>
+                </button>
+                
+                <button
+                  onClick={() => setActiveTab("teams")}
+                  className={`w-full text-left px-4 py-3 rounded-md flex items-center space-x-2 transition-colors ${
+                    activeTab === "teams" 
+                      ? "bg-primary/10 text-primary font-medium" 
+                      : "hover:bg-gray-100"
+                  }`}
+                >
+                  <span className="w-5">⚽</span>
+                  <span>Squadre</span>
+                </button>
+                
+                <button
+                  onClick={() => setActiveTab("match-results")}
+                  className={`w-full text-left px-4 py-3 rounded-md flex items-center space-x-2 transition-colors ${
+                    activeTab === "match-results" 
+                      ? "bg-primary/10 text-primary font-medium" 
+                      : "hover:bg-gray-100"
+                  }`}
+                >
+                  <span className="w-5">🏆</span>
+                  <span>Risultati</span>
+                </button>
+                
+                <button
+                  onClick={() => setActiveTab("prizes")}
+                  className={`w-full text-left px-4 py-3 rounded-md flex items-center space-x-2 transition-colors ${
+                    activeTab === "prizes" 
+                      ? "bg-primary/10 text-primary font-medium" 
+                      : "hover:bg-gray-100"
+                  }`}
+                >
+                  <span className="w-5">💰</span>
+                  <span>Premi</span>
+                </button>
+                
+                <button
+                  onClick={() => setActiveTab("view-data")}
+                  className={`w-full text-left px-4 py-3 rounded-md flex items-center space-x-2 transition-colors ${
+                    activeTab === "view-data" 
+                      ? "bg-primary/10 text-primary font-medium" 
+                      : "hover:bg-gray-100"
+                  }`}
+                >
+                  <span className="w-5">📊</span>
+                  <span>Visualizza Dati</span>
+                </button>
+              </div>
             </div>
-          </TabsContent>
+          </div>
           
-          {/* Add User Tab */}
-          <TabsContent value="add-user">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Aggiungi un nuovo utente</CardTitle>
-                  <CardDescription>Crea un account per un nuovo giocatore</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Form {...userForm}>
-                    <form onSubmit={userForm.handleSubmit(onSubmitUser)} className="space-y-5">
-                      <FormField
-                        control={userForm.control}
-                        name="username"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Nome Squadra</FormLabel>
-                            <FormControl>
-                              <Input placeholder="Nome della squadra Fantacalcio" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      
-                      <FormField
-                        control={userForm.control}
-                        name="pin"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>PIN</FormLabel>
-                            <FormControl>
-                              <Input 
-                                placeholder="PIN di 4 cifre" 
-                                maxLength={4}
-                                {...field} 
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      
-                      <FormField
-                        control={userForm.control}
-                        name="isAdmin"
-                        render={({ field }) => (
-                          <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
-                            <FormControl>
-                              <input
-                                type="checkbox"
-                                checked={field.value}
-                                onChange={field.onChange}
-                                className="h-4 w-4 text-primary border-gray-300 focus:ring-primary"
-                              />
-                            </FormControl>
-                            <div className="space-y-1 leading-none">
-                              <FormLabel>Amministratore</FormLabel>
-                              <p className="text-sm text-gray-500">
-                                Questo utente avrà accesso al pannello di amministrazione
-                              </p>
-                            </div>
-                          </FormItem>
-                        )}
-                      />
-                      
-                      <Button 
-                        type="submit" 
-                        className="w-full"
-                        disabled={createUser.isPending}
-                      >
-                        {createUser.isPending ? "Creazione in corso..." : "Crea Utente"}
-                      </Button>
-                    </form>
-                  </Form>
-                </CardContent>
-              </Card>
+          {/* Content Area */}
+          <div className="flex-1">
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+              <TabsList className="hidden">
+                <TabsTrigger value="add-match">Aggiungi Partita</TabsTrigger>
+                <TabsTrigger value="add-user">Aggiungi Utente</TabsTrigger>
+                <TabsTrigger value="teams">Squadre</TabsTrigger>
+                <TabsTrigger value="match-results">Risultati</TabsTrigger>
+                <TabsTrigger value="prizes">Premi</TabsTrigger>
+                <TabsTrigger value="view-data">Visualizza Dati</TabsTrigger>
+              </TabsList>
               
-              <Card>
-                <CardHeader>
-                  <CardTitle>Utenti</CardTitle>
-                  <CardDescription>Elenco degli utenti registrati</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  {isLoadingUsers ? (
-                    <div className="space-y-4">
-                      <Skeleton className="h-12 w-full" />
-                      <Skeleton className="h-12 w-full" />
-                      <Skeleton className="h-12 w-full" />
-                    </div>
-                  ) : users && users.length > 0 ? (
-                    <div className="border rounded-md overflow-hidden">
-                      <table className="w-full text-left">
-                        <thead className="bg-gray-50 border-b">
-                          <tr>
-                            <th className="px-4 py-3 text-sm font-medium">Nome Squadra</th>
-                            <th className="px-4 py-3 text-sm font-medium">Ruolo</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {users.map((user) => (
-                            <tr key={user.id} className="border-b">
-                              <td className="px-4 py-3 text-sm">{user.username}</td>
-                              <td className="px-4 py-3 text-sm">
-                                {user.isAdmin ? (
-                                  <Badge variant="default">Admin</Badge>
-                                ) : (
-                                  <Badge variant="outline">Utente</Badge>
-                                )}
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  ) : (
-                    <div className="text-center py-12 text-gray-500">
-                      Nessun utente trovato
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
-          
-          {/* Teams Tab */}
-          <TabsContent value="teams">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Aggiungi una nuova squadra</CardTitle>
-                  <CardDescription>Aggiungi una squadra di calcio con il suo logo</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Form {...teamForm}>
-                    <form onSubmit={teamForm.handleSubmit(onSubmitTeam)} className="space-y-5">
-                      <FormField
-                        control={teamForm.control}
-                        name="name"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Nome Squadra</FormLabel>
-                            <FormControl>
-                              <Input placeholder="Es. Newell's Old Boys" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      
-                      <FormField
-                        control={teamForm.control}
-                        name="managerName"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Allenatore</FormLabel>
-                            <FormControl>
-                              <Input placeholder="Es. El Loco Bielsa" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      
-                      <FormField
-                        control={teamForm.control}
-                        name="credits"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Crediti</FormLabel>
-                            <FormControl>
-                              <Input 
-                                type="number" 
-                                min="0" 
-                                placeholder="Es. 100" 
-                                {...field}
-                                onChange={(e) => field.onChange(e.target.valueAsNumber)}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      
-                      <div>
-                        <FormLabel className="mb-2 block">Logo</FormLabel>
-                        <Input
-                          id="team-logo"
-                          type="file"
-                          accept="image/*"
-                          onChange={handleTeamLogoChange}
-                          className="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 focus:outline-none p-2"
-                        />
-                        {teamLogoFile && (
-                          <div className="mt-2 p-2 bg-gray-50 rounded-md">
-                            <p className="text-sm text-gray-600">
-                              Immagine selezionata: {teamLogoFile.name}
-                            </p>
+              {/* Add Match Tab */}
+              <TabsContent value="add-match">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Aggiungi una nuova partita</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <Form {...matchForm}>
+                        <form onSubmit={matchForm.handleSubmit(onSubmitMatch)} className="space-y-5">
+                          <div className="grid grid-cols-2 gap-4">
+                            <FormField
+                              control={matchForm.control}
+                              name="homeTeam"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Squadra casa</FormLabel>
+                                  <FormControl>
+                                    <Input placeholder="Es. Newell's" {...field} />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                            
+                            <FormField
+                              control={matchForm.control}
+                              name="awayTeam"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Squadra ospite</FormLabel>
+                                  <FormControl>
+                                    <Input placeholder="Es. Como" {...field} />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
                           </div>
-                        )}
-                      </div>
-                      
-                      <div className="flex space-x-2">
+                          
+                          <div className="grid grid-cols-2 gap-4">
+                            <FormField
+                              control={matchForm.control}
+                              name="matchDate"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Data e ora</FormLabel>
+                                  <FormControl>
+                                    <Input 
+                                      type="datetime-local" 
+                                      {...field} 
+                                      value={field.value instanceof Date ? field.value.toISOString().slice(0, 16) : ''} 
+                                    />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                            
+                            <FormField
+                              control={matchForm.control}
+                              name="matchDay"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Giornata</FormLabel>
+                                  <FormControl>
+                                    <Input type="number" min="1" {...field} />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                          </div>
+                          
+                          <FormField
+                            control={matchForm.control}
+                            name="description"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Descrizione (opzionale)</FormLabel>
+                                <FormControl>
+                                  <Textarea placeholder="Es. Amichevole, Trofeo, Campionato..." {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          
+                          <Button 
+                            type="submit" 
+                            className="w-full"
+                            disabled={createMatch.isPending}
+                          >
+                            {createMatch.isPending ? "Salvataggio in corso..." : "Salva Partita"}
+                          </Button>
+                        </form>
+                      </Form>
+                    </CardContent>
+                  </Card>
+                  
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Importa partite da Excel</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <form onSubmit={onSubmitExcel} className="space-y-5">
+                        <div>
+                          <label htmlFor="excel-file" className="block text-sm font-medium mb-2">
+                            File Excel
+                          </label>
+                          <input
+                            id="excel-file"
+                            type="file"
+                            accept=".xlsx,.xls"
+                            onChange={handleFileChange}
+                            className="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 focus:outline-none p-2"
+                          />
+                          <p className="mt-2 text-sm text-gray-500">
+                            Il file deve contenere le colonne: homeTeam, awayTeam, matchDate, matchDay (e opzionalmente description)
+                          </p>
+                        </div>
+                        
                         <Button 
                           type="submit" 
-                          className="flex-1"
-                          disabled={createTeam.isPending || updateTeam.isPending}
+                          className="w-full"
+                          disabled={uploadExcel.isPending || !file}
                         >
-                          {createTeam.isPending || updateTeam.isPending ? "Salvataggio in corso..." : 
-                           editingTeamId ? "Aggiorna Squadra" : "Salva Squadra"}
+                          {uploadExcel.isPending ? "Importazione in corso..." : "Importa File"}
                         </Button>
-                        
-                        {editingTeamId && (
+                      </form>
+                    </CardContent>
+                  </Card>
+                </div>
+              </TabsContent>
+              
+              {/* Add User Tab */}
+              <TabsContent value="add-user">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Aggiungi un nuovo utente</CardTitle>
+                      <CardDescription>Crea un account per un nuovo giocatore</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <Form {...userForm}>
+                        <form onSubmit={userForm.handleSubmit(onSubmitUser)} className="space-y-5">
+                          <FormField
+                            control={userForm.control}
+                            name="username"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Nome Squadra</FormLabel>
+                                <FormControl>
+                                  <Input placeholder="Nome della squadra Fantacalcio" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          
+                          <FormField
+                            control={userForm.control}
+                            name="pin"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>PIN</FormLabel>
+                                <FormControl>
+                                  <Input 
+                                    placeholder="PIN di 4 cifre" 
+                                    maxLength={4}
+                                    {...field} 
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          
+                          <FormField
+                            control={userForm.control}
+                            name="isAdmin"
+                            render={({ field }) => (
+                              <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                                <FormControl>
+                                  <input
+                                    type="checkbox"
+                                    checked={field.value}
+                                    onChange={field.onChange}
+                                    className="h-4 w-4 text-primary border-gray-300 focus:ring-primary"
+                                  />
+                                </FormControl>
+                                <div className="space-y-1 leading-none">
+                                  <FormLabel>Amministratore</FormLabel>
+                                  <p className="text-sm text-gray-500">
+                                    Questo utente avrà accesso al pannello di amministrazione
+                                  </p>
+                                </div>
+                              </FormItem>
+                            )}
+                          />
+                          
                           <Button 
-                            type="button" 
-                            variant="outline"
-                            onClick={() => {
-                              setEditingTeamId(null);
-                              teamForm.reset({
-                                name: "",
-                                managerName: "",
-                                credits: 0,
-                                logo: "",
-                              });
-                              setTeamLogoFile(null);
-                            }}
+                            type="submit" 
+                            className="w-full"
+                            disabled={createUser.isPending}
                           >
-                            Annulla
+                            {createUser.isPending ? "Creazione in corso..." : "Crea Utente"}
                           </Button>
-                        )}
-                      </div>
-                    </form>
-                  </Form>
-                </CardContent>
-              </Card>
-              
-              <Card>
-                <CardHeader>
-                  <CardTitle>Squadre</CardTitle>
-                  <CardDescription>Elenco delle squadre registrate</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  {isLoadingTeams ? (
-                    <div className="space-y-4">
-                      <Skeleton className="h-12 w-full" />
-                      <Skeleton className="h-12 w-full" />
-                      <Skeleton className="h-12 w-full" />
-                    </div>
-                  ) : teams && teams.length > 0 ? (
-                    <div className="border rounded-md overflow-hidden">
-                      <table className="w-full text-left">
-                        <thead className="bg-gray-50 border-b">
-                          <tr>
-                            <th className="px-4 py-3 text-sm font-medium">Logo</th>
-                            <th className="px-4 py-3 text-sm font-medium">Nome</th>
-                            <th className="px-4 py-3 text-sm font-medium">Allenatore</th>
-                            <th className="px-4 py-3 text-sm font-medium">Crediti</th>
-                            <th className="px-4 py-3 text-sm font-medium">Azioni</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {teams.map((team) => (
-                            <tr key={team.id} className="border-b">
-                              <td className="px-4 py-3 text-sm">
-                                {team.logo ? (
-                                  <div className="w-8 h-8 rounded-full overflow-hidden">
-                                    <img 
-                                      src={team.logo} 
-                                      alt={`Logo ${team.name}`} 
-                                      className="w-full h-full object-cover"
-                                    />
-                                  </div>
-                                ) : (
-                                  <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
-                                    <span className="text-xs font-bold text-gray-500">
-                                      {team.name.substring(0, 2).toUpperCase()}
-                                    </span>
-                                  </div>
-                                )}
-                              </td>
-                              <td className="px-4 py-3 text-sm">{team.name}</td>
-                              <td className="px-4 py-3 text-sm">{team.managerName}</td>
-                              <td className="px-4 py-3 text-sm">{team.credits}</td>
-                              <td className="px-4 py-3 text-sm">
-                                <Button 
-                                  variant="outline" 
-                                  size="sm" 
-                                  onClick={() => {
-                                    teamForm.reset({
-                                      name: team.name,
-                                      managerName: team.managerName,
-                                      credits: team.credits,
-                                      logo: team.logo || "",
-                                    });
-                                    // Set the editing team
-                                    setEditingTeamId(team.id);
-                                  }}
-                                >
-                                  Modifica
-                                </Button>
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  ) : (
-                    <div className="text-center py-12 text-gray-500">
-                      Nessuna squadra trovata
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
-          
-          {/* Match Results Tab */}
-          <TabsContent value="match-results">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Inserisci risultato</CardTitle>
-                  <CardDescription>Imposta il risultato di una partita completata</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Form {...resultForm}>
-                    <form onSubmit={resultForm.handleSubmit(onSubmitResult)} className="space-y-5">
-                      <FormField
-                        control={resultForm.control}
-                        name="matchId"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Seleziona partita</FormLabel>
-                            <Select
-                              onValueChange={(value) => field.onChange(parseInt(value))}
-                              value={field.value?.toString()}
-                            >
-                              <FormControl>
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Seleziona una partita" />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                {matchesWithoutResults.length > 0 ? (
-                                  matchesWithoutResults.map((match) => (
-                                    <SelectItem key={match.id} value={match.id.toString()}>
-                                      {match.homeTeam} vs {match.awayTeam} (Giornata {match.matchDay})
-                                    </SelectItem>
-                                  ))
-                                ) : (
-                                  <SelectItem value="no-matches" disabled>
-                                    Nessuna partita senza risultato
-                                  </SelectItem>
-                                )}
-                              </SelectContent>
-                            </Select>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      
-                      <FormField
-                        control={resultForm.control}
-                        name="result"
-                        render={({ field }) => (
-                          <FormItem className="space-y-3">
-                            <FormLabel>Risultato</FormLabel>
-                            <FormControl>
-                              <RadioGroup
-                                onValueChange={field.onChange}
-                                value={field.value}
-                                className="flex space-x-4"
-                              >
-                                <FormItem className="flex items-center space-x-2 space-y-0">
-                                  <FormControl>
-                                    <RadioGroupItem value="1" id="result-1" />
-                                  </FormControl>
-                                  <FormLabel htmlFor="result-1" className="cursor-pointer">
-                                    Vince Squadra Casa (1)
-                                  </FormLabel>
-                                </FormItem>
-                                <FormItem className="flex items-center space-x-2 space-y-0">
-                                  <FormControl>
-                                    <RadioGroupItem value="X" id="result-x" />
-                                  </FormControl>
-                                  <FormLabel htmlFor="result-x" className="cursor-pointer">
-                                    Pareggio (X)
-                                  </FormLabel>
-                                </FormItem>
-                                <FormItem className="flex items-center space-x-2 space-y-0">
-                                  <FormControl>
-                                    <RadioGroupItem value="2" id="result-2" />
-                                  </FormControl>
-                                  <FormLabel htmlFor="result-2" className="cursor-pointer">
-                                    Vince Squadra Ospite (2)
-                                  </FormLabel>
-                                </FormItem>
-                              </RadioGroup>
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      
-                      <Button 
-                        type="submit" 
-                        className="w-full"
-                        disabled={updateMatchResult.isPending || !resultForm.getValues().matchId}
-                      >
-                        {updateMatchResult.isPending ? "Aggiornamento in corso..." : "Salva Risultato"}
-                      </Button>
-                    </form>
-                  </Form>
-                </CardContent>
-              </Card>
-              
-              <Card>
-                <CardHeader>
-                  <CardTitle>Risultati partite</CardTitle>
-                  <CardDescription>Visualizza i risultati delle partite già inseriti</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  {isLoadingMatches ? (
-                    <div className="space-y-4">
-                      <Skeleton className="h-12 w-full" />
-                      <Skeleton className="h-12 w-full" />
-                      <Skeleton className="h-12 w-full" />
-                    </div>
-                  ) : matches && matches.length > 0 ? (
-                    <div className="border rounded-md overflow-hidden">
-                      <table className="w-full text-left">
-                        <thead className="bg-gray-50 border-b">
-                          <tr>
-                            <th className="px-4 py-3 text-sm font-medium">Partita</th>
-                            <th className="px-4 py-3 text-sm font-medium">Giornata</th>
-                            <th className="px-4 py-3 text-sm font-medium">Risultato</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {matches.map((match) => (
-                            <tr key={match.id} className="border-b">
-                              <td className="px-4 py-3 text-sm">{match.homeTeam} vs {match.awayTeam}</td>
-                              <td className="px-4 py-3 text-sm text-center">{match.matchDay}</td>
-                              <td className="px-4 py-3 text-sm">
-                                {match.hasResult ? (
-                                  <Badge className="bg-green-600">
-                                    {match.result === "1" && `1 (${match.homeTeam})`}
-                                    {match.result === "X" && "X (Pareggio)"}
-                                    {match.result === "2" && `2 (${match.awayTeam})`}
-                                  </Badge>
-                                ) : (
-                                  <Badge variant="outline">Non disponibile</Badge>
-                                )}
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  ) : (
-                    <div className="text-center py-12 text-gray-500">
-                      Nessuna partita trovata
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
-          
-          {/* Prizes Tab */}
-          <TabsContent value="prizes">
-            <Card>
-              <CardHeader>
-                <CardTitle>Distribuzione Premi</CardTitle>
-                <CardDescription>Calcola e distribuisci i premi per ogni giornata</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-6">
-                  <div className="space-y-2">
-                    <label className="block text-sm font-medium">Seleziona Giornata</label>
-                    <Select
-                      onValueChange={(value) => setSelectedMatchDay(parseInt(value))}
-                      value={selectedMatchDay?.toString()}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Seleziona giornata" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {matchDays.length > 0 ? (
-                          matchDays.map((day) => (
-                            <SelectItem key={day} value={day.toString()}>
-                              Giornata {day}
-                            </SelectItem>
-                          ))
-                        ) : (
-                          <SelectItem value="no-days" disabled>
-                            Nessuna giornata disponibile
-                          </SelectItem>
-                        )}
-                      </SelectContent>
-                    </Select>
-                  </div>
+                        </form>
+                      </Form>
+                    </CardContent>
+                  </Card>
                   
-                  {selectedMatchDay && (
-                    <div className="space-y-4">
-                      {isLoadingPrize ? (
-                        <Skeleton className="h-32 w-full" />
-                      ) : prizeDistribution ? (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Utenti</CardTitle>
+                      <CardDescription>Elenco degli utenti registrati</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      {isLoadingUsers ? (
                         <div className="space-y-4">
-                          <div className="bg-gray-50 p-4 rounded-md border">
-                            <h3 className="font-semibold text-lg mb-2">Distribuzione Premi - Giornata {prizeDistribution.matchDay}</h3>
-                            <div className="grid grid-cols-2 gap-2 text-sm">
-                              <div>Crediti totali:</div>
-                              <div className="font-medium">{prizeDistribution.totalPot}</div>
-                              
-                              <div>Premio per 4 esatti (35%):</div>
-                              <div className="font-medium">{prizeDistribution.potFor4Correct}</div>
-                              
-                              <div>Premio per 5 esatti (65%):</div>
-                              <div className="font-medium">{prizeDistribution.potFor5Correct}</div>
-                              
-                              <div>Vincitori con 4 esatti:</div>
-                              <div className="font-medium">{prizeDistribution.users4Correct}</div>
-                              
-                              <div>Vincitori con 5 esatti:</div>
-                              <div className="font-medium">{prizeDistribution.users5Correct}</div>
-                              
-                              <div>Stato distribuzione:</div>
-                              <div>
-                                {prizeDistribution.isDistributed ? (
-                                  <Badge className="bg-green-600">Distribuito</Badge>
-                                ) : (
-                                  <Badge variant="outline">In attesa</Badge>
-                                )}
+                          <Skeleton className="h-12 w-full" />
+                          <Skeleton className="h-12 w-full" />
+                          <Skeleton className="h-12 w-full" />
+                        </div>
+                      ) : users && users.length > 0 ? (
+                        <div className="border rounded-md overflow-hidden">
+                          <table className="w-full text-left">
+                            <thead className="bg-gray-50 border-b">
+                              <tr>
+                                <th className="px-4 py-3 text-sm font-medium">Nome</th>
+                                <th className="px-4 py-3 text-sm font-medium">PIN</th>
+                                <th className="px-4 py-3 text-sm font-medium">Ruolo</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {users.map((user) => (
+                                <tr key={user.id} className="border-b">
+                                  <td className="px-4 py-3 text-sm">{user.username}</td>
+                                  <td className="px-4 py-3 text-sm">••••</td>
+                                  <td className="px-4 py-3 text-sm">
+                                    {user.isAdmin ? (
+                                      <Badge className="bg-amber-600">Admin</Badge>
+                                    ) : (
+                                      <Badge variant="outline">Utente</Badge>
+                                    )}
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      ) : (
+                        <div className="text-center py-12 text-gray-500">
+                          Nessun utente trovato
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                </div>
+              </TabsContent>
+              
+              {/* Teams Tab */}
+              <TabsContent value="teams">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>{editingTeamId ? "Modifica squadra" : "Aggiungi una nuova squadra"}</CardTitle>
+                      <CardDescription>{editingTeamId ? "Modifica i dettagli della squadra" : "Inserisci i dettagli della nuova squadra"}</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <Form {...teamForm}>
+                        <form onSubmit={teamForm.handleSubmit(onSubmitTeam)} className="space-y-5">
+                          <FormField
+                            control={teamForm.control}
+                            name="name"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Nome Squadra</FormLabel>
+                                <FormControl>
+                                  <Input placeholder="Es. AC Milan" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          
+                          <FormField
+                            control={teamForm.control}
+                            name="managerName"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Allenatore</FormLabel>
+                                <FormControl>
+                                  <Input placeholder="Es. El Loco Bielsa" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          
+                          <FormField
+                            control={teamForm.control}
+                            name="credits"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Crediti</FormLabel>
+                                <FormControl>
+                                  <Input 
+                                    type="number" 
+                                    min="0" 
+                                    placeholder="Es. 100" 
+                                    {...field}
+                                    onChange={(e) => field.onChange(e.target.valueAsNumber)}
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          
+                          <div>
+                            <FormLabel className="mb-2 block">Logo</FormLabel>
+                            <Input
+                              id="team-logo"
+                              type="file"
+                              accept="image/*"
+                              onChange={handleTeamLogoChange}
+                              className="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 focus:outline-none p-2"
+                            />
+                            {teamLogoFile && (
+                              <div className="mt-2 p-2 bg-gray-50 rounded-md">
+                                <p className="text-sm text-gray-600">
+                                  Immagine selezionata: {teamLogoFile.name}
+                                </p>
                               </div>
-                            </div>
+                            )}
                           </div>
                           
                           <div className="flex space-x-2">
                             <Button 
-                              variant="outline"
-                              onClick={() => calculatePrize.mutate(selectedMatchDay)}
-                              disabled={calculatePrize.isPending}
+                              type="submit" 
                               className="flex-1"
+                              disabled={createTeam.isPending || updateTeam.isPending}
                             >
-                              {calculatePrize.isPending ? "Calcolo..." : "Ricalcola"}
+                              {createTeam.isPending || updateTeam.isPending ? "Salvataggio in corso..." : 
+                               editingTeamId ? "Aggiorna Squadra" : "Salva Squadra"}
                             </Button>
                             
-                            <Button 
-                              onClick={() => distributePrizes.mutate(selectedMatchDay)}
-                              disabled={distributePrizes.isPending || prizeDistribution.isDistributed}
-                              className="flex-1"
-                            >
-                              {distributePrizes.isPending ? "Distribuzione..." : "Distribuisci Premi"}
-                            </Button>
+                            {editingTeamId && (
+                              <Button 
+                                type="button" 
+                                variant="outline"
+                                onClick={() => {
+                                  setEditingTeamId(null);
+                                  teamForm.reset({
+                                    name: "",
+                                    managerName: "",
+                                    credits: 0,
+                                    logo: "",
+                                  });
+                                  setTeamLogoFile(null);
+                                }}
+                              >
+                                Annulla
+                              </Button>
+                            )}
                           </div>
-                          
-                          {!prizeDistribution.users4Correct && !prizeDistribution.users5Correct && (
-                            <Alert>
-                              <AlertCircle className="h-4 w-4" />
-                              <AlertTitle>Attenzione</AlertTitle>
-                              <AlertDescription>
-                                Non ci sono vincitori per questa giornata. Assicurati che tutti i risultati delle partite siano stati inseriti.
-                              </AlertDescription>
-                            </Alert>
-                          )}
+                        </form>
+                      </Form>
+                    </CardContent>
+                  </Card>
+                  
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Squadre</CardTitle>
+                      <CardDescription>Elenco delle squadre registrate</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      {isLoadingTeams ? (
+                        <div className="space-y-4">
+                          <Skeleton className="h-12 w-full" />
+                          <Skeleton className="h-12 w-full" />
+                          <Skeleton className="h-12 w-full" />
+                        </div>
+                      ) : teams && teams.length > 0 ? (
+                        <div className="border rounded-md overflow-hidden">
+                          <table className="w-full text-left">
+                            <thead className="bg-gray-50 border-b">
+                              <tr>
+                                <th className="px-4 py-3 text-sm font-medium">Logo</th>
+                                <th className="px-4 py-3 text-sm font-medium">Nome</th>
+                                <th className="px-4 py-3 text-sm font-medium">Allenatore</th>
+                                <th className="px-4 py-3 text-sm font-medium">Crediti</th>
+                                <th className="px-4 py-3 text-sm font-medium">Azioni</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {teams.map((team) => (
+                                <tr key={team.id} className="border-b">
+                                  <td className="px-4 py-3 text-sm">
+                                    {team.logo ? (
+                                      <div className="w-8 h-8 rounded-full overflow-hidden">
+                                        <img 
+                                          src={team.logo} 
+                                          alt={`Logo ${team.name}`} 
+                                          className="w-full h-full object-cover"
+                                        />
+                                      </div>
+                                    ) : (
+                                      <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
+                                        <span className="text-xs font-bold text-gray-500">
+                                          {team.name.substring(0, 2).toUpperCase()}
+                                        </span>
+                                      </div>
+                                    )}
+                                  </td>
+                                  <td className="px-4 py-3 text-sm">{team.name}</td>
+                                  <td className="px-4 py-3 text-sm">{team.managerName}</td>
+                                  <td className="px-4 py-3 text-sm">{team.credits}</td>
+                                  <td className="px-4 py-3 text-sm">
+                                    <Button 
+                                      variant="outline" 
+                                      size="sm" 
+                                      onClick={() => {
+                                        teamForm.reset({
+                                          name: team.name,
+                                          managerName: team.managerName,
+                                          credits: team.credits,
+                                          logo: team.logo || "",
+                                        });
+                                        // Set the editing team
+                                        setEditingTeamId(team.id);
+                                      }}
+                                    >
+                                      Modifica
+                                    </Button>
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
                         </div>
                       ) : (
-                        <Alert>
-                          <AlertCircle className="h-4 w-4" />
-                          <AlertTitle>Nessun dato disponibile</AlertTitle>
-                          <AlertDescription>
-                            Non sono disponibili informazioni sui premi per questa giornata. Clicca "Ricalcola" per generare la distribuzione.
-                          </AlertDescription>
-                        </Alert>
+                        <div className="text-center py-12 text-gray-500">
+                          Nessuna squadra trovata
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                </div>
+              </TabsContent>
+              
+              {/* Match Results Tab */}
+              <TabsContent value="match-results">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Inserisci risultato</CardTitle>
+                      <CardDescription>Imposta il risultato di una partita completata</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <Form {...resultForm}>
+                        <form onSubmit={resultForm.handleSubmit(onSubmitResult)} className="space-y-5">
+                          <FormField
+                            control={resultForm.control}
+                            name="matchId"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Seleziona partita</FormLabel>
+                                <Select
+                                  onValueChange={(value) => field.onChange(parseInt(value))}
+                                  value={field.value?.toString()}
+                                >
+                                  <FormControl>
+                                    <SelectTrigger>
+                                      <SelectValue placeholder="Seleziona una partita" />
+                                    </SelectTrigger>
+                                  </FormControl>
+                                  <SelectContent>
+                                    {matchesWithoutResults.length > 0 ? (
+                                      matchesWithoutResults.map((match) => (
+                                        <SelectItem key={match.id} value={match.id.toString()}>
+                                          {match.homeTeam} vs {match.awayTeam} (Giornata {match.matchDay})
+                                        </SelectItem>
+                                      ))
+                                    ) : (
+                                      <SelectItem value="no-matches" disabled>
+                                        Nessuna partita senza risultato
+                                      </SelectItem>
+                                    )}
+                                  </SelectContent>
+                                </Select>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          
+                          <FormField
+                            control={resultForm.control}
+                            name="result"
+                            render={({ field }) => (
+                              <FormItem className="space-y-3">
+                                <FormLabel>Risultato</FormLabel>
+                                <FormControl>
+                                  <RadioGroup
+                                    onValueChange={field.onChange}
+                                    value={field.value}
+                                    className="flex space-x-4"
+                                  >
+                                    <FormItem className="flex items-center space-x-2 space-y-0">
+                                      <FormControl>
+                                        <RadioGroupItem value="1" id="result-1" />
+                                      </FormControl>
+                                      <FormLabel htmlFor="result-1" className="cursor-pointer">
+                                        Vince Squadra Casa (1)
+                                      </FormLabel>
+                                    </FormItem>
+                                    <FormItem className="flex items-center space-x-2 space-y-0">
+                                      <FormControl>
+                                        <RadioGroupItem value="X" id="result-x" />
+                                      </FormControl>
+                                      <FormLabel htmlFor="result-x" className="cursor-pointer">
+                                        Pareggio (X)
+                                      </FormLabel>
+                                    </FormItem>
+                                    <FormItem className="flex items-center space-x-2 space-y-0">
+                                      <FormControl>
+                                        <RadioGroupItem value="2" id="result-2" />
+                                      </FormControl>
+                                      <FormLabel htmlFor="result-2" className="cursor-pointer">
+                                        Vince Squadra Ospite (2)
+                                      </FormLabel>
+                                    </FormItem>
+                                  </RadioGroup>
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          
+                          <Button 
+                            type="submit" 
+                            className="w-full"
+                            disabled={updateMatchResult.isPending || !resultForm.getValues().matchId}
+                          >
+                            {updateMatchResult.isPending ? "Aggiornamento in corso..." : "Salva Risultato"}
+                          </Button>
+                        </form>
+                      </Form>
+                    </CardContent>
+                  </Card>
+                  
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Risultati partite</CardTitle>
+                      <CardDescription>Visualizza i risultati delle partite già inseriti</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      {isLoadingMatches ? (
+                        <div className="space-y-4">
+                          <Skeleton className="h-12 w-full" />
+                          <Skeleton className="h-12 w-full" />
+                          <Skeleton className="h-12 w-full" />
+                        </div>
+                      ) : matches && matches.length > 0 ? (
+                        <div className="border rounded-md overflow-hidden">
+                          <table className="w-full text-left">
+                            <thead className="bg-gray-50 border-b">
+                              <tr>
+                                <th className="px-4 py-3 text-sm font-medium">Partita</th>
+                                <th className="px-4 py-3 text-sm font-medium">Giornata</th>
+                                <th className="px-4 py-3 text-sm font-medium">Risultato</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {matches.map((match) => (
+                                <tr key={match.id} className="border-b">
+                                  <td className="px-4 py-3 text-sm">{match.homeTeam} vs {match.awayTeam}</td>
+                                  <td className="px-4 py-3 text-sm text-center">{match.matchDay}</td>
+                                  <td className="px-4 py-3 text-sm">
+                                    {match.hasResult ? (
+                                      <Badge className="bg-green-600">
+                                        {match.result === "1" && `1 (${match.homeTeam})`}
+                                        {match.result === "X" && "X (Pareggio)"}
+                                        {match.result === "2" && `2 (${match.awayTeam})`}
+                                      </Badge>
+                                    ) : (
+                                      <Badge variant="outline">Non disponibile</Badge>
+                                    )}
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      ) : (
+                        <div className="text-center py-12 text-gray-500">
+                          Nessuna partita trovata
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                </div>
+              </TabsContent>
+              
+              {/* Prizes Tab */}
+              <TabsContent value="prizes">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Distribuzione Premi</CardTitle>
+                    <CardDescription>Calcola e distribuisci i premi per ogni giornata</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-6">
+                      <div className="space-y-2">
+                        <label className="block text-sm font-medium">Seleziona Giornata</label>
+                        <Select
+                          onValueChange={(value) => setSelectedMatchDay(parseInt(value))}
+                          value={selectedMatchDay?.toString()}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Seleziona giornata" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {matchDays.length > 0 ? (
+                              matchDays.map((day) => (
+                                <SelectItem key={day} value={day.toString()}>
+                                  Giornata {day}
+                                </SelectItem>
+                              ))
+                            ) : (
+                              <SelectItem value="no-days" disabled>
+                                Nessuna giornata disponibile
+                              </SelectItem>
+                            )}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      
+                      {selectedMatchDay && (
+                        <div className="space-y-4">
+                          {isLoadingPrize ? (
+                            <Skeleton className="h-32 w-full" />
+                          ) : prizeDistribution ? (
+                            <div className="space-y-4">
+                              <div className="bg-gray-50 p-4 rounded-md border">
+                                <h3 className="font-semibold text-lg mb-2">Distribuzione Premi - Giornata {prizeDistribution.matchDay}</h3>
+                                <div className="grid grid-cols-2 gap-2 text-sm">
+                                  <div>Crediti totali:</div>
+                                  <div className="font-medium">{prizeDistribution.totalPot}</div>
+                                  
+                                  <div>Premio per 4 esatti (35%):</div>
+                                  <div className="font-medium">{prizeDistribution.potFor4Correct}</div>
+                                  
+                                  <div>Premio per 5 esatti (65%):</div>
+                                  <div className="font-medium">{prizeDistribution.potFor5Correct}</div>
+                                  
+                                  <div>Vincitori con 4 esatti:</div>
+                                  <div className="font-medium">{prizeDistribution.users4Correct}</div>
+                                  
+                                  <div>Vincitori con 5 esatti:</div>
+                                  <div className="font-medium">{prizeDistribution.users5Correct}</div>
+                                  
+                                  <div>Stato:</div>
+                                  <div className="font-medium">
+                                    {prizeDistribution.isDistributed ? (
+                                      <Badge className="bg-green-600">Distribuito</Badge>
+                                    ) : (
+                                      <Badge variant="outline">Non distribuito</Badge>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                              
+                              <div className="flex gap-2">
+                                <Button
+                                  onClick={() => calculatePrize.mutate(selectedMatchDay)}
+                                  disabled={calculatePrize.isPending}
+                                  className="flex-1"
+                                >
+                                  {calculatePrize.isPending ? "Calcolo in corso..." : "Calcola Premi"}
+                                </Button>
+                                
+                                <Button
+                                  onClick={() => distributePrizes.mutate(selectedMatchDay)}
+                                  disabled={distributePrizes.isPending || prizeDistribution.isDistributed}
+                                  variant={prizeDistribution.isDistributed ? "outline" : "default"}
+                                  className="flex-1"
+                                >
+                                  {distributePrizes.isPending 
+                                    ? "Distribuzione in corso..." 
+                                    : prizeDistribution.isDistributed 
+                                      ? "Già Distribuito" 
+                                      : "Distribuisci Premi"
+                                  }
+                                </Button>
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="text-center py-12 text-gray-500">
+                              Nessuna distribuzione premi trovata per questa giornata.
+                              <div className="mt-4">
+                                <Button 
+                                  onClick={() => calculatePrize.mutate(selectedMatchDay)}
+                                  disabled={calculatePrize.isPending}
+                                >
+                                  {calculatePrize.isPending ? "Calcolo in corso..." : "Calcola Premi"}
+                                </Button>
+                              </div>
+                            </div>
+                          )}
+                        </div>
                       )}
                     </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-          
-          {/* View Data Tab */}
-          <TabsContent value="view-data">
-            <div className="grid grid-cols-1 gap-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Tutte le partite</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {isLoadingMatches ? (
-                    <div className="space-y-4">
-                      <Skeleton className="h-12 w-full" />
-                      <Skeleton className="h-12 w-full" />
-                      <Skeleton className="h-12 w-full" />
+                  </CardContent>
+                </Card>
+              </TabsContent>
+              
+              {/* View Data Tab */}
+              <TabsContent value="view-data">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Dati di sistema</CardTitle>
+                    <CardDescription>Visualizza e analizza i dati del sistema</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div className="border p-4 rounded-md">
+                        <div className="text-lg font-semibold mb-1">Utenti</div>
+                        <div className="text-3xl font-bold">{users?.length || 0}</div>
+                      </div>
+                      
+                      <div className="border p-4 rounded-md">
+                        <div className="text-lg font-semibold mb-1">Partite</div>
+                        <div className="text-3xl font-bold">{matches?.length || 0}</div>
+                      </div>
+                      
+                      <div className="border p-4 rounded-md">
+                        <div className="text-lg font-semibold mb-1">Squadre</div>
+                        <div className="text-3xl font-bold">{teams?.length || 0}</div>
+                      </div>
                     </div>
-                  ) : matches && matches.length > 0 ? (
-                    <div className="border rounded-md overflow-auto">
-                      <table className="w-full text-left">
-                        <thead className="bg-gray-50 border-b">
-                          <tr>
-                            <th className="px-4 py-3 text-sm font-medium">Squadre</th>
-                            <th className="px-4 py-3 text-sm font-medium">Data</th>
-                            <th className="px-4 py-3 text-sm font-medium">Giornata</th>
-                            <th className="px-4 py-3 text-sm font-medium">Descrizione</th>
-                            <th className="px-4 py-3 text-sm font-medium">Risultato</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {matches.map((match) => (
-                            <tr key={match.id} className="border-b">
-                              <td className="px-4 py-3 text-sm whitespace-nowrap">{match.homeTeam} vs {match.awayTeam}</td>
-                              <td className="px-4 py-3 text-sm whitespace-nowrap">
-                                {new Date(match.matchDate).toLocaleString('it-IT')}
-                              </td>
-                              <td className="px-4 py-3 text-sm text-center">{match.matchDay}</td>
-                              <td className="px-4 py-3 text-sm">{match.description || "-"}</td>
-                              <td className="px-4 py-3 text-sm">
-                                {match.hasResult ? (
-                                  <span className="inline-flex items-center">
-                                    <Check className="h-4 w-4 text-green-600 mr-1" />{match.result}
-                                  </span>
-                                ) : (
-                                  <span className="inline-flex items-center">
-                                    <X className="h-4 w-4 text-gray-400 mr-1" />Non disponibile
-                                  </span>
-                                )}
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
+                    
+                    <div className="mt-8">
+                      <h3 className="text-lg font-semibold mb-4">Partite per giornata</h3>
+                      {matchDays.length > 0 ? (
+                        <div className="space-y-2">
+                          {matchDays.map((day) => {
+                            const matchesForDay = matchesByDay[day] || [];
+                            const matchesWithResult = matchesForDay.filter(m => m.hasResult).length;
+                            
+                            return (
+                              <div key={day} className="border p-4 rounded-md">
+                                <div className="flex justify-between items-center">
+                                  <div className="font-medium">Giornata {day}</div>
+                                  <div className="text-sm text-gray-500">
+                                    {matchesWithResult} / {matchesForDay.length} partite completate
+                                  </div>
+                                </div>
+                                <div className="w-full bg-gray-200 rounded-full h-2.5 mt-2">
+                                  <div 
+                                    className="bg-primary h-2.5 rounded-full" 
+                                    style={{ width: `${(matchesWithResult / matchesForDay.length) * 100}%` }}
+                                  ></div>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        <div className="text-center py-12 text-gray-500">
+                          Nessuna partita trovata
+                        </div>
+                      )}
                     </div>
-                  ) : (
-                    <div className="text-center py-12 text-gray-500">
-                      Nessuna partita trovata
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
-        </Tabs>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            </Tabs>
+          </div>
+        </div>
       </div>
     </div>
   );
