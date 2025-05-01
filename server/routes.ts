@@ -3,7 +3,7 @@ import { createServer, type Server } from "http";
 import multer from "multer";
 import * as XLSX from "xlsx";
 import { storage } from "./storage";
-import { predictSchema, matchSchema, userSchema } from "@shared/schema";
+import { predictSchema, matchSchema, userSchema, teamSchema } from "@shared/schema";
 import { z } from "zod";
 import { sendPredictionNotification, sendExcelImportReport } from "./email";
 
@@ -369,6 +369,61 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  app.post("/api/teams", isAdmin, async (req, res) => {
+    try {
+      const data = teamSchema.parse(req.body);
+      const team = await storage.createTeam(data);
+      res.status(201).json(team);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid team data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to create team" });
+    }
+  });
+  
+  app.patch("/api/teams/:id", isAdmin, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid team ID" });
+      }
+      
+      const data = teamSchema.parse(req.body);
+      const updatedTeam = await storage.updateTeam(id, data);
+      
+      if (!updatedTeam) {
+        return res.status(404).json({ message: "Team not found" });
+      }
+      
+      res.json(updatedTeam);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid team data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to update team" });
+    }
+  });
+  
+  app.delete("/api/teams/:id", isAdmin, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid team ID" });
+      }
+      
+      const deleted = await storage.deleteTeam(id);
+      
+      if (!deleted) {
+        return res.status(404).json({ message: "Team not found" });
+      }
+      
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete team" });
+    }
+  });
+  
   app.get("/api/teams/:id", async (req, res) => {
     try {
       const id = parseInt(req.params.id);
@@ -385,74 +440,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(team);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch team" });
-    }
-  });
-  
-  app.post("/api/teams", isAdmin, async (req, res) => {
-    try {
-      const teamSchema = z.object({
-        name: z.string().min(2, { message: "Il nome della squadra deve avere almeno 2 caratteri" }),
-        logo: z.string().optional(),
-        managerName: z.string().min(2, { message: "Il nome del gestore deve avere almeno 2 caratteri" }),
-        credits: z.number().optional(),
-      });
-      
-      const validatedData = teamSchema.parse(req.body);
-      const team = await storage.createTeam(validatedData);
-      res.status(201).json(team);
-    } catch (error) {
-      if (error instanceof Error) {
-        res.status(400).json({ message: error.message });
-      } else {
-        res.status(500).json({ message: "An unexpected error occurred" });
-      }
-    }
-  });
-  
-  app.put("/api/teams/:id/credits", isAdmin, async (req, res) => {
-    try {
-      const id = parseInt(req.params.id);
-      if (isNaN(id)) {
-        return res.status(400).json({ message: "Invalid team ID" });
-      }
-      
-      const creditSchema = z.object({
-        credits: z.number(),
-      });
-      
-      const { credits } = creditSchema.parse(req.body);
-      const team = await storage.updateTeamCredits(id, credits);
-      
-      if (!team) {
-        return res.status(404).json({ message: "Team not found" });
-      }
-      
-      res.json(team);
-    } catch (error) {
-      if (error instanceof Error) {
-        res.status(400).json({ message: error.message });
-      } else {
-        res.status(500).json({ message: "An unexpected error occurred" });
-      }
-    }
-  });
-  
-  app.delete("/api/teams/:id", isAdmin, async (req, res) => {
-    try {
-      const id = parseInt(req.params.id);
-      if (isNaN(id)) {
-        return res.status(400).json({ message: "Invalid team ID" });
-      }
-      
-      const success = await storage.deleteTeam(id);
-      
-      if (!success) {
-        return res.status(404).json({ message: "Team not found or could not be deleted" });
-      }
-      
-      res.json({ message: "Team deleted successfully" });
-    } catch (error) {
-      res.status(500).json({ message: "Failed to delete team" });
     }
   });
   

@@ -166,6 +166,14 @@ export class DatabaseStorage implements IStorage {
     return updatedTeam;
   }
   
+  async updateTeam(id: number, team: InsertTeam): Promise<Team | undefined> {
+    const [updatedTeam] = await db.update(teams)
+      .set(team)
+      .where(eq(teams.id, id))
+      .returning();
+    return updatedTeam;
+  }
+  
   async deleteTeam(id: number): Promise<boolean> {
     const result = await db.delete(teams).where(eq(teams.id, id));
     return !!result;
