@@ -11,6 +11,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { Button } from "@/components/ui/button";
+import MatchDayReceipt from "./MatchDayReceipt";
 import { 
   formatDateToLocalString, 
   isDateInPast,
@@ -22,7 +24,8 @@ import {
   Clock, 
   Trophy, 
   Coins, 
-  AlertCircle
+  AlertCircle,
+  Receipt
 } from "lucide-react";
 
 // Types
@@ -327,6 +330,9 @@ export default function UserPredictionHistory() {
     );
   }
 
+  // State for showing/hiding receipts
+  const [showReceiptForDay, setShowReceiptForDay] = useState<number | null>(null);
+  
   return (
     <Card className="shadow-md mb-8">
       <CardHeader>
@@ -369,12 +375,35 @@ export default function UserPredictionHistory() {
                 
                 {matchDays.map(day => (
                   <TabsContent key={day} value={day.toString()}>
-                    <h3 className="font-medium text-lg mb-4">Giornata {day}</h3>
+                    <div className="flex justify-between items-center">
+                      <h3 className="font-medium text-lg mb-4">Giornata {day}</h3>
+                      
+                      {predictionsByMatchDay[day]?.length >= 1 && (
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          className="mb-4 flex items-center gap-1"
+                          onClick={() => setShowReceiptForDay(showReceiptForDay === day ? null : day)}
+                        >
+                          <Receipt className="h-4 w-4" />
+                          {showReceiptForDay === day ? 'Nascondi schedina' : 'Visualizza schedina'}
+                        </Button>
+                      )}
+                    </div>
                     
                     {/* Show count of predictions for this day */}
                     <div className="text-sm text-muted-foreground mb-4">
                       {predictionsByMatchDay[day]?.length || 0} pronostici in questa giornata
                     </div>
+                    
+                    {/* Show receipt for this match day */}
+                    {showReceiptForDay === day && user && predictionsByMatchDay[day]?.length >= 1 && (
+                      <MatchDayReceipt 
+                        matchDay={day}
+                        predictions={predictionsByMatchDay[day] || []}
+                        username={user.username}
+                      />
+                    )}
                     
                     {/* Render predictions */}
                     {predictionsByMatchDay[day]?.map(prediction => renderPredictionCard(prediction))}

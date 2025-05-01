@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { 
   Card, 
   CardContent, 
@@ -51,6 +51,43 @@ const predictionMap: Record<string, string> = {
 };
 
 export default function MatchDayReceipt({ matchDay, predictions, username }: MatchDayReceiptProps) {
+  // Add print styles
+  useEffect(() => {
+    // Add a <style> element for print styles
+    const styleEl = document.createElement('style');
+    styleEl.id = 'receipt-print-styles';
+    styleEl.innerHTML = `
+      @media print {
+        body * {
+          visibility: hidden;
+        }
+        #receipt, #receipt * {
+          visibility: visible;
+        }
+        #receipt {
+          position: absolute;
+          left: 0;
+          top: 0;
+          width: 100%;
+          padding: 1rem;
+        }
+        .receipt-card {
+          box-shadow: none !important;
+          border: 1px solid #ddd;
+        }
+      }
+    `;
+    document.head.appendChild(styleEl);
+    
+    // Clean up on unmount
+    return () => {
+      const existingStyle = document.getElementById('receipt-print-styles');
+      if (existingStyle) {
+        document.head.removeChild(existingStyle);
+      }
+    };
+  }, []);
+  
   // Order predictions by match date
   const orderedPredictions = [...predictions].sort((a, b) => {
     if (!a.match || !b.match) return 0;
@@ -130,20 +167,64 @@ export default function MatchDayReceipt({ matchDay, predictions, username }: Mat
       <CardHeader className="border-b bg-muted/20">
         <div className="flex justify-between items-center">
           <div>
-            <CardTitle className="text-xl">Schedina Giornata {matchDay}</CardTitle>
-            <p className="text-sm text-muted-foreground mt-1">
-              Giocatore: {username}
+            <CardTitle className="text-xl font-bold">Indistruttibili Bet</CardTitle>
+            <p className="text-sm mt-1">
+              Giornata {matchDay} - Giocatore: {username}
             </p>
           </div>
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={handlePrint} 
-            className="print:hidden"
-          >
-            <Printer className="h-4 w-4 mr-1" />
-            Stampa
-          </Button>
+          <div className="flex gap-2 print:hidden">
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={handleDownload}
+                  >
+                    <Download className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Scarica</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+            
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={handleShareWhatsApp}
+                    className="bg-green-500 text-white hover:bg-green-600 border-green-600"
+                  >
+                    <Share2 className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Condividi su WhatsApp</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+            
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={handlePrint}
+                  >
+                    <Printer className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Stampa</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
         </div>
         <div className="text-xs text-muted-foreground mt-2">
           Data: {formattedDate}
@@ -196,27 +277,7 @@ export default function MatchDayReceipt({ matchDay, predictions, username }: Mat
         </div>
       </CardFooter>
       
-      <style jsx global>{`
-        @media print {
-          body * {
-            visibility: hidden;
-          }
-          #receipt, #receipt * {
-            visibility: visible;
-          }
-          #receipt {
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 100%;
-            padding: 1rem;
-          }
-          .receipt-card {
-            box-shadow: none !important;
-            border: 1px solid #ddd;
-          }
-        }
-      `}</style>
+      {/* Stile per la stampa aggiunto via useEffect */}
     </Card>
   );
 }
