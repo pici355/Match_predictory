@@ -78,9 +78,9 @@ function MatchCard({ match }: { match: Match }) {
         {/* Match day info and time banner */}
         <div className="bg-muted px-3 py-1 flex justify-between items-center text-xs">
           <div className="font-medium">Giornata {match.matchDay}</div>
-          <Badge variant={isEditable ? "secondary" : "destructive"} className="text-xs" size="sm">
+          <div className={`text-xs px-2 py-0.5 rounded-sm ${isEditable ? 'bg-secondary text-secondary-foreground' : 'bg-destructive text-destructive-foreground'}`}>
             {isEditable ? `${timeRemaining}` : "Chiuso"}
-          </Badge>
+          </div>
         </div>
         
         {/* Teams section */}

@@ -69,10 +69,10 @@ export default function TimezoneDetector() {
   }
 
   return (
-    <div className="flex items-center gap-2 p-1 rounded-md">
-      <div className="flex items-center">
-        <Clock className="h-4 w-4 text-muted-foreground mr-1" />
-        <span className="text-sm font-medium mr-2">
+    <div className="flex items-center gap-1 ml-auto">
+      <div className="hidden md:flex items-center pr-2 border-r border-primary-foreground/20">
+        <Clock className="h-4 w-4 text-primary-foreground/70 mr-1" />
+        <span className="text-xs font-medium">
           {formatDateToLocalString(currentTime, {
             hour: '2-digit',
             minute: '2-digit',
@@ -82,7 +82,7 @@ export default function TimezoneDetector() {
       </div>
       
       <Select value={selectedTimezone} onValueChange={handleTimezoneChange}>
-        <SelectTrigger className="h-7 text-xs w-[140px]" id="timezone-select">
+        <SelectTrigger className="h-7 text-xs w-[120px] bg-transparent border-primary-foreground/30 hover:bg-primary-foreground/10 text-primary-foreground" id="timezone-select">
           <SelectValue placeholder="Fuso orario" />
         </SelectTrigger>
         <SelectContent>
