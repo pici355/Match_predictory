@@ -562,7 +562,13 @@ export default function AdminPage() {
 
   // ======== HANDLERS ========
   function onSubmitMatch(data: MatchFormValues) {
-    createMatch.mutate(data);
+    if (editingMatchId) {
+      // If we're editing an existing match
+      updateMatch.mutate({ id: editingMatchId, match: data });
+    } else {
+      // If we're creating a new match
+      createMatch.mutate(data);
+    }
   }
 
   function onSubmitUser(data: UserFormValues) {
@@ -630,8 +636,12 @@ export default function AdminPage() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <Card>
                 <CardHeader>
-                  <CardTitle>Aggiungi Partita</CardTitle>
-                  <CardDescription>Inserisci i dettagli della nuova partita</CardDescription>
+                  <CardTitle>{editingMatchId ? "Modifica Partita" : "Aggiungi Partita"}</CardTitle>
+                  <CardDescription>
+                    {editingMatchId 
+                      ? "Modifica i dettagli della partita" 
+                      : "Inserisci i dettagli della nuova partita"}
+                  </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <Form {...matchForm}>
@@ -805,9 +815,31 @@ export default function AdminPage() {
                         )}
                       />
                       
-                      <Button type="submit" disabled={createMatch.isPending}>
-                        {createMatch.isPending ? "Aggiunta in corso..." : "Aggiungi Partita"}
+                      <Button type="submit" disabled={createMatch.isPending || updateMatch.isPending}>
+                        {editingMatchId
+                          ? (updateMatch.isPending ? "Aggiornamento in corso..." : "Aggiorna Partita")
+                          : (createMatch.isPending ? "Aggiunta in corso..." : "Aggiungi Partita")
+                        }
                       </Button>
+                      {editingMatchId && (
+                        <Button 
+                          type="button" 
+                          variant="outline"
+                          className="ml-2"
+                          onClick={() => {
+                            setEditingMatchId(null);
+                            matchForm.reset({
+                              homeTeam: "",
+                              awayTeam: "",
+                              matchDate: new Date(),
+                              matchDay: matchForm.getValues("matchDay"),
+                              description: "",
+                            });
+                          }}
+                        >
+                          Annulla Modifica
+                        </Button>
+                      )}
                     </form>
                   </Form>
                 </CardContent>
