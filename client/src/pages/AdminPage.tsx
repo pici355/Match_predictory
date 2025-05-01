@@ -12,6 +12,7 @@ import {
 import { 
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue 
 } from '@/components/ui/select';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -551,816 +552,832 @@ export default function AdminPage() {
     <div className="container py-8">
       <h1 className="text-3xl font-bold mb-6">Pannello di Amministrazione</h1>
       
-      {/* Match management section */}
-      <section className="mb-10">
-        <h2 className="text-2xl font-bold mb-4">Gestione Partite</h2>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Aggiungi Partita</CardTitle>
-              <CardDescription>Inserisci i dettagli della nuova partita</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Form {...matchForm}>
-                <form onSubmit={matchForm.handleSubmit(onSubmitMatch)} className="space-y-4">
-                  <FormField
-                    control={matchForm.control}
-                    name="homeTeam"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Squadra Casa</FormLabel>
-                        <FormControl>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Seleziona squadra casa" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {teams ? teams.map(team => (
-                                <SelectItem key={`home-${team.id}`} value={team.name}>
-                                  <div className="flex items-center">
-                                    {team.logo ? (
-                                      <div className="w-5 h-5 rounded-full overflow-hidden mr-2">
-                                        <img 
-                                          src={team.logo} 
-                                          alt={`${team.name} logo`} 
-                                          className="w-full h-full object-cover"
-                                          onError={(e) => {
-                                            e.currentTarget.style.display = 'none';
-                                            e.currentTarget.parentElement!.innerHTML += `<span class="text-xs">${team.name.substring(0, 2).toUpperCase()}</span>`;
-                                          }}
-                                        />
+      <Accordion type="multiple" defaultValue={["matches", "users", "teams", "prizes"]} className="space-y-6">
+        {/* Match management section */}
+        <AccordionItem value="matches" className="border rounded-lg overflow-hidden shadow-sm">
+          <AccordionTrigger className="p-4 bg-gray-50 hover:bg-gray-100">
+            <h2 className="text-xl font-bold text-left">Gestione Partite</h2>
+          </AccordionTrigger>
+          <AccordionContent className="p-4">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Aggiungi Partita</CardTitle>
+                  <CardDescription>Inserisci i dettagli della nuova partita</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Form {...matchForm}>
+                    <form onSubmit={matchForm.handleSubmit(onSubmitMatch)} className="space-y-4">
+                      <FormField
+                        control={matchForm.control}
+                        name="homeTeam"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Squadra Casa</FormLabel>
+                            <FormControl>
+                              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Seleziona squadra casa" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {teams ? teams.map(team => (
+                                    <SelectItem key={`home-${team.id}`} value={team.name}>
+                                      <div className="flex items-center">
+                                        {team.logo ? (
+                                          <div className="w-5 h-5 rounded-full overflow-hidden mr-2">
+                                            <img 
+                                              src={team.logo} 
+                                              alt={`${team.name} logo`} 
+                                              className="w-full h-full object-cover"
+                                              onError={(e) => {
+                                                e.currentTarget.style.display = 'none';
+                                                e.currentTarget.parentElement!.innerHTML += `<span class="text-xs">${team.name.substring(0, 2).toUpperCase()}</span>`;
+                                              }}
+                                            />
+                                          </div>
+                                        ) : (
+                                          <div className="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center mr-2">
+                                            <span className="text-xs">{team.name.substring(0, 2).toUpperCase()}</span>
+                                          </div>
+                                        )}
+                                        {team.name}
                                       </div>
-                                    ) : (
-                                      <div className="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center mr-2">
-                                        <span className="text-xs">{team.name.substring(0, 2).toUpperCase()}</span>
-                                      </div>
-                                    )}
-                                    {team.name}
-                                  </div>
-                                </SelectItem>
-                              )) : null}
-                            </SelectContent>
-                          </Select>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <FormField
-                    control={matchForm.control}
-                    name="awayTeam"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Squadra Ospite</FormLabel>
-                        <FormControl>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Seleziona squadra ospite" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {teams ? teams.map(team => (
-                                <SelectItem key={`away-${team.id}`} value={team.name}>
-                                  <div className="flex items-center">
-                                    {team.logo ? (
-                                      <div className="w-5 h-5 rounded-full overflow-hidden mr-2">
-                                        <img 
-                                          src={team.logo} 
-                                          alt={`${team.name} logo`} 
-                                          className="w-full h-full object-cover"
-                                          onError={(e) => {
-                                            e.currentTarget.style.display = 'none';
-                                            e.currentTarget.parentElement!.innerHTML += `<span class="text-xs">${team.name.substring(0, 2).toUpperCase()}</span>`;
-                                          }}
-                                        />
-                                      </div>
-                                    ) : (
-                                      <div className="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center mr-2">
-                                        <span className="text-xs">{team.name.substring(0, 2).toUpperCase()}</span>
-                                      </div>
-                                    )}
-                                    {team.name}
-                                  </div>
-                                </SelectItem>
-                              )) : null}
-                            </SelectContent>
-                          </Select>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <FormField
-                    control={matchForm.control}
-                    name="matchDate"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Data e Ora</FormLabel>
-                        <FormControl>
-                          <Input 
-                            type="datetime-local" 
-                            value={field.value ? new Date(field.value).toISOString().slice(0, 16) : ''} 
-                            onChange={(e) => {
-                              const date = new Date(e.target.value);
-                              field.onChange(date);
-                            }}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <FormField
-                    control={matchForm.control}
-                    name="matchDay"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Giornata</FormLabel>
-                        <FormControl>
-                          <Input 
-                            type="number" 
-                            min="1" 
-                            {...field}
-                            onChange={(e) => field.onChange(e.target.valueAsNumber)}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <FormField
-                    control={matchForm.control}
-                    name="description"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Descrizione (opzionale)</FormLabel>
-                        <FormControl>
-                          <Textarea placeholder="Es. Derby, Coppa, ecc." {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <Button type="submit" disabled={createMatch.isPending}>
-                    {createMatch.isPending ? "Aggiunta in corso..." : "Aggiungi Partita"}
-                  </Button>
-                </form>
-              </Form>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader>
-              <CardTitle>Inserisci Risultato</CardTitle>
-              <CardDescription>Seleziona una partita e inserisci il risultato</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Form {...resultForm}>
-                <form onSubmit={resultForm.handleSubmit(onSubmitResult)} className="space-y-4">
-                  <FormField
-                    control={resultForm.control}
-                    name="matchId"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Partita</FormLabel>
-                        <FormControl>
-                          <Select 
-                            onValueChange={(value) => field.onChange(parseInt(value))} 
-                            value={field.value?.toString()}
-                          >
-                            <SelectTrigger>
-                              <SelectValue placeholder="Seleziona una partita" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {matches ? 
-                                matches
-                                  .filter(match => !match.hasResult)
-                                  .map(match => (
-                                    <SelectItem key={match.id} value={match.id.toString()}>
-                                      {match.homeTeam} vs {match.awayTeam} (Giornata {match.matchDay})
                                     </SelectItem>
-                                  )) 
-                                : null}
-                            </SelectContent>
-                          </Select>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <FormField
-                    control={resultForm.control}
-                    name="result"
-                    render={({ field }) => (
-                      <FormItem className="space-y-3">
-                        <FormLabel>Risultato</FormLabel>
-                        <FormControl>
-                          <RadioGroup
-                            onValueChange={field.onChange}
-                            defaultValue={field.value}
-                            className="flex space-x-2"
-                          >
-                            <FormItem className="flex items-center space-x-2 space-y-0">
-                              <FormControl>
-                                <RadioGroupItem value="1" />
-                              </FormControl>
-                              <FormLabel className="font-normal cursor-pointer">
-                                Vittoria Casa (1)
-                              </FormLabel>
-                            </FormItem>
-                            <FormItem className="flex items-center space-x-2 space-y-0">
-                              <FormControl>
-                                <RadioGroupItem value="X" />
-                              </FormControl>
-                              <FormLabel className="font-normal cursor-pointer">
-                                Pareggio (X)
-                              </FormLabel>
-                            </FormItem>
-                            <FormItem className="flex items-center space-x-2 space-y-0">
-                              <FormControl>
-                                <RadioGroupItem value="2" />
-                              </FormControl>
-                              <FormLabel className="font-normal cursor-pointer">
-                                Vittoria Ospite (2)
-                              </FormLabel>
-                            </FormItem>
-                          </RadioGroup>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <Button type="submit" disabled={updateMatchResult.isPending}>
-                    {updateMatchResult.isPending ? "Aggiornamento in corso..." : "Inserisci Risultato"}
-                  </Button>
-                </form>
-              </Form>
-              
-              <div className="mt-6 border-t pt-6">
-                <h3 className="text-lg font-medium mb-3">Importa da Excel</h3>
-                <form onSubmit={onSubmitExcel} className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium mb-1">
-                      File Excel
-                    </label>
-                    <Input
-                      type="file"
-                      accept=".xlsx,.xls"
-                      onChange={handleFileChange}
-                      className="block w-full text-sm border border-gray-300 rounded-lg cursor-pointer bg-gray-50 focus:outline-none p-2"
-                    />
-                    <p className="mt-1 text-xs text-gray-500">
-                      Il file deve contenere le colonne: homeTeam, awayTeam, matchDate, matchDay
-                    </p>
-                  </div>
-                  
-                  <Button 
-                    type="submit" 
-                    disabled={!file || uploadExcel.isPending}
-                    variant="outline"
-                  >
-                    {uploadExcel.isPending ? "Importazione in corso..." : "Importa Partite"}
-                  </Button>
-                </form>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </section>
-      
-      {/* User management section */}
-      <section className="mb-10">
-        <h2 className="text-2xl font-bold mb-4">Gestione Utenti</h2>
-        <div className="grid grid-cols-1 gap-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>{editingUserId ? "Modifica utente" : "Aggiungi nuovo utente"}</CardTitle>
-              <CardDescription>{editingUserId ? "Modifica i dettagli dell'utente" : "Inserisci i dettagli del nuovo utente"}</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Form {...userForm}>
-                <form onSubmit={userForm.handleSubmit(onSubmitUser)} className="space-y-5">
-                  <FormField
-                    control={userForm.control}
-                    name="username"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Nome Utente</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Es. Mario Rossi" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <FormField
-                    control={userForm.control}
-                    name="pin"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>PIN</FormLabel>
-                        <FormControl>
-                          <Input 
-                            placeholder={editingUserId ? "Lascia vuoto per mantenere il PIN attuale" : "PIN di 4 cifre"}
-                            maxLength={4}
-                            {...field} 
-                          />
-                        </FormControl>
-                        {editingUserId && (
-                          <p className="text-sm text-gray-500 mt-1">
-                            Se lasci vuoto questo campo, il PIN non verrà modificato.
-                          </p>
+                                  )) : null}
+                                </SelectContent>
+                              </Select>
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
                         )}
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                      />
+                      
+                      <FormField
+                        control={matchForm.control}
+                        name="awayTeam"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Squadra Ospite</FormLabel>
+                            <FormControl>
+                              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Seleziona squadra ospite" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {teams ? teams.map(team => (
+                                    <SelectItem key={`away-${team.id}`} value={team.name}>
+                                      <div className="flex items-center">
+                                        {team.logo ? (
+                                          <div className="w-5 h-5 rounded-full overflow-hidden mr-2">
+                                            <img 
+                                              src={team.logo} 
+                                              alt={`${team.name} logo`} 
+                                              className="w-full h-full object-cover"
+                                              onError={(e) => {
+                                                e.currentTarget.style.display = 'none';
+                                                e.currentTarget.parentElement!.innerHTML += `<span class="text-xs">${team.name.substring(0, 2).toUpperCase()}</span>`;
+                                              }}
+                                            />
+                                          </div>
+                                        ) : (
+                                          <div className="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center mr-2">
+                                            <span className="text-xs">{team.name.substring(0, 2).toUpperCase()}</span>
+                                          </div>
+                                        )}
+                                        {team.name}
+                                      </div>
+                                    </SelectItem>
+                                  )) : null}
+                                </SelectContent>
+                              </Select>
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      
+                      <FormField
+                        control={matchForm.control}
+                        name="matchDate"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Data e Ora</FormLabel>
+                            <FormControl>
+                              <Input 
+                                type="datetime-local" 
+                                value={field.value ? new Date(field.value).toISOString().slice(0, 16) : ''} 
+                                onChange={(e) => {
+                                  const date = new Date(e.target.value);
+                                  field.onChange(date);
+                                }}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      
+                      <FormField
+                        control={matchForm.control}
+                        name="matchDay"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Giornata</FormLabel>
+                            <FormControl>
+                              <Input 
+                                type="number" 
+                                min="1" 
+                                {...field}
+                                onChange={(e) => field.onChange(e.target.valueAsNumber)}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      
+                      <FormField
+                        control={matchForm.control}
+                        name="description"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Descrizione (opzionale)</FormLabel>
+                            <FormControl>
+                              <Textarea placeholder="Es. Derby, Coppa, ecc." {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      
+                      <Button type="submit" disabled={createMatch.isPending}>
+                        {createMatch.isPending ? "Aggiunta in corso..." : "Aggiungi Partita"}
+                      </Button>
+                    </form>
+                  </Form>
+                </CardContent>
+              </Card>
+              
+              <Card>
+                <CardHeader>
+                  <CardTitle>Inserisci Risultato</CardTitle>
+                  <CardDescription>Seleziona una partita e inserisci il risultato</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Form {...resultForm}>
+                    <form onSubmit={resultForm.handleSubmit(onSubmitResult)} className="space-y-4">
+                      <FormField
+                        control={resultForm.control}
+                        name="matchId"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Partita</FormLabel>
+                            <FormControl>
+                              <Select 
+                                onValueChange={(value) => field.onChange(parseInt(value))} 
+                                value={field.value?.toString()}
+                              >
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Seleziona una partita" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {matches ? 
+                                    matches
+                                      .filter(match => !match.hasResult)
+                                      .map(match => (
+                                        <SelectItem key={match.id} value={match.id.toString()}>
+                                          {match.homeTeam} vs {match.awayTeam} (Giornata {match.matchDay})
+                                        </SelectItem>
+                                      )) 
+                                    : null}
+                                </SelectContent>
+                              </Select>
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      
+                      <FormField
+                        control={resultForm.control}
+                        name="result"
+                        render={({ field }) => (
+                          <FormItem className="space-y-3">
+                            <FormLabel>Risultato</FormLabel>
+                            <FormControl>
+                              <RadioGroup
+                                onValueChange={field.onChange}
+                                defaultValue={field.value}
+                                className="flex space-x-2"
+                              >
+                                <FormItem className="flex items-center space-x-2 space-y-0">
+                                  <FormControl>
+                                    <RadioGroupItem value="1" />
+                                  </FormControl>
+                                  <FormLabel className="font-normal cursor-pointer">
+                                    Vittoria Casa (1)
+                                  </FormLabel>
+                                </FormItem>
+                                <FormItem className="flex items-center space-x-2 space-y-0">
+                                  <FormControl>
+                                    <RadioGroupItem value="X" />
+                                  </FormControl>
+                                  <FormLabel className="font-normal cursor-pointer">
+                                    Pareggio (X)
+                                  </FormLabel>
+                                </FormItem>
+                                <FormItem className="flex items-center space-x-2 space-y-0">
+                                  <FormControl>
+                                    <RadioGroupItem value="2" />
+                                  </FormControl>
+                                  <FormLabel className="font-normal cursor-pointer">
+                                    Vittoria Ospite (2)
+                                  </FormLabel>
+                                </FormItem>
+                              </RadioGroup>
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      
+                      <Button type="submit" disabled={updateMatchResult.isPending}>
+                        {updateMatchResult.isPending ? "Aggiornamento in corso..." : "Inserisci Risultato"}
+                      </Button>
+                    </form>
+                  </Form>
                   
-                  <FormField
-                    control={userForm.control}
-                    name="isAdmin"
-                    render={({ field }) => (
-                      <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
-                        <FormControl>
-                          <input
-                            type="checkbox"
-                            checked={field.value}
-                            onChange={field.onChange}
-                            className="h-4 w-4 text-primary border-gray-300 focus:ring-primary"
-                          />
-                        </FormControl>
-                        <div className="space-y-1 leading-none">
-                          <FormLabel>Amministratore</FormLabel>
-                          <p className="text-sm text-gray-500">
-                            Questo utente avrà accesso al pannello di amministrazione
+                  <div className="mt-6 border-t pt-6">
+                    <h3 className="text-lg font-medium mb-3">Importa da Excel</h3>
+                    <form onSubmit={onSubmitExcel} className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-medium mb-1">
+                          File Excel
+                        </label>
+                        <Input
+                          type="file"
+                          accept=".xlsx,.xls"
+                          onChange={handleFileChange}
+                          className="block w-full text-sm border border-gray-300 rounded-lg cursor-pointer bg-gray-50 focus:outline-none p-2"
+                        />
+                        <p className="mt-1 text-xs text-gray-500">
+                          Il file deve contenere le colonne: homeTeam, awayTeam, matchDate, matchDay
+                        </p>
+                      </div>
+                      
+                      <Button 
+                        type="submit" 
+                        disabled={!file || uploadExcel.isPending}
+                        variant="outline"
+                      >
+                        {uploadExcel.isPending ? "Importazione in corso..." : "Importa Partite"}
+                      </Button>
+                    </form>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </AccordionContent>
+        </AccordionItem>
+        
+        {/* User management section */}
+        <AccordionItem value="users" className="border rounded-lg overflow-hidden shadow-sm">
+          <AccordionTrigger className="p-4 bg-gray-50 hover:bg-gray-100">
+            <h2 className="text-xl font-bold text-left">Gestione Utenti</h2>
+          </AccordionTrigger>
+          <AccordionContent className="p-4">
+            <div className="grid grid-cols-1 gap-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>{editingUserId ? "Modifica utente" : "Aggiungi nuovo utente"}</CardTitle>
+                  <CardDescription>{editingUserId ? "Modifica i dettagli dell'utente" : "Inserisci i dettagli del nuovo utente"}</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Form {...userForm}>
+                    <form onSubmit={userForm.handleSubmit(onSubmitUser)} className="space-y-5">
+                      <FormField
+                        control={userForm.control}
+                        name="username"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Nome Utente</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Es. Mario Rossi" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      
+                      <FormField
+                        control={userForm.control}
+                        name="pin"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>PIN</FormLabel>
+                            <FormControl>
+                              <Input 
+                                placeholder={editingUserId ? "Lascia vuoto per mantenere il PIN attuale" : "PIN di 4 cifre"}
+                                maxLength={4}
+                                {...field} 
+                              />
+                            </FormControl>
+                            {editingUserId && (
+                              <p className="text-sm text-gray-500 mt-1">
+                                Se lasci vuoto questo campo, il PIN non verrà modificato.
+                              </p>
+                            )}
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      
+                      <FormField
+                        control={userForm.control}
+                        name="isAdmin"
+                        render={({ field }) => (
+                          <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                            <FormControl>
+                              <input
+                                type="checkbox"
+                                checked={field.value}
+                                onChange={field.onChange}
+                                className="h-4 w-4 text-primary border-gray-300 focus:ring-primary"
+                              />
+                            </FormControl>
+                            <div className="space-y-1 leading-none">
+                              <FormLabel>Amministratore</FormLabel>
+                              <p className="text-sm text-gray-500">
+                                Questo utente avrà accesso al pannello di amministrazione
+                              </p>
+                            </div>
+                          </FormItem>
+                        )}
+                      />
+                      
+                      <div className="flex space-x-2">
+                        <Button 
+                          type="submit" 
+                          className="flex-1"
+                          disabled={createUser.isPending || updateUser.isPending}
+                        >
+                          {createUser.isPending || updateUser.isPending ? "Salvataggio in corso..." : 
+                           editingUserId ? "Aggiorna Utente" : "Crea Utente"}
+                        </Button>
+                        
+                        {editingUserId && (
+                          <Button 
+                            type="button" 
+                            variant="outline"
+                            onClick={() => {
+                              setEditingUserId(null);
+                              userForm.reset({
+                                username: "",
+                                pin: "",
+                                isAdmin: false,
+                              });
+                            }}
+                          >
+                            Annulla
+                          </Button>
+                        )}
+                      </div>
+                    </form>
+                  </Form>
+                </CardContent>
+              </Card>
+              
+              <Card>
+                <CardHeader>
+                  <CardTitle>Utenti</CardTitle>
+                  <CardDescription>Elenco degli utenti registrati</CardDescription>
+                </CardHeader>
+                <CardContent className="max-h-96 overflow-auto">
+                  {isLoadingUsers ? (
+                    <div className="space-y-4">
+                      <Skeleton className="h-12 w-full" />
+                      <Skeleton className="h-12 w-full" />
+                      <Skeleton className="h-12 w-full" />
+                    </div>
+                  ) : users && users.length > 0 ? (
+                    <div className="border rounded-md overflow-hidden">
+                      <table className="w-full text-left">
+                        <thead className="bg-gray-50 border-b sticky top-0">
+                          <tr>
+                            <th className="px-4 py-3 text-sm font-medium">Nome</th>
+                            <th className="px-4 py-3 text-sm font-medium">PIN</th>
+                            <th className="px-4 py-3 text-sm font-medium">Ruolo</th>
+                            <th className="px-4 py-3 text-sm font-medium">Azioni</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {users.map((user) => (
+                            <tr key={user.id} className="border-b">
+                              <td className="px-4 py-3 text-sm">{user.username}</td>
+                              <td className="px-4 py-3 text-sm">••••</td>
+                              <td className="px-4 py-3 text-sm">
+                                {user.isAdmin ? (
+                                  <Badge className="bg-amber-600">Admin</Badge>
+                                ) : (
+                                  <Badge variant="outline">Utente</Badge>
+                                )}
+                              </td>
+                              <td className="px-4 py-3 text-sm">
+                                <div className="flex space-x-2">
+                                  <Button 
+                                    variant="outline" 
+                                    size="sm" 
+                                    onClick={() => {
+                                      userForm.reset({
+                                        username: user.username,
+                                        pin: "", // PIN is not returned from server
+                                        isAdmin: user.isAdmin,
+                                      });
+                                      // Set the editing user
+                                      setEditingUserId(user.id);
+                                    }}
+                                  >
+                                    Modifica
+                                  </Button>
+                                  <Button 
+                                    variant="destructive" 
+                                    size="sm"
+                                    disabled={deleteUser.isPending}
+                                    onClick={() => {
+                                      if (confirm(`Sei sicuro di voler eliminare l'utente ${user.username}?`)) {
+                                        deleteUser.mutate(user.id);
+                                      }
+                                    }}
+                                  >
+                                    Elimina
+                                  </Button>
+                                </div>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  ) : (
+                    <div className="text-center py-12 text-gray-500">
+                      Nessun utente trovato
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          </AccordionContent>
+        </AccordionItem>
+        
+        {/* Team management section */}
+        <AccordionItem value="teams" className="border rounded-lg overflow-hidden shadow-sm">
+          <AccordionTrigger className="p-4 bg-gray-50 hover:bg-gray-100">
+            <h2 className="text-xl font-bold text-left">Gestione Squadre</h2>
+          </AccordionTrigger>
+          <AccordionContent className="p-4">
+            <div className="grid grid-cols-1 gap-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>{editingTeamId ? "Modifica squadra" : "Aggiungi una nuova squadra"}</CardTitle>
+                  <CardDescription>{editingTeamId ? "Modifica i dettagli della squadra" : "Inserisci i dettagli della nuova squadra"}</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Form {...teamForm}>
+                    <form onSubmit={teamForm.handleSubmit(onSubmitTeam)} className="space-y-5">
+                      <FormField
+                        control={teamForm.control}
+                        name="name"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Nome Squadra</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Es. AC Milan" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      
+                      <FormField
+                        control={teamForm.control}
+                        name="managerName"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Allenatore</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Es. El Loco Bielsa" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      
+                      <FormField
+                        control={teamForm.control}
+                        name="credits"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Crediti</FormLabel>
+                            <FormControl>
+                              <Input 
+                                type="number" 
+                                min="0" 
+                                placeholder="Es. 100" 
+                                {...field}
+                                onChange={(e) => field.onChange(e.target.valueAsNumber)}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      
+                      <div>
+                        <FormLabel className="mb-2 block">Logo</FormLabel>
+                        <Input
+                          id="team-logo"
+                          type="file"
+                          accept="image/*"
+                          onChange={handleTeamLogoChange}
+                          className="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 focus:outline-none p-2"
+                        />
+                        {teamLogoFile && (
+                          <div className="mt-2 p-2 bg-gray-50 rounded-md">
+                            <p className="text-sm text-gray-600">
+                              Immagine selezionata: {teamLogoFile.name}
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                      
+                      <div className="flex space-x-2">
+                        <Button 
+                          type="submit" 
+                          className="flex-1"
+                          disabled={createTeam.isPending || updateTeam.isPending}
+                        >
+                          {createTeam.isPending || updateTeam.isPending ? "Salvataggio in corso..." : 
+                           editingTeamId ? "Aggiorna Squadra" : "Crea Squadra"}
+                        </Button>
+                        
+                        {editingTeamId && (
+                          <Button 
+                            type="button" 
+                            variant="outline"
+                            onClick={() => {
+                              setEditingTeamId(null);
+                              teamForm.reset({
+                                name: "",
+                                managerName: "",
+                                credits: 0,
+                                logo: "",
+                              });
+                              setTeamLogoFile(null);
+                            }}
+                          >
+                            Annulla
+                          </Button>
+                        )}
+                      </div>
+                    </form>
+                  </Form>
+                </CardContent>
+              </Card>
+              
+              <Card>
+                <CardHeader>
+                  <CardTitle>Squadre</CardTitle>
+                  <CardDescription>Elenco delle squadre registrate</CardDescription>
+                </CardHeader>
+                <CardContent className="max-h-96 overflow-auto">
+                  {isLoadingTeams ? (
+                    <div className="space-y-4">
+                      <Skeleton className="h-12 w-full" />
+                      <Skeleton className="h-12 w-full" />
+                      <Skeleton className="h-12 w-full" />
+                    </div>
+                  ) : teams && teams.length > 0 ? (
+                    <div className="border rounded-md overflow-hidden">
+                      <table className="w-full text-left">
+                        <thead className="bg-gray-50 border-b sticky top-0">
+                          <tr>
+                            <th className="px-4 py-3 text-sm font-medium">Logo</th>
+                            <th className="px-4 py-3 text-sm font-medium">Nome</th>
+                            <th className="px-4 py-3 text-sm font-medium">Allenatore</th>
+                            <th className="px-4 py-3 text-sm font-medium">Crediti</th>
+                            <th className="px-4 py-3 text-sm font-medium">Azioni</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {teams.map((team) => (
+                            <tr key={team.id} className="border-b">
+                              <td className="px-4 py-3 text-sm">
+                                {team.logo ? (
+                                  <div className="w-8 h-8 rounded-full overflow-hidden border border-gray-200">
+                                    <img 
+                                      src={team.logo}
+                                      alt={`${team.name} logo`}
+                                      className="w-full h-full object-cover"
+                                      onError={(e) => {
+                                        // Fallback to initials if image fails to load
+                                        e.currentTarget.style.display = 'none';
+                                        e.currentTarget.parentElement!.classList.add('bg-primary/20', 'flex', 'items-center', 'justify-center', 'text-primary', 'font-semibold');
+                                        e.currentTarget.parentElement!.innerHTML = `<span class="text-xs">${team.name.substring(0, 2).toUpperCase()}</span>`;
+                                      }}
+                                    />
+                                  </div>
+                                ) : (
+                                  <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary font-semibold">
+                                    <span className="text-xs">
+                                      {team.name.substring(0, 2).toUpperCase()}
+                                    </span>
+                                  </div>
+                                )}
+                              </td>
+                              <td className="px-4 py-3 text-sm">{team.name}</td>
+                              <td className="px-4 py-3 text-sm">{team.managerName}</td>
+                              <td className="px-4 py-3 text-sm">{team.credits}</td>
+                              <td className="px-4 py-3 text-sm">
+                                <div className="flex space-x-2">
+                                  <Button 
+                                    variant="outline" 
+                                    size="sm" 
+                                    onClick={() => {
+                                      teamForm.reset({
+                                        name: team.name,
+                                        managerName: team.managerName,
+                                        credits: team.credits,
+                                        logo: team.logo || "",
+                                      });
+                                      // Set the editing team
+                                      setEditingTeamId(team.id);
+                                    }}
+                                  >
+                                    Modifica
+                                  </Button>
+                                  <Button 
+                                    variant="destructive" 
+                                    size="sm"
+                                    disabled={deleteTeam.isPending}
+                                    onClick={() => {
+                                      if (confirm(`Sei sicuro di voler eliminare la squadra ${team.name}?`)) {
+                                        deleteTeam.mutate(team.id);
+                                      }
+                                    }}
+                                  >
+                                    Elimina
+                                  </Button>
+                                </div>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  ) : (
+                    <div className="text-center py-12 text-gray-500">
+                      Nessuna squadra trovata
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          </AccordionContent>
+        </AccordionItem>
+        
+        {/* Prize distribution section */}
+        <AccordionItem value="prizes" className="border rounded-lg overflow-hidden shadow-sm">
+          <AccordionTrigger className="p-4 bg-gray-50 hover:bg-gray-100">
+            <h2 className="text-xl font-bold text-left">Gestione Premi</h2>
+          </AccordionTrigger>
+          <AccordionContent className="p-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Calcola e Distribuisci Premi</CardTitle>
+                <CardDescription>Seleziona una giornata per calcolare e distribuire i premi</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-6">
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Giornata</label>
+                    <div className="flex space-x-2">
+                      <Select
+                        value={selectedMatchDay?.toString() || ''}
+                        onValueChange={(value) => setSelectedMatchDay(parseInt(value))}
+                      >
+                        <SelectTrigger className="w-full md:w-52">
+                          <SelectValue placeholder="Seleziona giornata" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {matches ? 
+                            Array.from(new Set(matches.map(m => m.matchDay))).sort((a, b) => a - b).map(day => (
+                              <SelectItem key={day} value={day.toString()}>
+                                Giornata {day}
+                              </SelectItem>
+                            )) 
+                            : null}
+                        </SelectContent>
+                      </Select>
+                      
+                      <Button 
+                        variant="outline" 
+                        disabled={!selectedMatchDay || calculatePrize.isPending}
+                        onClick={() => {
+                          if (selectedMatchDay) {
+                            calculatePrize.mutate(selectedMatchDay);
+                          }
+                        }}
+                      >
+                        {calculatePrize.isPending ? "Calcolo in corso..." : "Calcola"}
+                      </Button>
+                      
+                      <Button 
+                        disabled={!selectedMatchDay || !prizeDistribution || prizeDistribution.isDistributed || distributePrizes.isPending}
+                        onClick={() => {
+                          if (selectedMatchDay) {
+                            distributePrizes.mutate(selectedMatchDay);
+                          }
+                        }}
+                      >
+                        {distributePrizes.isPending ? "Distribuzione in corso..." : "Distribuisci"}
+                      </Button>
+                    </div>
+                  </div>
+                  
+                  {isLoadingPrize ? (
+                    <div className="space-y-4">
+                      <Skeleton className="h-12 w-full" />
+                      <Skeleton className="h-12 w-full" />
+                      <Skeleton className="h-12 w-full" />
+                    </div>
+                  ) : prizeDistribution ? (
+                    <div className="border rounded-md p-4 space-y-2">
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <h3 className="text-sm font-medium text-gray-500">Giornata</h3>
+                          <p className="text-lg font-medium">{prizeDistribution.matchDay}</p>
+                        </div>
+                        <div>
+                          <h3 className="text-sm font-medium text-gray-500">Montepremi totale</h3>
+                          <p className="text-lg font-medium">{prizeDistribution.totalPot} crediti</p>
+                        </div>
+                        <div>
+                          <h3 className="text-sm font-medium text-gray-500">Premi distribuiti</h3>
+                          <p className="text-lg font-medium">
+                            {prizeDistribution.isDistributed ? (
+                              <Badge className="bg-green-600">Sì</Badge>
+                            ) : (
+                              <Badge variant="outline">No</Badge>
+                            )}
                           </p>
                         </div>
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <div className="flex space-x-2">
-                    <Button 
-                      type="submit" 
-                      className="flex-1"
-                      disabled={createUser.isPending || updateUser.isPending}
-                    >
-                      {createUser.isPending || updateUser.isPending ? "Salvataggio in corso..." : 
-                       editingUserId ? "Aggiorna Utente" : "Crea Utente"}
-                    </Button>
-                    
-                    {editingUserId && (
-                      <Button 
-                        type="button" 
-                        variant="outline"
-                        onClick={() => {
-                          setEditingUserId(null);
-                          userForm.reset({
-                            username: "",
-                            pin: "",
-                            isAdmin: false,
-                          });
-                        }}
-                      >
-                        Annulla
-                      </Button>
-                    )}
-                  </div>
-                </form>
-              </Form>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader>
-              <CardTitle>Utenti</CardTitle>
-              <CardDescription>Elenco degli utenti registrati</CardDescription>
-            </CardHeader>
-            <CardContent className="max-h-96 overflow-auto">
-              {isLoadingUsers ? (
-                <div className="space-y-4">
-                  <Skeleton className="h-12 w-full" />
-                  <Skeleton className="h-12 w-full" />
-                  <Skeleton className="h-12 w-full" />
-                </div>
-              ) : users && users.length > 0 ? (
-                <div className="border rounded-md overflow-hidden">
-                  <table className="w-full text-left">
-                    <thead className="bg-gray-50 border-b sticky top-0">
-                      <tr>
-                        <th className="px-4 py-3 text-sm font-medium">Nome</th>
-                        <th className="px-4 py-3 text-sm font-medium">PIN</th>
-                        <th className="px-4 py-3 text-sm font-medium">Ruolo</th>
-                        <th className="px-4 py-3 text-sm font-medium">Azioni</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {users.map((user) => (
-                        <tr key={user.id} className="border-b">
-                          <td className="px-4 py-3 text-sm">{user.username}</td>
-                          <td className="px-4 py-3 text-sm">••••</td>
-                          <td className="px-4 py-3 text-sm">
-                            {user.isAdmin ? (
-                              <Badge className="bg-amber-600">Admin</Badge>
-                            ) : (
-                              <Badge variant="outline">Utente</Badge>
-                            )}
-                          </td>
-                          <td className="px-4 py-3 text-sm">
-                            <div className="flex space-x-2">
-                              <Button 
-                                variant="outline" 
-                                size="sm" 
-                                onClick={() => {
-                                  userForm.reset({
-                                    username: user.username,
-                                    pin: "", // PIN is not returned from server
-                                    isAdmin: user.isAdmin,
-                                  });
-                                  // Set the editing user
-                                  setEditingUserId(user.id);
-                                }}
-                              >
-                                Modifica
-                              </Button>
-                              <Button 
-                                variant="destructive" 
-                                size="sm"
-                                disabled={deleteUser.isPending}
-                                onClick={() => {
-                                  if (confirm(`Sei sicuro di voler eliminare l'utente ${user.username}?`)) {
-                                    deleteUser.mutate(user.id);
-                                  }
-                                }}
-                              >
-                                Elimina
-                              </Button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              ) : (
-                <div className="text-center py-12 text-gray-500">
-                  Nessun utente trovato
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
-      </section>
-      
-      {/* Team management section */}
-      <section className="mb-10">
-        <h2 className="text-2xl font-bold mb-4">Gestione Squadre</h2>
-        <div className="grid grid-cols-1 gap-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>{editingTeamId ? "Modifica squadra" : "Aggiungi una nuova squadra"}</CardTitle>
-              <CardDescription>{editingTeamId ? "Modifica i dettagli della squadra" : "Inserisci i dettagli della nuova squadra"}</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Form {...teamForm}>
-                <form onSubmit={teamForm.handleSubmit(onSubmitTeam)} className="space-y-5">
-                  <FormField
-                    control={teamForm.control}
-                    name="name"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Nome Squadra</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Es. AC Milan" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <FormField
-                    control={teamForm.control}
-                    name="managerName"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Allenatore</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Es. El Loco Bielsa" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <FormField
-                    control={teamForm.control}
-                    name="credits"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Crediti</FormLabel>
-                        <FormControl>
-                          <Input 
-                            type="number" 
-                            min="0" 
-                            placeholder="Es. 100" 
-                            {...field}
-                            onChange={(e) => field.onChange(e.target.valueAsNumber)}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <div>
-                    <FormLabel className="mb-2 block">Logo</FormLabel>
-                    <Input
-                      id="team-logo"
-                      type="file"
-                      accept="image/*"
-                      onChange={handleTeamLogoChange}
-                      className="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 focus:outline-none p-2"
-                    />
-                    {teamLogoFile && (
-                      <div className="mt-2 p-2 bg-gray-50 rounded-md">
-                        <p className="text-sm text-gray-600">
-                          Immagine selezionata: {teamLogoFile.name}
-                        </p>
                       </div>
-                    )}
-                  </div>
-                  
-                  <div className="flex space-x-2">
-                    <Button 
-                      type="submit" 
-                      className="flex-1"
-                      disabled={createTeam.isPending || updateTeam.isPending}
-                    >
-                      {createTeam.isPending || updateTeam.isPending ? "Salvataggio in corso..." : 
-                       editingTeamId ? "Aggiorna Squadra" : "Crea Squadra"}
-                    </Button>
-                    
-                    {editingTeamId && (
-                      <Button 
-                        type="button" 
-                        variant="outline"
-                        onClick={() => {
-                          setEditingTeamId(null);
-                          teamForm.reset({
-                            name: "",
-                            managerName: "",
-                            credits: 0,
-                            logo: "",
-                          });
-                          setTeamLogoFile(null);
-                        }}
-                      >
-                        Annulla
-                      </Button>
-                    )}
-                  </div>
-                </form>
-              </Form>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader>
-              <CardTitle>Squadre</CardTitle>
-              <CardDescription>Elenco delle squadre registrate</CardDescription>
-            </CardHeader>
-            <CardContent className="max-h-96 overflow-auto">
-              {isLoadingTeams ? (
-                <div className="space-y-4">
-                  <Skeleton className="h-12 w-full" />
-                  <Skeleton className="h-12 w-full" />
-                  <Skeleton className="h-12 w-full" />
-                </div>
-              ) : teams && teams.length > 0 ? (
-                <div className="border rounded-md overflow-hidden">
-                  <table className="w-full text-left">
-                    <thead className="bg-gray-50 border-b sticky top-0">
-                      <tr>
-                        <th className="px-4 py-3 text-sm font-medium">Logo</th>
-                        <th className="px-4 py-3 text-sm font-medium">Nome</th>
-                        <th className="px-4 py-3 text-sm font-medium">Allenatore</th>
-                        <th className="px-4 py-3 text-sm font-medium">Crediti</th>
-                        <th className="px-4 py-3 text-sm font-medium">Azioni</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {teams.map((team) => (
-                        <tr key={team.id} className="border-b">
-                          <td className="px-4 py-3 text-sm">
-                            {team.logo ? (
-                              <div className="w-8 h-8 rounded-full overflow-hidden border border-gray-200">
-                                <img 
-                                  src={team.logo}
-                                  alt={`${team.name} logo`}
-                                  className="w-full h-full object-cover"
-                                  onError={(e) => {
-                                    // Fallback to initials if image fails to load
-                                    e.currentTarget.style.display = 'none';
-                                    e.currentTarget.parentElement!.classList.add('bg-primary/20', 'flex', 'items-center', 'justify-center', 'text-primary', 'font-semibold');
-                                    e.currentTarget.parentElement!.innerHTML = `<span class="text-xs">${team.name.substring(0, 2).toUpperCase()}</span>`;
-                                  }}
-                                />
+                      
+                      <div className="pt-4 border-t">
+                        <h3 className="text-md font-medium mb-2">Distribuzione</h3>
+                        <div className="space-y-2">
+                          <div className="flex justify-between items-center">
+                            <span>4 pronostici corretti (35%)</span>
+                            <div className="text-right">
+                              <div>{prizeDistribution.potFor4Correct} crediti</div>
+                              <div className="text-sm text-gray-500">
+                                {prizeDistribution.users4Correct} utenti
+                                {prizeDistribution.users4Correct > 0 && (
+                                  <span> ({Math.floor(prizeDistribution.potFor4Correct / prizeDistribution.users4Correct)} per utente)</span>
+                                )}
                               </div>
-                            ) : (
-                              <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary font-semibold">
-                                <span className="text-xs">
-                                  {team.name.substring(0, 2).toUpperCase()}
-                                </span>
-                              </div>
-                            )}
-                          </td>
-                          <td className="px-4 py-3 text-sm">{team.name}</td>
-                          <td className="px-4 py-3 text-sm">{team.managerName}</td>
-                          <td className="px-4 py-3 text-sm">{team.credits}</td>
-                          <td className="px-4 py-3 text-sm">
-                            <div className="flex space-x-2">
-                              <Button 
-                                variant="outline" 
-                                size="sm" 
-                                onClick={() => {
-                                  teamForm.reset({
-                                    name: team.name,
-                                    managerName: team.managerName,
-                                    credits: team.credits,
-                                    logo: team.logo || "",
-                                  });
-                                  // Set the editing team
-                                  setEditingTeamId(team.id);
-                                }}
-                              >
-                                Modifica
-                              </Button>
-                              <Button 
-                                variant="destructive" 
-                                size="sm"
-                                disabled={deleteTeam.isPending}
-                                onClick={() => {
-                                  if (confirm(`Sei sicuro di voler eliminare la squadra ${team.name}?`)) {
-                                    deleteTeam.mutate(team.id);
-                                  }
-                                }}
-                              >
-                                Elimina
-                              </Button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              ) : (
-                <div className="text-center py-12 text-gray-500">
-                  Nessuna squadra trovata
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
-      </section>
-      
-      {/* Prize distribution section */}
-      <section>
-        <h2 className="text-2xl font-bold mb-4">Distribuzione Premi</h2>
-        <div className="grid gap-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Calcola e Distribuisci Premi</CardTitle>
-              <CardDescription>Seleziona una giornata per calcolare e distribuire i premi</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-6">
-                <div>
-                  <label className="block text-sm font-medium mb-1">Giornata</label>
-                  <div className="flex space-x-2">
-                    <Select
-                      value={selectedMatchDay?.toString() || ''}
-                      onValueChange={(value) => setSelectedMatchDay(parseInt(value))}
-                    >
-                      <SelectTrigger className="w-full md:w-52">
-                        <SelectValue placeholder="Seleziona giornata" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {matches ? 
-                          [...new Set(matches.map(m => m.matchDay))].sort((a, b) => a - b).map(day => (
-                            <SelectItem key={day} value={day.toString()}>
-                              Giornata {day}
-                            </SelectItem>
-                          )) 
-                          : null}
-                      </SelectContent>
-                    </Select>
-                    
-                    <Button 
-                      variant="outline" 
-                      disabled={!selectedMatchDay || calculatePrize.isPending}
-                      onClick={() => {
-                        if (selectedMatchDay) {
-                          calculatePrize.mutate(selectedMatchDay);
-                        }
-                      }}
-                    >
-                      {calculatePrize.isPending ? "Calcolo in corso..." : "Calcola"}
-                    </Button>
-                    
-                    <Button 
-                      disabled={!selectedMatchDay || !prizeDistribution || prizeDistribution.isDistributed || distributePrizes.isPending}
-                      onClick={() => {
-                        if (selectedMatchDay) {
-                          distributePrizes.mutate(selectedMatchDay);
-                        }
-                      }}
-                    >
-                      {distributePrizes.isPending ? "Distribuzione in corso..." : "Distribuisci"}
-                    </Button>
-                  </div>
-                </div>
-                
-                {isLoadingPrize ? (
-                  <div className="space-y-4">
-                    <Skeleton className="h-12 w-full" />
-                    <Skeleton className="h-12 w-full" />
-                    <Skeleton className="h-12 w-full" />
-                  </div>
-                ) : prizeDistribution ? (
-                  <div className="border rounded-md p-4 space-y-2">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <h3 className="text-sm font-medium text-gray-500">Giornata</h3>
-                        <p className="text-lg font-medium">{prizeDistribution.matchDay}</p>
-                      </div>
-                      <div>
-                        <h3 className="text-sm font-medium text-gray-500">Montepremi totale</h3>
-                        <p className="text-lg font-medium">{prizeDistribution.totalPot} crediti</p>
-                      </div>
-                      <div>
-                        <h3 className="text-sm font-medium text-gray-500">Premi distribuiti</h3>
-                        <p className="text-lg font-medium">
-                          {prizeDistribution.isDistributed ? (
-                            <Badge className="bg-green-600">Sì</Badge>
-                          ) : (
-                            <Badge variant="outline">No</Badge>
-                          )}
-                        </p>
-                      </div>
-                    </div>
-                    
-                    <div className="pt-4 border-t">
-                      <h3 className="text-md font-medium mb-2">Distribuzione</h3>
-                      <div className="space-y-2">
-                        <div className="flex justify-between items-center">
-                          <span>4 pronostici corretti (35%)</span>
-                          <div className="text-right">
-                            <div>{prizeDistribution.potFor4Correct} crediti</div>
-                            <div className="text-sm text-gray-500">
-                              {prizeDistribution.users4Correct} utenti
-                              {prizeDistribution.users4Correct > 0 && (
-                                <span> ({Math.floor(prizeDistribution.potFor4Correct / prizeDistribution.users4Correct)} per utente)</span>
-                              )}
                             </div>
                           </div>
-                        </div>
-                        <div className="flex justify-between items-center">
-                          <span>5 pronostici corretti (65%)</span>
-                          <div className="text-right">
-                            <div>{prizeDistribution.potFor5Correct} crediti</div>
-                            <div className="text-sm text-gray-500">
-                              {prizeDistribution.users5Correct} utenti
-                              {prizeDistribution.users5Correct > 0 && (
-                                <span> ({Math.floor(prizeDistribution.potFor5Correct / prizeDistribution.users5Correct)} per utente)</span>
-                              )}
+                          <div className="flex justify-between items-center">
+                            <span>5 pronostici corretti (65%)</span>
+                            <div className="text-right">
+                              <div>{prizeDistribution.potFor5Correct} crediti</div>
+                              <div className="text-sm text-gray-500">
+                                {prizeDistribution.users5Correct} utenti
+                                {prizeDistribution.users5Correct > 0 && (
+                                  <span> ({Math.floor(prizeDistribution.potFor5Correct / prizeDistribution.users5Correct)} per utente)</span>
+                                )}
+                              </div>
                             </div>
                           </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                ) : selectedMatchDay ? (
-                  <div className="text-center py-8 text-gray-500">
-                    Nessuna distribuzione calcolata per questa giornata. Clicca su "Calcola".
-                  </div>
-                ) : (
-                  <div className="text-center py-8 text-gray-500">
-                    Seleziona una giornata per visualizzare i dettagli della distribuzione dei premi.
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </section>
+                  ) : selectedMatchDay ? (
+                    <div className="text-center py-8 text-gray-500">
+                      Nessuna distribuzione calcolata per questa giornata. Clicca su "Calcola".
+                    </div>
+                  ) : (
+                    <div className="text-center py-8 text-gray-500">
+                      Seleziona una giornata per visualizzare i dettagli della distribuzione dei premi.
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </AccordionContent>
+        </AccordionItem>
+      </Accordion>
     </div>
   );
 }
