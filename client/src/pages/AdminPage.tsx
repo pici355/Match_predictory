@@ -1198,11 +1198,11 @@ export default function AdminPage() {
                               <td className="px-4 py-3 text-sm">{team.managerName}</td>
                               <td className="px-4 py-3 text-sm">{team.credits}</td>
                               <td className="px-4 py-3 text-sm">
-                                <div className="flex space-x-2">
-                                  <Button 
-                                    variant="outline" 
-                                    size="sm" 
+                                <div className="flex items-center space-x-2">
+                                  <button 
+                                    className="px-2 py-1 text-xs font-medium text-blue-700 bg-blue-100 rounded hover:bg-blue-200"
                                     onClick={() => {
+                                      console.log("Edit team:", team);
                                       teamForm.reset({
                                         name: team.name,
                                         managerName: team.managerName,
@@ -1214,19 +1214,19 @@ export default function AdminPage() {
                                     }}
                                   >
                                     Modifica
-                                  </Button>
-                                  <Button 
-                                    variant="destructive" 
-                                    size="sm"
+                                  </button>
+                                  <button 
+                                    className="px-2 py-1 text-xs font-medium text-red-700 bg-red-100 rounded hover:bg-red-200"
                                     disabled={deleteTeam.isPending}
                                     onClick={() => {
+                                      console.log("Delete team:", team);
                                       if (confirm(`Sei sicuro di voler eliminare la squadra ${team.name}?`)) {
                                         deleteTeam.mutate(team.id);
                                       }
                                     }}
                                   >
                                     Elimina
-                                  </Button>
+                                  </button>
                                 </div>
                               </td>
                             </tr>
