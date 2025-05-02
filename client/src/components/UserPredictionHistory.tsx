@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { 
   Card, 
   CardContent, 
@@ -12,11 +12,23 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
 import MatchDayReceipt from "./MatchDayReceipt";
 import { 
   formatDateToLocalString, 
   isDateInPast,
-  USER_TIMEZONE
+  USER_TIMEZONE,
+  isMatchPredictionEditable
 } from "@/lib/dateUtils";
 import { 
   Check, 
@@ -25,8 +37,13 @@ import {
   Trophy, 
   Coins, 
   AlertCircle,
-  Receipt
+  Receipt,
+  Edit,
+  Save
 } from "lucide-react";
+import { apiRequest } from "@/lib/queryClient";
+import { queryClient } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 
 // Types
 type User = {
@@ -163,6 +180,33 @@ export default function UserPredictionHistory() {
     return acc;
   }, {} as Record<number, WinnerPayout[]>) || {};
 
+  const { toast } = useToast();
+  
+  // Mutation for updating a prediction
+  const updatePrediction = useMutation({
+    mutationFn: async ({ id, newPrediction }: { id: number, newPrediction: string }) => {
+      const response = await apiRequest("PUT", `/api/predictions/${id}`, {
+        prediction: newPrediction
+      });
+      return response.json();
+    },
+    onSuccess: () => {
+      // Invalidate queries to refresh data
+      queryClient.invalidateQueries({ queryKey: ['/api/predictions/user'] });
+      toast({
+        title: "Pronostico aggiornato!",
+        description: "Il tuo pronostico è stato modificato con successo.",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Errore!",
+        description: error instanceof Error ? error.message : "Si è verificato un errore durante l'aggiornamento del pronostico.",
+        variant: "destructive",
+      });
+    }
+  });
+
   // Prediction display function
   const renderPredictionCard = (prediction: Prediction) => {
     if (!prediction.match) return null;
@@ -172,6 +216,9 @@ export default function UserPredictionHistory() {
       "X": "Pareggio",
       "2": "Vittoria Trasferta"
     };
+    
+    // Check if prediction is still editable
+    const editable = isMatchPredictionEditable(prediction.match.matchDate);
 
     return (
       <Card key={prediction.id} className="mb-3">
@@ -208,15 +255,123 @@ export default function UserPredictionHistory() {
                 hour: '2-digit',
                 minute: '2-digit'
               })}
+              {!editable && 
+                <span className="ml-2 text-red-500">(Chiuso)</span>
+              }
             </div>
             
             <Separator className="my-3" />
             
-            <div className="mt-1">
+            <div className="mt-1 flex justify-between items-center">
               <div>
                 <div className="text-xs text-muted-foreground">Il tuo pronostico</div>
                 <div className="font-medium">{predictionMap[prediction.prediction] || prediction.prediction}</div>
               </div>
+              
+              {editable && !prediction.match.hasResult && (
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="h-8 px-2 text-blue-600 border-blue-200 hover:bg-blue-50"
+                    >
+                      <Edit className="h-3.5 w-3.5 mr-1" />
+                      Modifica
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                      <DialogTitle>Modifica pronostico</DialogTitle>
+                      <DialogDescription>
+                        {prediction.match.homeTeam} vs {prediction.match.awayTeam} - {formatDateToLocalString(prediction.match.matchDate, {
+                          weekday: 'long',
+                          day: '2-digit',
+                          month: '2-digit',
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        })}
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="py-4">
+                      <RadioGroup 
+                        defaultValue={prediction.prediction}
+                        className="space-y-3"
+                        onValueChange={(value) => {
+                          updatePrediction.mutate({ 
+                            id: prediction.id, 
+                            newPrediction: value 
+                          });
+                        }}
+                      >
+                        <div className="flex items-center space-x-2 border rounded-md p-3 hover:bg-muted/50">
+                          <RadioGroupItem value="1" id="home-win" />
+                          <Label htmlFor="home-win" className="flex-1 cursor-pointer">
+                            <div className="font-medium">Vittoria Casa</div>
+                            <div className="text-sm text-muted-foreground flex items-center gap-1 mt-1">
+                              <div className="w-4 h-4 rounded-full overflow-hidden">
+                                <img 
+                                  src={`/team-logos/${prediction.match.homeTeam.toLowerCase().replace(/\s+/g, '-')}.jpg`} 
+                                  alt={prediction.match.homeTeam}
+                                  onError={(e) => {
+                                    const fileName = prediction.match.homeTeam.toLowerCase().replace(/\s+/g, '-');
+                                    const pngSrc = `/team-logos/${fileName}.png`;
+                                    e.currentTarget.src = pngSrc;
+                                  }}
+                                  className="w-full h-full object-cover"
+                                />
+                              </div>
+                              <span>({prediction.match.homeTeam})</span>
+                            </div>
+                          </Label>
+                        </div>
+                        
+                        <div className="flex items-center space-x-2 border rounded-md p-3 hover:bg-muted/50">
+                          <RadioGroupItem value="X" id="draw" />
+                          <Label htmlFor="draw" className="flex-1 cursor-pointer">
+                            <div className="font-medium">Pareggio</div>
+                          </Label>
+                        </div>
+                        
+                        <div className="flex items-center space-x-2 border rounded-md p-3 hover:bg-muted/50">
+                          <RadioGroupItem value="2" id="away-win" />
+                          <Label htmlFor="away-win" className="flex-1 cursor-pointer">
+                            <div className="font-medium">Vittoria Trasferta</div>
+                            <div className="text-sm text-muted-foreground flex items-center gap-1 mt-1">
+                              <div className="w-4 h-4 rounded-full overflow-hidden">
+                                <img 
+                                  src={`/team-logos/${prediction.match.awayTeam.toLowerCase().replace(/\s+/g, '-')}.jpg`} 
+                                  alt={prediction.match.awayTeam}
+                                  onError={(e) => {
+                                    const fileName = prediction.match.awayTeam.toLowerCase().replace(/\s+/g, '-');
+                                    const pngSrc = `/team-logos/${fileName}.png`;
+                                    e.currentTarget.src = pngSrc;
+                                  }}
+                                  className="w-full h-full object-cover"
+                                />
+                              </div>
+                              <span>({prediction.match.awayTeam})</span>
+                            </div>
+                          </Label>
+                        </div>
+                      </RadioGroup>
+                    </div>
+                    <DialogFooter className="flex justify-between sm:justify-between">
+                      <DialogTrigger asChild>
+                        <Button type="button" variant="outline">
+                          Annulla
+                        </Button>
+                      </DialogTrigger>
+                      {updatePrediction.isPending ? (
+                        <Button disabled>
+                          <Save className="h-4 w-4 mr-2 animate-spin" />
+                          Salvataggio...
+                        </Button>
+                      ) : null}
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
+              )}
             </div>
             
             {prediction.match.result && (
