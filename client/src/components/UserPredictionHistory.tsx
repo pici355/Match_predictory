@@ -229,19 +229,27 @@ export default function UserPredictionHistory() {
               <div className="text-sm text-muted-foreground">
                 Giornata {prediction.match.matchDay}
               </div>
-              {prediction.isCorrect === true ? (
-                <Badge className="bg-green-600 text-white flex items-center gap-1">
-                  <Check className="h-3 w-3" /> Vinta
-                </Badge>
-              ) : prediction.isCorrect === false && prediction.match?.hasResult ? (
-                <Badge variant="destructive" className="flex items-center gap-1">
-                  <X className="h-3 w-3" /> Persa
-                </Badge>
-              ) : (
-                <Badge variant="secondary" className="bg-gray-200 text-gray-700 flex items-center gap-1">
-                  <Clock className="h-3 w-3" /> In corso
-                </Badge>
-              )}
+              <div className="flex gap-2">
+                {editable && !prediction.match.hasResult && (
+                  <Badge className="bg-blue-600 text-white flex items-center gap-1">
+                    <Edit className="h-3 w-3" /> Modificabile
+                  </Badge>
+                )}
+                
+                {prediction.isCorrect === true ? (
+                  <Badge className="bg-green-600 text-white flex items-center gap-1">
+                    <Check className="h-3 w-3" /> Vinta
+                  </Badge>
+                ) : prediction.isCorrect === false && prediction.match?.hasResult ? (
+                  <Badge variant="destructive" className="flex items-center gap-1">
+                    <X className="h-3 w-3" /> Persa
+                  </Badge>
+                ) : (
+                  <Badge variant="secondary" className="bg-gray-200 text-gray-700 flex items-center gap-1">
+                    <Clock className="h-3 w-3" /> In corso
+                  </Badge>
+                )}
+              </div>
             </div>
             
             <h3 className="font-medium text-sm">
@@ -257,11 +265,13 @@ export default function UserPredictionHistory() {
                 minute: '2-digit'
               })}
               {editable ? (
-                <span className="ml-2 text-blue-600">
-                  (Modificabile per altri {getTimeUntilNonEditable(prediction.match.matchDate)})
-                </span>
+                <div className="mt-1 text-blue-600 font-medium">
+                  Tempo rimanente: {getTimeUntilNonEditable(prediction.match.matchDate)}
+                </div>
               ) : (
-                <span className="ml-2 text-red-500">(Non modificabile - entro 30 min dall'inizio)</span>
+                <div className="mt-1 text-red-500">
+                  Non modificabile (entro 30 min dall'inizio)
+                </div>
               )}
             </div>
             
@@ -271,11 +281,6 @@ export default function UserPredictionHistory() {
               <div>
                 <div className="flex items-center">
                   <div className="text-xs text-muted-foreground mr-2">Il tuo pronostico</div>
-                  {editable && !prediction.match.hasResult && (
-                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                      Modificabile per {getTimeUntilNonEditable(prediction.match.matchDate)}
-                    </span>
-                  )}
                 </div>
                 <div className="font-medium">{predictionMap[prediction.prediction] || prediction.prediction}</div>
               </div>
