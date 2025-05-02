@@ -106,6 +106,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
     });
   });
+  
+  // Serve lega-logo.png from root
+  app.get('/lega-logo.png', (req, res) => {
+    const options = {
+      root: path.join(process.cwd(), 'attached_assets'),
+      dotfiles: 'deny' as const,
+      headers: {
+        'x-timestamp': Date.now(),
+        'x-sent': true,
+        'Cache-Control': 'public, max-age=86400' // Cache for 24 hours
+      }
+    };
+    
+    res.sendFile('lega-logo.png', options, (err) => {
+      if (err) {
+        console.error('Error serving logo:', err);
+        res.status(404).send('Logo not found');
+      }
+    });
+  });
   // Get current user
   app.get("/api/me", async (req, res) => {
     const userId = req.session?.userId;
