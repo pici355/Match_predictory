@@ -28,7 +28,8 @@ import {
   formatDateToLocalString, 
   isDateInPast,
   USER_TIMEZONE,
-  isMatchPredictionEditable
+  isMatchPredictionEditable,
+  getTimeUntilNonEditable
 } from "@/lib/dateUtils";
 import { 
   Check, 
@@ -256,7 +257,7 @@ export default function UserPredictionHistory() {
                 minute: '2-digit'
               })}
               {!editable && 
-                <span className="ml-2 text-red-500">(Chiuso)</span>
+                <span className="ml-2 text-red-500">(Non modificabile - entro 30 min dall'inizio)</span>
               }
             </div>
             

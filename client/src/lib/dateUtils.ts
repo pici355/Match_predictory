@@ -217,3 +217,48 @@ export function isMatchPredictionEditable(
   
   return (matchTime - currentTime) > thirtyMinutes;
 }
+
+/**
+ * Get time remaining before a match becomes non-editable (30 minutes before match start)
+ * @param matchDate The match start date
+ * @param timezone The timezone to check in
+ * @returns String representation of time remaining, or null if already non-editable
+ */
+export function getTimeUntilNonEditable(
+  matchDate: string | Date,
+  timezone: string = USER_TIMEZONE
+): string | null {
+  const date = typeof matchDate === 'string' ? new Date(matchDate) : matchDate;
+  const now = new Date();
+  
+  // Convert both to the same timezone for comparison
+  const matchDateLocal = date.toLocaleString('en-US', { timeZone: timezone });
+  const nowLocal = now.toLocaleString('en-US', { timeZone: timezone });
+  
+  const matchTime = new Date(matchDateLocal).getTime();
+  const currentTime = new Date(nowLocal).getTime();
+  
+  // 30 minutes in milliseconds
+  const thirtyMinutes = 30 * 60 * 1000;
+  
+  // Calculate deadline - 30 minutes before match start
+  const deadline = matchTime - thirtyMinutes;
+  
+  // If deadline has passed, return null
+  if (deadline <= currentTime) {
+    return null;
+  }
+  
+  // Calculate remaining time in milliseconds
+  const remainingMs = deadline - currentTime;
+  
+  // Convert to hours, minutes
+  const hours = Math.floor(remainingMs / (1000 * 60 * 60));
+  const minutes = Math.floor((remainingMs % (1000 * 60 * 60)) / (1000 * 60));
+  
+  if (hours > 0) {
+    return `${hours}h ${minutes}m`;
+  } else {
+    return `${minutes}m`;
+  }
+}
