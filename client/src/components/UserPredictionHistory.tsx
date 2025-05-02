@@ -311,17 +311,17 @@ export default function UserPredictionHistory() {
                             <div className="text-sm text-muted-foreground flex items-center gap-1 mt-1">
                               <div className="w-4 h-4 rounded-full overflow-hidden">
                                 <img 
-                                  src={`/team-logos/${prediction.match.homeTeam.toLowerCase().replace(/\s+/g, '-')}.jpg`} 
-                                  alt={prediction.match.homeTeam}
+                                  src={`/team-logos/${prediction.match?.homeTeam?.toLowerCase().replace(/\s+/g, '-') || 'unknown'}.jpg`} 
+                                  alt={prediction.match?.homeTeam || 'Squadra'}
                                   onError={(e) => {
-                                    const fileName = prediction.match.homeTeam.toLowerCase().replace(/\s+/g, '-');
+                                    const fileName = prediction.match?.homeTeam?.toLowerCase().replace(/\s+/g, '-') || 'unknown';
                                     const pngSrc = `/team-logos/${fileName}.png`;
                                     e.currentTarget.src = pngSrc;
                                   }}
                                   className="w-full h-full object-cover"
                                 />
                               </div>
-                              <span>({prediction.match.homeTeam})</span>
+                              <span>({prediction.match?.homeTeam || 'Squadra'})</span>
                             </div>
                           </Label>
                         </div>
@@ -340,17 +340,17 @@ export default function UserPredictionHistory() {
                             <div className="text-sm text-muted-foreground flex items-center gap-1 mt-1">
                               <div className="w-4 h-4 rounded-full overflow-hidden">
                                 <img 
-                                  src={`/team-logos/${prediction.match.awayTeam.toLowerCase().replace(/\s+/g, '-')}.jpg`} 
-                                  alt={prediction.match.awayTeam}
+                                  src={`/team-logos/${prediction.match?.awayTeam?.toLowerCase().replace(/\s+/g, '-') || 'unknown'}.jpg`} 
+                                  alt={prediction.match?.awayTeam || 'Squadra'}
                                   onError={(e) => {
-                                    const fileName = prediction.match.awayTeam.toLowerCase().replace(/\s+/g, '-');
+                                    const fileName = prediction.match?.awayTeam?.toLowerCase().replace(/\s+/g, '-') || 'unknown';
                                     const pngSrc = `/team-logos/${fileName}.png`;
                                     e.currentTarget.src = pngSrc;
                                   }}
                                   className="w-full h-full object-cover"
                                 />
                               </div>
-                              <span>({prediction.match.awayTeam})</span>
+                              <span>({prediction.match?.awayTeam || 'Squadra'})</span>
                             </div>
                           </Label>
                         </div>
@@ -374,11 +374,11 @@ export default function UserPredictionHistory() {
               )}
             </div>
             
-            {prediction.match.result && (
+            {prediction.match?.result && (
               <div className="mt-3 p-2 bg-muted rounded-md">
                 <div className="text-xs font-medium mb-1">Risultato finale</div>
                 <div className="font-bold">
-                  {predictionMap[prediction.match.result] || prediction.match.result}
+                  {predictionMap[prediction.match.result || ''] || prediction.match.result}
                 </div>
               </div>
             )}
@@ -438,6 +438,7 @@ export default function UserPredictionHistory() {
             <ul className="mt-1 space-y-1 pl-2">
               <li>· I pronostici sono completamente gratuiti</li>
               <li>· Minimo 5 partite per schedina</li>
+              <li>· Modifiche consentite fino a 30 minuti prima dell'inizio</li>
             </ul>
           </div>
         </CardHeader>
@@ -466,6 +467,7 @@ export default function UserPredictionHistory() {
             <ul className="mt-1 space-y-1 pl-2">
               <li>· I pronostici sono completamente gratuiti</li>
               <li>· Minimo 5 partite per schedina</li>
+              <li>· Modifiche consentite fino a 30 minuti prima dell'inizio</li>
             </ul>
           </div>
         </CardHeader>
@@ -492,6 +494,7 @@ export default function UserPredictionHistory() {
           <ul className="mt-1 space-y-1 pl-2">
             <li>· I pronostici sono completamente gratuiti</li>
             <li>· Minimo 5 partite per schedina</li>
+            <li>· Modifiche consentite fino a 30 minuti prima dell'inizio</li>
           </ul>
         </div>
       </CardHeader>
