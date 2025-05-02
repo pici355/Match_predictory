@@ -73,6 +73,10 @@ export default function LoginPage() {
   const login = useMutation({
     mutationFn: async (data: LoginFormValues) => {
       const response = await apiRequest("POST", "/api/login", data);
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Credenziali non valide");
+      }
       return response.json();
     },
     onSuccess: (data) => {
@@ -81,26 +85,19 @@ export default function LoginPage() {
         description: `Bentornato, ${data.username}!`,
       });
 
-      // Aggiungiamo un breve ritardo per garantire che la sessione venga correttamente impostata
-      // prima di reindirizzare alla pagina admin (che richiede la sessione)
-      setTimeout(() => {
-        // Facciamo anche una chiamata addizionale a /api/me per confermare la sessione
-        fetch('/api/me')
-          .then(res => res.json())
-          .then(() => {
-            if (data.isAdmin) {
-              window.location.href = "/admin"; // Utilizziamo un full redirect invece di navigate()
-            } else {
-              navigate("/");
-            }
-          })
-          .catch(err => {
-            console.error("Session verification error:", err);
-            navigate("/");
-          });
-      }, 500);
+      // Semplicemente utilizziamo il full reload per fare un refresh completo
+      // Questo risolve i problemi di sessione che potrebbero verificarsi
+      console.log("Login successful, redirecting to home...");
+      localStorage.setItem('auth_success', 'true'); // Salviamo un flag per sapere che il login è avvenuto con successo
+      
+      if (data.isAdmin) {
+        window.location.href = "/admin";
+      } else {
+        window.location.href = "/";
+      }
     },
     onError: (error) => {
+      console.error("Login error:", error);
       toast({
         title: "Accesso fallito",
         description: error instanceof Error ? error.message : "Credenziali non valide",
@@ -115,6 +112,10 @@ export default function LoginPage() {
       // Remove confirmPin before sending
       const { confirmPin, ...registerData } = data;
       const response = await apiRequest("POST", "/api/register", registerData);
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Si è verificato un errore durante la registrazione");
+      }
       return response.json();
     },
     onSuccess: (data) => {
@@ -123,24 +124,18 @@ export default function LoginPage() {
         description: `Benvenuto, ${data.username}!`,
       });
       
-      // Applichiamo la stessa logica anche per la registrazione
-      setTimeout(() => {
-        fetch('/api/me')
-          .then(res => res.json())
-          .then(() => {
-            if (data.isAdmin) {
-              window.location.href = "/admin";
-            } else {
-              navigate("/");
-            }
-          })
-          .catch(err => {
-            console.error("Session verification error after registration:", err);
-            navigate("/");
-          });
-      }, 500);
+      // Utilizziamo lo stesso approccio del login: full page reload
+      console.log("Registration successful, redirecting to home...");
+      localStorage.setItem('auth_success', 'true');
+      
+      if (data.isAdmin) {
+        window.location.href = "/admin";
+      } else {
+        window.location.href = "/";
+      }
     },
     onError: (error) => {
+      console.error("Registration error:", error);
       toast({
         title: "Registrazione fallita",
         description: error instanceof Error ? error.message : "Si è verificato un errore durante la registrazione",
