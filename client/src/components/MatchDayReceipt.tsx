@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { 
   Card, 
   CardContent, 
@@ -13,6 +13,7 @@ import { Printer, Download, Share2 } from "lucide-react";
 import html2canvas from "html2canvas";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useToast } from "@/hooks/use-toast";
+import { Logo } from "@/components/Logo";
 
 // Types
 type Match = {
@@ -226,11 +227,16 @@ export default function MatchDayReceipt({ matchDay, predictions, username }: Mat
     <Card className="mb-4 shadow-md receipt-card" id="receipt">
       <CardHeader className="border-b bg-muted/20">
         <div className="flex justify-between items-center">
-          <div>
-            <CardTitle className="text-xl font-bold">Indistruttibili Bet</CardTitle>
-            <p className="text-sm mt-1">
-              Giornata {matchDay} - Giocatore: {username}
-            </p>
+          <div className="flex gap-2 items-center">
+            <div className="h-12 w-12">
+              <Logo className="h-full w-full" />
+            </div>
+            <div>
+              <CardTitle className="text-xl font-bold">Indistruttibili Bet</CardTitle>
+              <p className="text-sm mt-1">
+                Giornata {matchDay} - Giocatore: {username}
+              </p>
+            </div>
           </div>
           <div className="flex gap-2 print:hidden">
             <TooltipProvider>
