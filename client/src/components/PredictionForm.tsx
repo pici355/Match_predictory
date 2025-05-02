@@ -40,6 +40,19 @@ type Match = {
   description?: string;
 };
 
+type Prediction = {
+  id: number;
+  userId: number;
+  matchId: number;
+  prediction: string;
+  credits: number;
+  isCorrect: boolean | null;
+  isEditable: boolean;
+  createdAt: string;
+  updatedAt: string;
+  match?: Match;
+};
+
 export default function PredictionForm() {
   const [submissionResult, setSubmissionResult] = useState<Partial<FormValues> | null>(null);
   const [selectedMatch, setSelectedMatch] = useState<Match | null>(null);
@@ -69,7 +82,7 @@ export default function PredictionForm() {
   });
 
   // Fetch user predictions
-  const { data: userPredictions, isLoading: isLoadingPredictions } = useQuery({
+  const { data: userPredictions, isLoading: isLoadingPredictions } = useQuery<Prediction[]>({
     queryKey: ['/api/predictions/user'],
     retry: (failureCount, error: any) => {
       // Don't retry if user is not authenticated
@@ -705,15 +718,30 @@ export default function PredictionForm() {
               </div>
             </div>
 
-            {showReceipt && userPredictions && Array.isArray(userPredictions) && (
-              <div className="transition-all duration-500">
-                <MatchDayReceipt 
-                  matchDay={selectedMatchDay} 
-                  predictions={userPredictions.filter(p => 
+            {showReceipt && userPredictions && Array.isArray(userPredictions) && selectedMatchDay && (
+              <div className="transition-all duration-500" ref={receiptRef}>
+                {/* Eseguiamo un doppio controllo per assicurarci che ci siano predizioni per la giornata selezionata */}
+                {(() => {
+                  const predictionsForDay = userPredictions.filter(p => 
                     matches?.some(m => m.id === p.matchId && m.matchDay === selectedMatchDay)
-                  )}
-                  username={typeof userPredictions[0]?.userId === 'number' ? userPredictions[0]?.userId.toString() : ""}
-                />
+                  );
+                  
+                  if (predictionsForDay.length > 0) {
+                    const username = predictionsForDay[0]?.userId 
+                      ? predictionsForDay[0].userId.toString() 
+                      : "Utente";
+                    
+                    return (
+                      <MatchDayReceipt 
+                        matchDay={selectedMatchDay} 
+                        predictions={predictionsForDay}
+                        username={username} 
+                      />
+                    );
+                  }
+                  
+                  return null;
+                })()}
               </div>
             )}
           </div>
