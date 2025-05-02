@@ -256,9 +256,13 @@ export default function UserPredictionHistory() {
                 hour: '2-digit',
                 minute: '2-digit'
               })}
-              {!editable && 
+              {editable ? (
+                <span className="ml-2 text-blue-600">
+                  (Modificabile per altri {getTimeUntilNonEditable(prediction.match.matchDate)})
+                </span>
+              ) : (
                 <span className="ml-2 text-red-500">(Non modificabile - entro 30 min dall'inizio)</span>
-              }
+              )}
             </div>
             
             <Separator className="my-3" />
@@ -292,6 +296,9 @@ export default function UserPredictionHistory() {
                           hour: '2-digit',
                           minute: '2-digit'
                         })}
+                        <div className="mt-2 text-blue-600 text-sm">
+                          Tempo rimanente per modificare: {getTimeUntilNonEditable(prediction.match.matchDate)}
+                        </div>
                       </DialogDescription>
                     </DialogHeader>
                     <div className="py-4">

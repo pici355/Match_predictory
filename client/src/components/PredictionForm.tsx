@@ -15,7 +15,7 @@ import MatchDayReceipt from "./MatchDayReceipt";
 
 import { predictSchema } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
-import { formatDateToLocalString, isMatchPredictionEditable } from "@/lib/dateUtils";
+import { formatDateToLocalString, isMatchPredictionEditable, getTimeUntilNonEditable } from "@/lib/dateUtils";
 
 // Custom form schema that extends the predict schema
 const formSchema = predictSchema.extend({
@@ -413,9 +413,13 @@ export default function PredictionForm() {
                                           hour: '2-digit',
                                           minute: '2-digit'
                                         })}
-                                        {!isMatchPredictionEditable(match.matchDate) && 
-                                          <span className="ml-1 text-red-500 font-medium">(Chiuso)</span>
-                                        }
+                                        {isMatchPredictionEditable(match.matchDate) ? (
+                                          <span className="ml-1 text-blue-600 font-medium">
+                                            (Modificabile per {getTimeUntilNonEditable(match.matchDate)})
+                                          </span>
+                                        ) : (
+                                          <span className="ml-1 text-red-500 font-medium">(Non modificabile)</span>
+                                        )}
                                       </div>
                                       
                                       {match.description && (
@@ -456,9 +460,13 @@ export default function PredictionForm() {
                       hour: '2-digit',
                       minute: '2-digit'
                     })}
-                    {!isMatchPredictionEditable(selectedMatch.matchDate) && 
-                      <span className="ml-2 text-red-500 font-medium">(Chiuso)</span>
-                    }
+                    {isMatchPredictionEditable(selectedMatch.matchDate) ? (
+                      <span className="ml-2 text-blue-600 font-medium">
+                        (Modificabile per {getTimeUntilNonEditable(selectedMatch.matchDate)})
+                      </span>
+                    ) : (
+                      <span className="ml-2 text-red-500 font-medium">(Non modificabile - entro 30 min dall'inizio)</span>
+                    )}
                   </div>
                   <div className="mt-2">
                     <span className="font-semibold mb-1 block">Squadre:</span>
@@ -704,7 +712,7 @@ export default function PredictionForm() {
                   predictions={userPredictions.filter(p => 
                     matches?.some(m => m.id === p.matchId && m.matchDay === selectedMatchDay)
                   )}
-                  username={userPredictions[0]?.userId.toString() || ""}
+                  username={typeof userPredictions[0]?.userId === 'number' ? userPredictions[0]?.userId.toString() : ""}
                 />
               </div>
             )}
