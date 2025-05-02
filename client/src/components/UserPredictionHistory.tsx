@@ -269,7 +269,14 @@ export default function UserPredictionHistory() {
             
             <div className="mt-1 flex justify-between items-center">
               <div>
-                <div className="text-xs text-muted-foreground">Il tuo pronostico</div>
+                <div className="flex items-center">
+                  <div className="text-xs text-muted-foreground mr-2">Il tuo pronostico</div>
+                  {editable && !prediction.match.hasResult && (
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                      Modificabile per {getTimeUntilNonEditable(prediction.match.matchDate)}
+                    </span>
+                  )}
+                </div>
                 <div className="font-medium">{predictionMap[prediction.prediction] || prediction.prediction}</div>
               </div>
               
@@ -279,9 +286,9 @@ export default function UserPredictionHistory() {
                     <Button 
                       variant="outline" 
                       size="sm" 
-                      className="h-8 px-2 text-blue-600 border-blue-200 hover:bg-blue-50"
+                      className="h-9 px-3 bg-blue-600 text-white border-blue-700 hover:bg-blue-700 hover:text-white shadow-sm flex items-center rounded-md"
                     >
-                      <Edit className="h-3.5 w-3.5 mr-1" />
+                      <Edit className="h-4 w-4 mr-1.5" />
                       Modifica
                     </Button>
                   </DialogTrigger>
@@ -296,7 +303,7 @@ export default function UserPredictionHistory() {
                           hour: '2-digit',
                           minute: '2-digit'
                         })}
-                        <div className="mt-2 text-blue-600 text-sm">
+                        <div className="mt-2 text-blue-600 text-sm font-medium">
                           Tempo rimanente per modificare: {getTimeUntilNonEditable(prediction.match.matchDate)}
                         </div>
                       </DialogDescription>
