@@ -285,6 +285,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Nuovo endpoint dedicato per recuperare tutte le partite relative alle previsioni di un utente
+  // Include tutte le partite, anche quelle passate o con risultati già inseriti
+  app.get("/api/matches/history", async (req, res) => {
+    try {
+      const userId = req.session?.userId;
+      
+      if (!userId) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+      
+      // Get user predictions
+      const predictions = await storage.getPredictionsByUserId(userId);
+      
+      if (predictions.length === 0) {
+        return res.json([]);
+      }
+      
+      // Get unique match IDs from predictions
+      const matchIds = [...new Set(predictions.map(p => p.matchId))];
+      
+      // Fetch all these matches
+      const matches = await Promise.all(
+        matchIds.map(async (matchId) => {
+          return await storage.getMatch(matchId);
+        })
+      );
+      
+      // Filter out any undefined matches
+      const validMatches = matches.filter(match => match !== undefined);
+      
+      res.json(validMatches);
+    } catch (error) {
+      console.error("Error fetching match history:", error);
+      res.status(500).json({ message: "Failed to fetch match history" });
+    }
+  });
+  
   app.get("/api/matches/:id", async (req, res) => {
     try {
       const id = parseInt(req.params.id);
