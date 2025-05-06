@@ -1,6 +1,7 @@
 import PredictionForm from "@/components/PredictionForm";
 import MatchInfo from "@/components/MatchInfo";
 import UserPredictionHistory from "@/components/UserPredictionHistory";
+import PredictionLeaderboard from "@/components/PredictionLeaderboard";
 import { Card, CardContent } from "@/components/ui/card";
 import { InfoIcon } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
@@ -52,6 +53,11 @@ export default function HomePage() {
         
         {/* User Prediction History (only for authenticated users) */}
         {isAuthenticated && <UserPredictionHistory />}
+        
+        {/* Prediction Leaderboard */}
+        <div className="mt-6">
+          <PredictionLeaderboard />
+        </div>
         
         {/* Match Information */}
         <MatchInfo />

@@ -1,5 +1,6 @@
 import type { Express, Request, Response } from "express";
 import { createServer, type Server } from "http";
+import { WebSocketServer } from "ws";
 import multer from "multer";
 import * as XLSX from "xlsx";
 import { storage } from "./storage";
@@ -919,6 +920,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Leaderboard route
+  app.get("/api/leaderboard", async (req, res) => {
+    try {
+      const type = req.query.type as string === 'overall' ? 'overall' : 'current';
+      const leaderboard = await storage.getLeaderboard(type);
+      res.json(leaderboard);
+    } catch (error) {
+      console.error("Error fetching leaderboard:", error);
+      res.status(500).json({ message: "Failed to fetch leaderboard" });
+    }
+  });
+  
   // Statistics routes
   app.get("/api/statistics/matchday/:matchDay/total-credits", async (req, res) => {
     try {
@@ -1074,6 +1087,55 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   const httpServer = createServer(app);
+  
+  // Configurazione WebSocketServer per aggiornamenti in tempo reale
+  const wss = new WebSocketServer({ 
+    server: httpServer,
+    path: '/ws'
+  });
+  
+  wss.on('connection', (ws) => {
+    console.log('WebSocket client connected');
+    
+    ws.on('message', (message) => {
+      console.log('Received message from client:', message.toString());
+    });
+    
+    ws.on('close', () => {
+      console.log('WebSocket client disconnected');
+    });
+  });
+  
+  // Funzione di utilità per inviare aggiornamenti ai client
+  const broadcastUpdate = (type: string, data: any) => {
+    wss.clients.forEach((client) => {
+      if (client.readyState === 1) { // WebSocket.OPEN
+        client.send(JSON.stringify({
+          type,
+          data
+        }));
+      }
+    });
+  };
+  
+  // Modifichiamo updateMatchResult per inviare aggiornamenti via WebSocket
+  const originalUpdateMatchResult = storage.updateMatchResult;
+  storage.updateMatchResult = async function(...args) {
+    const result = await originalUpdateMatchResult.apply(this, args);
+    
+    if (result) {
+      const match = result;
+      
+      // Aggiorniamo la classifica
+      const leaderboard = await storage.getLeaderboard('current');
+      
+      // Inviamo gli aggiornamenti
+      broadcastUpdate('match_result_update', match);
+      broadcastUpdate('leaderboard_update', leaderboard);
+    }
+    
+    return result;
+  };
 
   return httpServer;
 }

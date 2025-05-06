@@ -80,6 +80,20 @@ export interface IStorage {
     totalCount: number,
     percentage: number
   }[]>;
+  getLeaderboard(type: 'current' | 'overall'): Promise<{
+    matchDay: number,
+    lastUpdated: string,
+    users: {
+      id: number,
+      username: string,
+      correctPredictions: number,
+      totalPredictions: number,
+      successRate: number, 
+      creditsWon: number,
+      position: number,
+      previousPosition?: number
+    }[]
+  }>;
 }
 
 // Database implementation
@@ -544,6 +558,138 @@ export class DatabaseStorage implements IStorage {
       
       return false;
     });
+  }
+  
+  async getLeaderboard(type: 'current' | 'overall'): Promise<{
+    matchDay: number,
+    lastUpdated: string,
+    users: {
+      id: number,
+      username: string,
+      correctPredictions: number,
+      totalPredictions: number,
+      successRate: number, 
+      creditsWon: number,
+      position: number,
+      previousPosition?: number
+    }[]
+  }> {
+    // Get all users
+    const allUsers = await this.getAllUsers();
+    
+    // Get current match day (use the highest match day with matches)
+    const allMatches = await this.getAllMatches();
+    const matchDays = allMatches.map(m => m.matchDay).sort((a, b) => b - a);
+    const currentMatchDay = matchDays.length > 0 ? matchDays[0] : 1;
+    
+    let leaderboardUsers = [];
+    
+    if (type === 'current') {
+      // Get stats for current match day only
+      const userStats = await Promise.all(
+        allUsers.map(async user => {
+          const stats = await this.getCorrectPredictionStatsForUser(user.id, currentMatchDay);
+          
+          // Get credits won for this match day
+          const payouts = await this.getWinnerPayouts(currentMatchDay);
+          const userPayouts = payouts.filter(payout => payout.userId === user.id);
+          const creditsWon = userPayouts.reduce((sum, payout) => sum + payout.amount, 0);
+          
+          return {
+            id: user.id,
+            username: user.username,
+            correctPredictions: stats.correctCount,
+            totalPredictions: stats.totalCount,
+            successRate: stats.percentage,
+            creditsWon,
+            // Position will be calculated after sorting
+            position: 0,
+            // No previous position for current match day view
+          };
+        })
+      );
+      
+      // Only include users who have made predictions
+      leaderboardUsers = userStats.filter(user => user.totalPredictions > 0);
+    } else {
+      // Get overall stats across all match days
+      const userStats = await Promise.all(
+        allUsers.map(async user => {
+          // Get all user predictions
+          const userPredictions = await this.getPredictionsByUserId(user.id);
+          
+          // Filter predictions for matches with results
+          const predictionsWithResults = await Promise.all(
+            userPredictions.map(async prediction => {
+              const match = await this.getMatch(prediction.matchId);
+              return match?.hasResult ? prediction : null;
+            })
+          );
+          
+          const validPredictions = predictionsWithResults.filter(p => p !== null) as Prediction[];
+          const totalCount = validPredictions.length;
+          
+          if (totalCount === 0) {
+            return {
+              id: user.id,
+              username: user.username,
+              correctPredictions: 0,
+              totalPredictions: 0,
+              successRate: 0,
+              creditsWon: 0,
+              position: 0,
+            };
+          }
+          
+          // Count correct predictions
+          const correctCount = validPredictions.filter(p => p.isCorrect).length;
+          
+          // Calculate percentage
+          const percentage = Math.round((correctCount / totalCount) * 100);
+          
+          // Get all credits won across all match days
+          const payouts = await this.getUserPayouts(user.id);
+          const creditsWon = payouts.reduce((sum, payout) => sum + payout.amount, 0);
+          
+          return {
+            id: user.id,
+            username: user.username,
+            correctPredictions: correctCount,
+            totalPredictions: totalCount,
+            successRate: percentage,
+            creditsWon,
+            // Position will be calculated after sorting
+            position: 0,
+            // No previous position for overall view
+          };
+        })
+      );
+      
+      // Only include users who have made predictions
+      leaderboardUsers = userStats.filter(user => user.totalPredictions > 0);
+    }
+    
+    // Sort users by success rate (percentage) and then by number of correct predictions
+    leaderboardUsers.sort((a, b) => {
+      if (b.successRate !== a.successRate) {
+        return b.successRate - a.successRate;
+      }
+      if (b.correctPredictions !== a.correctPredictions) {
+        return b.correctPredictions - a.correctPredictions;
+      }
+      return b.creditsWon - a.creditsWon;
+    });
+    
+    // Assign positions
+    leaderboardUsers.forEach((user, index) => {
+      user.position = index + 1;
+    });
+    
+    return {
+      matchDay: currentMatchDay,
+      lastUpdated: new Date().toISOString(),
+      users: leaderboardUsers
+    };
   }
 }
 
