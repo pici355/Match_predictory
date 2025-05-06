@@ -483,30 +483,52 @@ export class DatabaseStorage implements IStorage {
     totalCount: number,
     percentage: number
   }> {
-    // Get all user predictions for this match day
-    const userPredictions = await this.getUserPredictionsByMatchDay(userId, matchDay);
+    // Get matches for this match day
+    const matchesForDay = await this.getMatchesByMatchDay(matchDay);
     
-    // Filter only predictions for matches that have results
-    const predictionsForMatchesWithResults = await Promise.all(
-      userPredictions.map(async prediction => {
-        const match = await this.getMatch(prediction.matchId);
-        return match?.hasResult ? prediction : null;
-      })
-    );
-    
-    // Filter out null values and count
-    const validPredictions = predictionsForMatchesWithResults.filter(p => p !== null) as Prediction[];
-    const totalCount = validPredictions.length;
-    
-    if (totalCount === 0) {
+    if (matchesForDay.length === 0) {
+      console.log(`Nessuna partita trovata per la giornata ${matchDay}`);
       return { correctCount: 0, totalCount: 0, percentage: 0 };
     }
     
-    // Count correct predictions
-    const correctCount = validPredictions.filter(p => p.isCorrect).length;
+    // Filtra solo le partite con risultati
+    const matchesWithResult = matchesForDay.filter(m => m.hasResult === true);
     
-    // Calculate percentage (rounded to nearest whole number)
-    const percentage = Math.round((correctCount / totalCount) * 100);
+    if (matchesWithResult.length === 0) {
+      console.log(`Nessuna partita con risultato per la giornata ${matchDay}`);
+      return { correctCount: 0, totalCount: 0, percentage: 0 };
+    }
+    
+    const matchIds = matchesWithResult.map(m => m.id);
+    
+    console.log(`Calcolo statistiche per utente ${userId}, giornata ${matchDay}: trovate ${matchesWithResult.length} partite con risultati (IDs: ${matchIds.join(', ')})`);
+    
+    // Get predictions for these matches for this user
+    const userPredictions = await db.select()
+      .from(predictions)
+      .where(and(
+        eq(predictions.userId, userId),
+        inArray(predictions.matchId, matchIds)
+      ));
+    
+    if (userPredictions.length === 0) {
+      console.log(`Nessuna previsione trovata per l'utente ${userId} nella giornata ${matchDay}`);
+      return { correctCount: 0, totalCount: 0, percentage: 0 };
+    }
+    
+    console.log(`Previsioni trovate per l'utente ${userId}: ${userPredictions.length}`);
+    userPredictions.forEach(p => {
+      console.log(`  - Previsione ID ${p.id}, Partita ID ${p.matchId}, Predizione ${p.prediction}, isCorrect: ${p.isCorrect}`);
+    });
+    
+    // Conta i pronostici corretti
+    const totalCount = userPredictions.length;
+    const correctCount = userPredictions.filter(p => p.isCorrect === true).length;
+    
+    // Calculate percentage
+    const percentage = totalCount > 0 ? Math.round((correctCount / totalCount) * 100) : 0;
+    
+    console.log(`Statistiche utente ${userId}: ${correctCount}/${totalCount} corretti (${percentage}%)`);
     
     return { correctCount, totalCount, percentage };
   }
@@ -585,13 +607,29 @@ export class DatabaseStorage implements IStorage {
     const matchDays = allMatches.map(m => m.matchDay).sort((a, b) => b - a);
     const currentMatchDay = matchDays.length > 0 ? matchDays[0] : 1;
     
+    // Per la giornata corrente, se è la prima o non ci sono ancora partite con risultati,
+    // usa la giornata precedente per mostrare i risultati
+    const previousMatchDay = currentMatchDay > 1 ? currentMatchDay - 1 : 1;
+    
+    // Controlla se ci sono risultati nella giornata corrente
+    const currentMatchesWithResults = allMatches
+      .filter(m => m.matchDay === currentMatchDay && m.hasResult === true)
+      .length;
+    
+    // Se non ci sono risultati nella giornata corrente, usa la giornata precedente
+    const effectiveMatchDay = currentMatchesWithResults > 0 ? currentMatchDay : previousMatchDay;
+    
+    console.log(`Generazione classifica - giornata corrente: ${currentMatchDay}, 
+                 giornata effettiva per la classifica: ${effectiveMatchDay},
+                 partite con risultati nella giornata corrente: ${currentMatchesWithResults}`);
+    
     let leaderboardUsers = [];
     
     if (type === 'current') {
-      // Get stats for current match day only
+      // Get stats for current match day only (o per la giornata precedente se non ci sono risultati)
       const userStats = await Promise.all(
         allUsers.map(async user => {
-          const stats = await this.getCorrectPredictionStatsForUser(user.id, currentMatchDay);
+          const stats = await this.getCorrectPredictionStatsForUser(user.id, effectiveMatchDay);
           
           // Un punto per ogni pronostico vincente
           const leaderboardPoints = stats.correctCount;
@@ -612,8 +650,10 @@ export class DatabaseStorage implements IStorage {
       
       // Only include users who have made predictions
       leaderboardUsers = userStats.filter(user => user.totalPredictions > 0);
+      
+      console.log(`Classifica giornata - Utenti trovati: ${leaderboardUsers.length}`);
     } else {
-      // Get overall stats across all match days
+      // Get overall stats across all match days with COMPLETED matches
       const userStats = await Promise.all(
         allUsers.map(async user => {
           // Get all user predictions
@@ -667,6 +707,8 @@ export class DatabaseStorage implements IStorage {
       
       // Only include users who have made predictions
       leaderboardUsers = userStats.filter(user => user.totalPredictions > 0);
+      
+      console.log(`Classifica generale - Utenti trovati: ${leaderboardUsers.length}`);
     }
     
     // Sort users primarily by punti (correctPredictions) e secondariamente per percentuale
@@ -689,7 +731,7 @@ export class DatabaseStorage implements IStorage {
     });
     
     return {
-      matchDay: currentMatchDay,
+      matchDay: effectiveMatchDay, // Aggiornato per mostrare la giornata corretta
       lastUpdated: new Date().toISOString(),
       users: leaderboardUsers
     };
