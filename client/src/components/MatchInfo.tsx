@@ -27,6 +27,8 @@ type Match = {
   matchDate: string;
   matchDay: number;
   description?: string;
+  result?: string | null;
+  hasResult?: boolean;
 };
 
 function formatTimeRemaining(timeInMs: number): string {
@@ -169,8 +171,15 @@ export default function MatchInfo() {
     queryKey: ['/api/matches'],
   });
   
-  // Group matches by matchDay
-  const matchesByDay = matches?.reduce((acc, match) => {
+  // Filtrare solo le partite future (partite che non sono ancora iniziate)
+  const futureMatches = matches?.filter(match => {
+    const matchDate = new Date(match.matchDate);
+    const now = new Date();
+    return matchDate > now && !match.hasResult;
+  });
+  
+  // Group future matches by matchDay
+  const matchesByDay = futureMatches?.reduce((acc, match) => {
     if (!acc[match.matchDay]) {
       acc[match.matchDay] = [];
     }
@@ -215,13 +224,15 @@ export default function MatchInfo() {
               ))}
             </Tabs>
           ) : (
-            <div className="text-center py-6 text-gray-500">
-              Non ci sono partite disponibili
+            <div className="text-center py-6 text-gray-500 space-y-1">
+              <div className="font-medium">Nessuna partita in programma</div>
+              <p className="text-xs">Le partite già giocate sono state archiviate</p>
             </div>
           )
         ) : (
-          <div className="text-center py-6 text-gray-500">
-            Non ci sono partite disponibili
+          <div className="text-center py-6 text-gray-500 space-y-1">
+            <div className="font-medium">Nessuna partita in programma</div>
+            <p className="text-xs">Le partite già giocate sono state archiviate</p>
           </div>
         )}
       </CardContent>
