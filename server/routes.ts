@@ -303,7 +303,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Get unique match IDs from predictions
-      const matchIds = [...new Set(predictions.map(p => p.matchId))];
+      const matchIdsSet = new Set<number>();
+      predictions.forEach(p => matchIdsSet.add(p.matchId));
+      const matchIds = Array.from(matchIdsSet);
       
       // Fetch all these matches
       const matches = await Promise.all(

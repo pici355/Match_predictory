@@ -107,9 +107,10 @@ export default function UserPredictionHistory() {
     retry: false,
   });
 
-  // Fetch all matches to enrich the prediction data
+  // Fetch all matches related to user history, including past matches
   const { data: matches, isLoading: isLoadingMatches } = useQuery<Match[]>({
-    queryKey: ['/api/matches'],
+    queryKey: ['/api/matches/history'],
+    enabled: !!user, // Solo quando l'utente è autenticato
   });
 
   // Fetch user payouts (winnings)
