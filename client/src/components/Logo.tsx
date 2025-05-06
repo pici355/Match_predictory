@@ -1,24 +1,28 @@
 import React, { useState, useEffect } from 'react';
-import logo from '../assets/lega-logo.png'; // Importiamo il logo dal nostro progetto
+import logoImage from '@assets/lega-logo.png'; // Importiamo il logo dal nostro progetto
 
-// Utilizziamo direttamente il path pubblico invece di importare
+// Utilizziamo l'immagine importata come base
 export const Logo: React.FC<{ className?: string }> = ({ className = '' }) => {
   const [fallbackActive, setFallbackActive] = useState(false);
   
-  // Impostiamo l'URL assoluto per il logo
-  const logoUrl = `/lega-logo.png?cache=${Math.random().toString(36).substring(7)}`;
-  
+  // Usiamo l'immagine importata direttamente
   return (
     <div className={`flex items-center ${className}`}>
       {!fallbackActive ? (
         <img 
-          src={logoUrl}
+          src={logoImage}
           alt="Lega degli Indistruttibili" 
           className={`object-contain h-12 ${className}`}
           onError={(e) => {
-            // Se l'immagine non si carica, mostriamo un fallback testuale
-            setFallbackActive(true);
-            console.error('Logo non caricato. Mostrando testo fallback.');
+            // Se l'immagine importata non si carica, proviamo con l'URL diretto
+            console.warn('Logo importato non caricato, tentativo con URL diretto');
+            e.currentTarget.src = `/lega-logo.png?t=${Date.now()}`;
+            
+            // Se anche l'URL diretto fallisce, mostriamo il fallback testuale
+            e.currentTarget.onerror = () => {
+              setFallbackActive(true);
+              console.error('Tutti i tentativi di caricamento logo falliti.');
+            };
           }}
         />
       ) : (

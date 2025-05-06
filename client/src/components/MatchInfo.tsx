@@ -171,26 +171,11 @@ export default function MatchInfo() {
     queryKey: ['/api/matches'],
   });
   
-  console.log("Partite totali:", matches?.length);
+  console.log("Partite ricevute:", matches?.length);
   
-  // Filtrare solo le partite future (partite che non sono ancora iniziate e non hanno risultato)
-  const futureMatches = matches?.filter(match => {
-    // Verifichiamo se la partita ha già un risultato (è già stata giocata)
-    if (match.hasResult === true) {
-      console.log("Esclusa partita con risultato:", match.homeTeam, "vs", match.awayTeam, "risultato:", match.result);
-      return false; // Escludiamo le partite già giocate
-    }
-    
-    // Verifichiamo anche se la partita è nel futuro
-    const matchDate = new Date(match.matchDate);
-    const now = new Date();
-    
-    // Includiamo solo partite future o senza risultato (in corso)
-    return matchDate > now;
-  });
-  
-  // Group future matches by matchDay
-  const matchesByDay = futureMatches?.reduce((acc, match) => {
+  // L'API ora restituisce già solo le partite future e senza risultato
+  // Group matches by matchDay (le partite sono già filtrate dal server)
+  const matchesByDay = matches?.reduce((acc, match) => {
     if (!acc[match.matchDay]) {
       acc[match.matchDay] = [];
     }

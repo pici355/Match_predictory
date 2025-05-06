@@ -238,6 +238,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Match routes
   app.get("/api/matches", async (_req, res) => {
     try {
+      const allMatches = await storage.getAllMatches();
+      
+      // Filtriamo le partite per mostrare solo quelle future e quelle senza risultato
+      const now = new Date();
+      const futureMatches = allMatches.filter(match => {
+        const matchDate = new Date(match.matchDate);
+        
+        // Escludiamo le partite con risultato
+        if (match.hasResult === true) {
+          return false;
+        }
+        
+        // Includiamo solo le partite future
+        return matchDate > now;
+      });
+      
+      res.json(futureMatches);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch matches" });
+    }
+  });
+  
+  // Endpoint per tutte le partite (utile per admin)
+  app.get("/api/matches/all", isAdmin, async (_req, res) => {
+    try {
       const matches = await storage.getAllMatches();
       res.json(matches);
     } catch (error) {

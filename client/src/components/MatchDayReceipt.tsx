@@ -232,20 +232,7 @@ export default function MatchDayReceipt({ matchDay, predictions, username }: Mat
         <div className="flex justify-between items-center">
           <div className="flex gap-2 items-center">
             <div className="h-12 w-12 flex items-center justify-center overflow-hidden">
-              <img 
-                src="/lega-logo.png" 
-                alt="Lega degli Indistruttibili" 
-                className="h-full w-full object-contain"
-                onError={(e) => {
-                  setLogoLoaded(false);
-                  console.log('Logo non caricato in ricevuta');
-                }}
-              />
-              {!logoLoaded && (
-                <span className="text-lg font-bold text-gradient bg-gradient-to-r from-amber-500 to-red-500 bg-clip-text text-transparent">
-                  FS
-                </span>
-              )}
+              <Logo className="h-full w-full" />
             </div>
             <div>
               <CardTitle className="text-xl font-bold">Indistruttibili Bet</CardTitle>
