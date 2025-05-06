@@ -141,6 +141,9 @@ export class DatabaseStorage implements IStorage {
       // Delete all predictions made by this user
       await db.delete(predictions).where(eq(predictions.userId, id));
       
+      // Delete any winner payouts associated with this user
+      await db.delete(winnerPayouts).where(eq(winnerPayouts.userId, id));
+      
       // Delete the user
       const result = await db.delete(users).where(eq(users.id, id));
       return true;
@@ -590,10 +593,8 @@ export class DatabaseStorage implements IStorage {
         allUsers.map(async user => {
           const stats = await this.getCorrectPredictionStatsForUser(user.id, currentMatchDay);
           
-          // Get credits won for this match day
-          const payouts = await this.getWinnerPayouts(currentMatchDay);
-          const userPayouts = payouts.filter(payout => payout.userId === user.id);
-          const creditsWon = userPayouts.reduce((sum, payout) => sum + payout.amount, 0);
+          // Un punto per ogni pronostico vincente
+          const leaderboardPoints = stats.correctCount;
           
           return {
             id: user.id,
@@ -601,7 +602,7 @@ export class DatabaseStorage implements IStorage {
             correctPredictions: stats.correctCount,
             totalPredictions: stats.totalCount,
             successRate: stats.percentage,
-            creditsWon,
+            creditsWon: leaderboardPoints, // Ora i "crediti vinti" sono i punti della classifica
             // Position will be calculated after sorting
             position: 0,
             // No previous position for current match day view
@@ -647,9 +648,8 @@ export class DatabaseStorage implements IStorage {
           // Calculate percentage
           const percentage = Math.round((correctCount / totalCount) * 100);
           
-          // Get all credits won across all match days
-          const payouts = await this.getUserPayouts(user.id);
-          const creditsWon = payouts.reduce((sum, payout) => sum + payout.amount, 0);
+          // Un punto per ogni pronostico vincente (in totale)
+          const leaderboardPoints = correctCount;
           
           return {
             id: user.id,
@@ -657,7 +657,7 @@ export class DatabaseStorage implements IStorage {
             correctPredictions: correctCount,
             totalPredictions: totalCount,
             successRate: percentage,
-            creditsWon,
+            creditsWon: leaderboardPoints, // Ora i "crediti vinti" sono i punti della classifica
             // Position will be calculated after sorting
             position: 0,
             // No previous position for overall view
@@ -669,15 +669,18 @@ export class DatabaseStorage implements IStorage {
       leaderboardUsers = userStats.filter(user => user.totalPredictions > 0);
     }
     
-    // Sort users by success rate (percentage) and then by number of correct predictions
+    // Sort users primarily by punti (correctPredictions) e secondariamente per percentuale
     leaderboardUsers.sort((a, b) => {
+      // Prima ordinamento per punti (ossia correctPredictions o creditsWon)
+      if (b.creditsWon !== a.creditsWon) {
+        return b.creditsWon - a.creditsWon;
+      }
+      // Secondario per tasso di successo
       if (b.successRate !== a.successRate) {
         return b.successRate - a.successRate;
       }
-      if (b.correctPredictions !== a.correctPredictions) {
-        return b.correctPredictions - a.correctPredictions;
-      }
-      return b.creditsWon - a.creditsWon;
+      // Se entrambi hanno gli stessi punti e percentuale, ordina per numero di predizioni
+      return b.totalPredictions - a.totalPredictions;
     });
     
     // Assign positions

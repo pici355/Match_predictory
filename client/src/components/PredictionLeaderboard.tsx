@@ -129,10 +129,10 @@ export default function PredictionLeaderboard() {
   
   return (
     <Card className="w-full shadow-md">
-      <CardHeader>
+      <CardHeader className="pb-3">
         <CardTitle>Classifica Pronostici</CardTitle>
         <CardDescription>
-          Gli utenti con le previsioni più accurate
+          {activeTab === 'current' ? 'Giornata corrente' : 'Classifica generale'}
           {leaderboardData?.lastUpdated && (
             <span className="block text-xs mt-1">
               Ultimo aggiornamento: {new Date(leaderboardData.lastUpdated).toLocaleTimeString()}
@@ -147,7 +147,17 @@ export default function PredictionLeaderboard() {
         </Tabs>
       </CardHeader>
       <CardContent>
-        <div className="space-y-3">
+        {/* Intestazione della tabella */}
+        <div className="hidden md:flex items-center px-3 pb-2 text-sm font-medium text-muted-foreground">
+          <div className="w-10 flex-shrink-0">Pos</div>
+          <div className="flex-1">Squadra</div>
+          <div className="w-20 text-center">Punti</div>
+          <div className="w-20 text-center">Tasso</div>
+          <div className="w-20 text-center">Pred.</div>
+        </div>
+        
+        {/* Contenuto della tabella */}
+        <div className="space-y-2">
           <AnimatePresence initial={false}>
             {leaderboardData?.users.map((user) => (
               <motion.div
@@ -160,25 +170,41 @@ export default function PredictionLeaderboard() {
                 }}
                 exit={{ opacity: 0, scale: 0.8 }}
                 layoutId={`user-${user.id}`}
-                className="flex items-center p-3 rounded-md border border-border"
+                className="flex flex-wrap md:flex-nowrap items-center p-3 rounded-md border border-border hover:bg-gray-50"
               >
-                <div className="flex-shrink-0 mr-3">
+                {/* Posizione - visibile sempre */}
+                <div className="w-9 h-9 flex-shrink-0 flex items-center justify-center">
                   {renderPositionIcon(user.position)}
                 </div>
-                <div className="flex-1">
+                
+                {/* Info principale - visibile sempre */}
+                <div className="flex-1 min-w-0 ml-2">
                   <div className="flex items-center">
-                    <h3 className="font-medium">{user.username}</h3>
+                    <h3 className="font-medium truncate">{user.username}</h3>
                     {getPositionChange(user)}
                   </div>
-                  <div className="text-sm text-muted-foreground flex items-center gap-1 mt-1">
-                    <span>Tasso successo: {user.successRate}%</span>
-                    <span className="mx-1">•</span>
-                    <span>Vinti: {user.creditsWon} crediti</span>
+                  
+                  {/* Info extra in layout mobile */}
+                  <div className="md:hidden text-xs text-muted-foreground flex items-center flex-wrap gap-x-2 mt-1">
+                    <span>{user.creditsWon} pt</span>
+                    <span>•</span>
+                    <span>{user.successRate}% succ.</span>
+                    <span>•</span>
+                    <span>{user.correctPredictions}/{user.totalPredictions} pred.</span>
                   </div>
                 </div>
-                <div className="flex-shrink-0 text-right">
-                  <div className="font-bold">{user.correctPredictions}/{user.totalPredictions}</div>
-                  <div className="text-xs text-muted-foreground">previsioni corrette</div>
+                
+                {/* Colonne extra in layout desktop */}
+                <div className="hidden md:block w-20 text-center font-bold">
+                  {user.creditsWon}
+                </div>
+                
+                <div className="hidden md:block w-20 text-center">
+                  {user.successRate}%
+                </div>
+                
+                <div className="hidden md:block w-20 text-center">
+                  {user.correctPredictions}/{user.totalPredictions}
                 </div>
               </motion.div>
             ))}
