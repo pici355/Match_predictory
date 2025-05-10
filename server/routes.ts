@@ -991,6 +991,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Endpoint per ottenere gli utenti con previsioni per l'admin
+  app.get("/api/users/predictions", isAdmin, async (req, res) => {
+    try {
+      // Ottieni tutti gli utenti
+      const users = await storage.getAllUsers();
+      
+      // Ottieni tutte le previsioni
+      const predictions = await storage.getAllPredictions();
+      
+      // Associa le previsioni agli utenti
+      const result = users.map(user => {
+        const userPredictions = predictions.filter(p => p.userId === user.id);
+        return {
+          user,
+          predictions: userPredictions
+        };
+      }).filter(item => item.predictions.length > 0);
+      
+      console.log(`Returning predictions for ${result.length} users to admin panel`);
+      res.json(result);
+    } catch (error) {
+      console.error("Error fetching user predictions:", error);
+      res.status(500).json({ message: "Failed to fetch user predictions" });
+    }
+  });
+  
   // Leaderboard route
   app.get("/api/leaderboard", async (req, res) => {
     try {

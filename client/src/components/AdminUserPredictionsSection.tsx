@@ -72,12 +72,75 @@ export default function AdminUserPredictionsSection() {
     queryFn: getQueryFn({ on401: "returnNull" }),
   });
   
+  // Fetch all matches
+  const { 
+    data: matches, 
+    isLoading: isLoadingMatches,
+    error: matchesError 
+  } = useQuery<Match[]>({
+    queryKey: ['/api/matches'],
+    queryFn: getQueryFn({ on401: "returnNull" }),
+  });
+  
+  // Fetch user predictions from our new endpoint
+  const { 
+    data: userPredictions, 
+    isLoading: isLoadingUserPredictions,
+    error: userPredictionsError 
+  } = useQuery<UserWithPredictions[]>({
+    queryKey: ['/api/users/predictions'],
+    queryFn: getQueryFn({ on401: "returnNull" }),
+  });
+  
+  // Ottieni le previsioni singole da userPredictions
+  const predictions = React.useMemo(() => {
+    if (!userPredictions) return [];
+    
+    const allPredictions: Prediction[] = [];
+    userPredictions.forEach(up => {
+      allPredictions.push(...up.predictions);
+    });
+    
+    return allPredictions;
+  }, [userPredictions]);
+  
+  // Fetch all payouts
+  const { 
+    data: payouts, 
+    isLoading: isLoadingPayouts,
+    error: payoutsError 
+  } = useQuery<WinnerPayout[]>({
+    queryKey: ['/api/prizes/payouts'],
+    queryFn: getQueryFn({ on401: "returnNull" }),
+  });
+  
   // Log errors for debugging
   useEffect(() => {
     if (usersError) {
       console.error("Error fetching users in AdminUserPredictionsSection:", usersError);
     }
   }, [usersError]);
+  
+  // Log match errors
+  useEffect(() => {
+    if (matchesError) {
+      console.error("Error fetching matches:", matchesError);
+    }
+  }, [matchesError]);
+  
+  // Log prediction errors
+  useEffect(() => {
+    if (predictionsError) {
+      console.error("Error fetching predictions:", predictionsError);
+    }
+  }, [predictionsError]);
+  
+  // Log payout errors
+  useEffect(() => {
+    if (payoutsError) {
+      console.error("Error fetching payouts:", payoutsError);
+    }
+  }, [payoutsError]);
   
   // Effettuiamo una seconda richiesta specifica per gli users in caso la prima fallisca
   useEffect(() => {
@@ -117,63 +180,12 @@ export default function AdminUserPredictionsSection() {
     }
   }, [predictionsError, predictions]);
   
-  // Fetch all matches
-  const { 
-    data: matches, 
-    isLoading: isLoadingMatches,
-    error: matchesError 
-  } = useQuery<Match[]>({
-    queryKey: ['/api/matches'],
-    queryFn: getQueryFn({ on401: "returnNull" }),
-  });
-  
-  // Log match errors
-  useEffect(() => {
-    if (matchesError) {
-      console.error("Error fetching matches:", matchesError);
-    }
-  }, [matchesError]);
-  
-  // Fetch all predictions
-  const { 
-    data: predictions, 
-    isLoading: isLoadingPredictions,
-    error: predictionsError 
-  } = useQuery<Prediction[]>({
-    queryKey: ['/api/predictions'],
-    queryFn: getQueryFn({ on401: "returnNull" }),
-  });
-  
-  // Log prediction errors
-  useEffect(() => {
-    if (predictionsError) {
-      console.error("Error fetching predictions:", predictionsError);
-    }
-  }, [predictionsError]);
-  
-  // Fetch all payouts
-  const { 
-    data: payouts, 
-    isLoading: isLoadingPayouts,
-    error: payoutsError 
-  } = useQuery<WinnerPayout[]>({
-    queryKey: ['/api/prizes/payouts'],
-    queryFn: getQueryFn({ on401: "returnNull" }),
-  });
-  
-  // Log payout errors
-  useEffect(() => {
-    if (payoutsError) {
-      console.error("Error fetching payouts:", payoutsError);
-    }
-  }, [payoutsError]);
-  
   // Debug logging per verificare i dati
   useEffect(() => {
     if (users) console.log("Users fetched:", users.length);
     if (matches) console.log("Matches fetched:", matches.length);
     if (predictions) console.log("Predictions fetched:", predictions.length);
-    if (payouts) console.log("Payouts fetched:", payouts.length);
+    if (payouts) console.log("Payouts fetched:", payouts ? payouts.length : 0);
   }, [users, matches, predictions, payouts]);
   
   // Get unique match days
