@@ -59,6 +59,8 @@ type UserWithPredictions = {
 export default function AdminUserPredictionsSection() {
   const [selectedMatchDay, setSelectedMatchDay] = useState<string>('all');
   const [selectedUser, setSelectedUser] = useState<string>('all');
+  const [manualUsers, setManualUsers] = useState<User[]>([]);
+  const [manualPredictions, setManualPredictions] = useState<Prediction[]>([]);
   
   // Fetch all users
   const { 
@@ -76,6 +78,44 @@ export default function AdminUserPredictionsSection() {
       console.error("Error fetching users in AdminUserPredictionsSection:", usersError);
     }
   }, [usersError]);
+  
+  // Effettuiamo una seconda richiesta specifica per gli users in caso la prima fallisca
+  useEffect(() => {
+    if (usersError || !users) {
+      console.log("Trying alternative method to fetch users...");
+      fetch('/api/users')
+        .then(res => {
+          if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+          return res.json();
+        })
+        .then(data => {
+          console.log("Alternative user fetch succeeded:", data.length);
+          setManualUsers(data);
+        })
+        .catch(error => {
+          console.error("Alternative user fetch failed:", error);
+        });
+    }
+  }, [usersError, users]);
+  
+  // Carica anche tutte le previsioni quando necessario
+  useEffect(() => {
+    if (predictionsError || !predictions) {
+      console.log("Trying alternative method to fetch predictions...");
+      fetch('/api/predictions')
+        .then(res => {
+          if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+          return res.json();
+        })
+        .then(data => {
+          console.log("Alternative predictions fetch succeeded:", data.length);
+          setManualPredictions(data);
+        })
+        .catch(error => {
+          console.error("Alternative predictions fetch failed:", error);
+        });
+    }
+  }, [predictionsError, predictions]);
   
   // Fetch all matches
   const { 
@@ -173,12 +213,21 @@ export default function AdminUserPredictionsSection() {
   
   // Group predictions by user for display
   const predictionsByUser = React.useMemo(() => {
-    if (!filteredPredictions || !users) return [];
+    // Usa i dati manuali se i dati da React Query non sono disponibili
+    const usersList = users || manualUsers;
+    const predictionsList = filteredPredictions.length > 0 ? filteredPredictions : manualPredictions;
+    
+    if ((!predictionsList || predictionsList.length === 0) || !usersList || usersList.length === 0) {
+      console.log("Dati insufficienti per creare predictionsByUser");
+      return [];
+    }
+    
+    console.log(`Creazione predictionsByUser: ${predictionsList.length} predizioni, ${usersList.length} utenti`);
     
     const result: UserWithPredictions[] = [];
     
     // Group predictions by userId
-    const groupedByUserId = filteredPredictions.reduce((acc, prediction) => {
+    const groupedByUserId = predictionsList.reduce((acc, prediction) => {
       if (!acc[prediction.userId]) {
         acc[prediction.userId] = [];
       }
@@ -189,7 +238,7 @@ export default function AdminUserPredictionsSection() {
     // Convert grouped predictions to UserWithPredictions array
     Object.keys(groupedByUserId).forEach(userIdStr => {
       const userId = parseInt(userIdStr);
-      const user = users.find(u => u.id === userId);
+      const user = usersList.find(u => u.id === userId);
       
       if (user) {
         result.push({
@@ -199,8 +248,9 @@ export default function AdminUserPredictionsSection() {
       }
     });
     
+    console.log(`Creati ${result.length} gruppi di previsioni per gli utenti`);
     return result;
-  }, [filteredPredictions, users]);
+  }, [filteredPredictions, users, manualUsers, manualPredictions]);
   
   // Get user payouts based on selection
   const filteredPayouts = React.useMemo(() => {
