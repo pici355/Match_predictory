@@ -962,18 +962,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Endpoint per ottenere tutti i pagamenti (solo per admin)
   app.get("/api/prizes/payouts", isAdmin, async (req, res) => {
     try {
-      // Ottieni tutti i pagamenti per tutte le giornate
-      // Prendi i match day dalle partite
+      // Ottieni i match
       const matches = await storage.getAllMatches();
-      const matchDays = new Set(matches.map(m => m.matchDay));
+      
+      // Usa un oggetto per tracciare i matchDay unici
+      const uniqueMatchDays: {[key: number]: boolean} = {};
+      matches.forEach(match => {
+        uniqueMatchDays[match.matchDay] = true;
+      });
+      
+      // Converti a array
+      const matchDays = Object.keys(uniqueMatchDays).map(day => parseInt(day));
       
       // Ottieni i pagamenti per ogni giornata
-      const allPayouts = [];
-      for (const matchDay of matchDays) {
-        const payouts = await storage.getWinnerPayouts(matchDay);
-        allPayouts.push(...payouts);
+      const allPayouts: any[] = [];
+      for (let i = 0; i < matchDays.length; i++) {
+        const payouts = await storage.getWinnerPayouts(matchDays[i]);
+        if (payouts && payouts.length > 0) {
+          allPayouts.push(...payouts);
+        }
       }
       
+      console.log(`Returning ${allPayouts.length} payouts to admin panel`);
       res.json(allPayouts);
     } catch (error) {
       console.error("Error fetching payouts:", error);

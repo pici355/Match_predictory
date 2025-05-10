@@ -128,6 +128,14 @@ export default function AdminUserPredictionsSection() {
     }
   }, [payoutsError]);
   
+  // Debug logging per verificare i dati
+  useEffect(() => {
+    if (users) console.log("Users fetched:", users.length);
+    if (matches) console.log("Matches fetched:", matches.length);
+    if (predictions) console.log("Predictions fetched:", predictions.length);
+    if (payouts) console.log("Payouts fetched:", payouts.length);
+  }, [users, matches, predictions, payouts]);
+  
   // Get unique match days
   const matchDays = React.useMemo(() => {
     if (!matches) return [];
