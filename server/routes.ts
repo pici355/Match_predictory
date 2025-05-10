@@ -959,6 +959,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Endpoint per ottenere tutti i pagamenti (solo per admin)
+  app.get("/api/prizes/payouts", isAdmin, async (req, res) => {
+    try {
+      // Ottieni tutti i pagamenti per tutte le giornate
+      // Prendi i match day dalle partite
+      const matches = await storage.getAllMatches();
+      const matchDays = new Set(matches.map(m => m.matchDay));
+      
+      // Ottieni i pagamenti per ogni giornata
+      const allPayouts = [];
+      for (const matchDay of matchDays) {
+        const payouts = await storage.getWinnerPayouts(matchDay);
+        allPayouts.push(...payouts);
+      }
+      
+      res.json(allPayouts);
+    } catch (error) {
+      console.error("Error fetching payouts:", error);
+      res.status(500).json({ message: "Failed to fetch payouts" });
+    }
+  });
+  
   // Leaderboard route
   app.get("/api/leaderboard", async (req, res) => {
     try {
