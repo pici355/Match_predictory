@@ -220,10 +220,7 @@ export default function PredictionForm() {
             <ul className="mt-1 text-sm text-blue-700">
               <li className="flex items-center">
                 <span className="inline-block w-4 h-4 mr-1 rounded-full bg-blue-800 text-white text-xs text-center">✓</span> 
-                I pronostici sono completamente gratuiti
-              </li>
-              <li className="text-xs mt-1 text-blue-600">
-                Pronosticare almeno 5 partite per giornata. Tutti i pronostici sono gratuiti.
+                Si vince la schedina solo indovinando tutte le partite
               </li>
             </ul>
           </div>

@@ -14,6 +14,13 @@ FantaSchedina Web è un'applicazione web per le previsioni delle partite di calc
 - **06/08/2025**: Aggiunto controllo limite utenti nella registrazione e nuovo endpoint `/api/users/count`
 - **06/08/2025**: Risolti problemi con visualizzazione pronostici amministratori tramite endpoint `/api/users/predictions` e `/api/prizes/payouts`
 - **Maggio 2025**: Implementato sistema di autenticazione con PIN, gestione partite, sistema premi e leaderboard
+- **06/08/2025**: Aggiornate regole del gioco: richieste tutte le 3 partite per giornata invece di minimo 5
+- **06/08/2025**: Cambiato sistema crediti: 3 crediti per ogni esito corretto (massimo 9 per schedina)
+- **06/08/2025**: Corretto branding finale da "i gufi piangenti" a "Lega dei Gufi piangenti" 
+- **06/08/2025**: Ridotto il limite massimo di utenti a 6 e cambiato branding da "Indistruttibili" a "i gufi piangenti"
+- **06/08/2025**: Aggiunto controllo limite utenti nella registrazione e nuovo endpoint `/api/users/count`
+- **06/08/2025**: Risolti problemi con visualizzazione pronostici amministratori tramite endpoint `/api/users/predictions` e `/api/prizes/payouts`
+- **Maggio 2025**: Implementato sistema di autenticazione con PIN, gestione partite, sistema premi e leaderboard
 
 ## Project Architecture
 
