@@ -457,7 +457,7 @@ export default function UserPredictionHistory() {
           <div className="mt-2 p-2 bg-blue-50 border border-blue-100 rounded-md text-xs text-blue-800">
             <p className="font-medium">Regole del gioco:</p>
             <ul className="mt-1 space-y-1 pl-2">
-              <li>· I pronostici sono completamente gratuiti</li>
+              <li>· Si vince solo indovinando tutte le partite</li>
               <li>· Tutte le 3 partite per giornata</li>
               <li>· 3 crediti per ogni esito corretto (max 9)</li>
               <li>· Modifiche consentite fino a 30 minuti prima dell'inizio</li>
@@ -487,7 +487,7 @@ export default function UserPredictionHistory() {
           <div className="mt-2 p-2 bg-blue-50 border border-blue-100 rounded-md text-xs text-blue-800">
             <p className="font-medium">Regole del gioco:</p>
             <ul className="mt-1 space-y-1 pl-2">
-              <li>· I pronostici sono completamente gratuiti</li>
+              <li>· Si vince solo indovinando tutte le partite</li>
               <li>· Tutte le 3 partite per giornata</li>
               <li>· 3 crediti per ogni esito corretto (max 9)</li>
               <li>· Modifiche consentite fino a 30 minuti prima dell'inizio</li>
@@ -515,7 +515,7 @@ export default function UserPredictionHistory() {
         <div className="mt-2 p-2 bg-blue-50 border border-blue-100 rounded-md text-xs text-blue-800">
           <p className="font-medium">Regole del gioco:</p>
           <ul className="mt-1 space-y-1 pl-2">
-            <li>· I pronostici sono completamente gratuiti</li>
+            <li>· Si vince solo indovinando tutte le partite</li>
             <li>· Tutte le 3 partite per giornata</li>
               <li>· 3 crediti per ogni esito corretto (max 9)</li>
             <li>· Modifiche consentite fino a 30 minuti prima dell'inizio</li>

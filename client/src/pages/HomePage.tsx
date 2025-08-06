@@ -35,15 +35,15 @@ export default function HomePage() {
                       </li>
                       <li className="flex items-start">
                         <span className="font-bold mr-1">•</span>
+                        <span>Si vince la schedina solo indovinando <strong>tutte le partite</strong></span>
+                      </li>
+                      <li className="flex items-start">
+                        <span className="font-bold mr-1">•</span>
                         <span>Ogni esito corretto vale <strong>3 crediti</strong> (massimo 9 per schedina)</span>
                       </li>
                       <li className="flex items-start">
                         <span className="font-bold mr-1">•</span>
                         <span>Puoi modificare i pronostici fino a 30 minuti prima dell'inizio della partita</span>
-                      </li>
-                      <li className="flex items-start">
-                        <span className="font-bold mr-1">•</span>
-                        <span>I pronostici sono <strong>gratuiti</strong></span>
                       </li>
                     </ul>
                   </div>

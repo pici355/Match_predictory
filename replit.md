@@ -4,6 +4,9 @@
 FantaSchedina Web è un'applicazione web per le previsioni delle partite di calcio della "Lega de i gufi piangenti". Il sistema permette agli utenti di fare pronostici sulle partite di calcio con un sistema di premi basato sulla precisione delle previsioni.
 
 ## Recent Changes
+- **06/08/2025**: Reset completo database utenti, cancellati tutti login precedenti
+- **06/08/2025**: Chiarite regole: si vince la schedina solo indovinando tutte le partite
+- **06/08/2025**: Rimossa doppia informazione sui pronostici gratuiti
 - **06/08/2025**: Aggiornate regole del gioco: richieste tutte le 3 partite per giornata invece di minimo 5
 - **06/08/2025**: Cambiato sistema crediti: 3 crediti per ogni esito corretto (massimo 9 per schedina)
 - **06/08/2025**: Corretto branding finale da "i gufi piangenti" a "Lega dei Gufi piangenti" 
@@ -34,6 +37,7 @@ FantaSchedina Web è un'applicazione web per le previsioni delle partite di calc
    - Previsioni gratuite (nessun credito richiesto)
 
 2. **Sistema Premi**:
+   - Si vince la schedina solo indovinando tutte le partite
    - 3 crediti per ogni esito corretto (massimo 9 per schedina)
    - Tre crediti per ogni previsione corretta nella leaderboard
 
