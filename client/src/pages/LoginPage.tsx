@@ -45,13 +45,19 @@ const registerSchema = z.object({
 type LoginFormValues = z.infer<typeof loginSchema>;
 type RegisterFormValues = z.infer<typeof registerSchema>;
 
+type UserCountResponse = {
+  count: number;
+  maxUsers: number;
+  canRegister: boolean;
+};
+
 export default function LoginPage() {
   const [activeTab, setActiveTab] = useState<string>("login");
   const [, navigate] = useLocation();
   const { toast } = useToast();
 
   // Query per ottenere il conteggio degli utenti
-  const { data: userCount } = useQuery({
+  const { data: userCount } = useQuery<UserCountResponse>({
     queryKey: ['/api/users/count'],
     queryFn: getQueryFn({ on401: "returnNull" }),
   });

@@ -1,33 +1,24 @@
-import React, { useState, useEffect } from 'react';
-import logoImage from '@assets/lega-logo.png'; // Importiamo il logo dal nostro progetto
+import React, { useState } from 'react';
 
-// Utilizziamo l'immagine importata come base
+// Logo dei "gufi piangenti" 
 export const Logo: React.FC<{ className?: string }> = ({ className = '' }) => {
   const [fallbackActive, setFallbackActive] = useState(false);
   
-  // Usiamo l'immagine importata direttamente
   return (
     <div className={`flex items-center ${className}`}>
       {!fallbackActive ? (
         <img 
-          src={logoImage}
+          src="/gufi-piangenti-logo.png"
           alt="Lega de i gufi piangenti" 
           className={`object-contain h-12 ${className}`}
-          onError={(e) => {
-            // Se l'immagine importata non si carica, proviamo con l'URL diretto
-            console.warn('Logo importato non caricato, tentativo con URL diretto');
-            e.currentTarget.src = `/lega-logo.png?t=${Date.now()}`;
-            
-            // Se anche l'URL diretto fallisce, mostriamo il fallback testuale
-            e.currentTarget.onerror = () => {
-              setFallbackActive(true);
-              console.error('Tutti i tentativi di caricamento logo falliti.');
-            };
+          onError={() => {
+            setFallbackActive(true);
+            console.error('Logo dei gufi piangenti non caricato.');
           }}
         />
       ) : (
         <div className="text-lg font-bold text-white bg-gradient-to-r from-amber-500 to-red-500 bg-clip-text text-transparent">
-          FantaSchedina
+          i gufi piangenti
         </div>
       )}
     </div>
