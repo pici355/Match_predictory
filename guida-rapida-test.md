@@ -16,7 +16,7 @@ Ti ringraziamo per aver accettato di provare FantaSchedina Web. Questa guida ti 
 ### 1. Sistema di Previsioni
 - Prova a inserire pronostici per almeno 5 partite in una giornata (le scommesse sono ora gratuite)
 - Verifica che sia possibile modificare i pronostici prima del blocco (30 minuti prima dell'inizio della partita)
-- Controlla che appaia la schedina "Indistruttibili Bet" dopo aver fatto le previsioni
+- Controlla che appaia la schedina "i gufi piangenti Bet" dopo aver fatto le previsioni
 - Prova a condividere la schedina via WhatsApp o a scaricarla come immagine
 
 ### 2. Visualizzazione delle Partite

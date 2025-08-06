@@ -173,6 +173,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Il nome squadra è già in uso" });
       }
       
+      // Check maximum users limit (6 users max)
+      const allUsers = await storage.getAllUsers();
+      if (allUsers.length >= 6) {
+        return res.status(400).json({ message: "Limite massimo di 6 utenti raggiunto" });
+      }
+      
       // Create the user with validated data
       const user = await storage.createUser(validatedData);
       
@@ -748,6 +754,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Endpoint per verificare il numero di utenti registrati
+  app.get("/api/users/count", async (_req, res) => {
+    try {
+      const users = await storage.getAllUsers();
+      res.json({ 
+        count: users.length, 
+        maxUsers: 6,
+        canRegister: users.length < 6
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch user count" });
+    }
+  });
+  
   app.post("/api/users", isAdmin, async (req, res) => {
     try {
       // Admin creates a user with pin
@@ -764,6 +784,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const existingUser = await storage.getUserByUsername(validatedData.username);
       if (existingUser) {
         return res.status(400).json({ message: "Il nome squadra è già in uso" });
+      }
+      
+      // Check maximum users limit (6 users max)
+      const allUsers = await storage.getAllUsers();
+      if (allUsers.length >= 6) {
+        return res.status(400).json({ message: "Limite massimo di 6 utenti raggiunto" });
       }
       
       const newUser = await storage.createUser(validatedData);

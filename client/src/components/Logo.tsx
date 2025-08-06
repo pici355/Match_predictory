@@ -11,7 +11,7 @@ export const Logo: React.FC<{ className?: string }> = ({ className = '' }) => {
       {!fallbackActive ? (
         <img 
           src={logoImage}
-          alt="Lega degli Indistruttibili" 
+          alt="Lega de i gufi piangenti" 
           className={`object-contain h-12 ${className}`}
           onError={(e) => {
             // Se l'immagine importata non si carica, proviamo con l'URL diretto

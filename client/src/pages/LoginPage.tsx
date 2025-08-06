@@ -1,10 +1,10 @@
 import { useState } from "react";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { apiRequest } from "@/lib/queryClient";
+import { apiRequest, getQueryFn } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
@@ -49,6 +49,12 @@ export default function LoginPage() {
   const [activeTab, setActiveTab] = useState<string>("login");
   const [, navigate] = useLocation();
   const { toast } = useToast();
+
+  // Query per ottenere il conteggio degli utenti
+  const { data: userCount } = useQuery({
+    queryKey: ['/api/users/count'],
+    queryFn: getQueryFn({ on401: "returnNull" }),
+  });
 
   // Login form
   const loginForm = useForm<LoginFormValues>({
@@ -212,6 +218,18 @@ export default function LoginPage() {
               </Form>
             </TabsContent>
             <TabsContent value="register" className="mt-4">
+              {userCount && (
+                <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                  <p className="text-sm text-blue-700">
+                    Utenti registrati: {userCount.count} / {userCount.maxUsers}
+                    {!userCount.canRegister && (
+                      <span className="block text-red-600 font-medium mt-1">
+                        Limite massimo raggiunto
+                      </span>
+                    )}
+                  </p>
+                </div>
+              )}
               <Form {...registerForm}>
                 <form onSubmit={registerForm.handleSubmit(onRegisterSubmit)} className="space-y-4">
                   <FormField
@@ -266,9 +284,10 @@ export default function LoginPage() {
                   <Button 
                     type="submit" 
                     className="w-full"
-                    disabled={register.isPending}
+                    disabled={register.isPending || (userCount && !userCount.canRegister)}
                   >
-                    {register.isPending ? "Registrazione in corso..." : "Crea Account"}
+                    {register.isPending ? "Registrazione in corso..." : 
+                     userCount && !userCount.canRegister ? "Limite raggiunto" : "Crea Account"}
                   </Button>
                 </form>
               </Form>

@@ -154,7 +154,7 @@ export default function MatchDayReceipt({ matchDay, predictions, username }: Mat
       const image = canvas.toDataURL('image/png');
       
       // Testo per WhatsApp
-      const text = `📋 Indistruttibili Bet: Pronostici di ${username} per la Giornata ${matchDay}`;
+      const text = `📋 i gufi piangenti Bet: Pronostici di ${username} per la Giornata ${matchDay}`;
       const fileName = `schedina_giornata_${matchDay}_${username}.png`;
       
       // Converti l'immagine in un file
@@ -167,7 +167,7 @@ export default function MatchDayReceipt({ matchDay, predictions, username }: Mat
         try {
           // Usa l'API Web Share con supporto per file (funziona principalmente su mobile)
           await navigator.share({
-            title: 'Indistruttibili Bet',
+            title: 'i gufi piangenti Bet',
             text: text,
             files: [file]
           });
@@ -235,7 +235,7 @@ export default function MatchDayReceipt({ matchDay, predictions, username }: Mat
               <Logo className="h-full w-full" />
             </div>
             <div>
-              <CardTitle className="text-xl font-bold">Indistruttibili Bet</CardTitle>
+              <CardTitle className="text-xl font-bold">i gufi piangenti Bet</CardTitle>
               <p className="text-sm mt-1">
                 Giornata {matchDay} - Giocatore: {username}
               </p>
@@ -340,7 +340,7 @@ export default function MatchDayReceipt({ matchDay, predictions, username }: Mat
           {/* La regola del premio è stata rimossa secondo la richiesta */}
         </div>
         <div className="w-full mt-3 text-center text-xs text-muted-foreground">
-          FantaSchedina Web - La Lega degli Indistruttibili
+          FantaSchedina Web - La Lega de i gufi piangenti
         </div>
       </CardFooter>
       

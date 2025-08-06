@@ -2,7 +2,7 @@
 
 ## Introduzione
 
-Benvenuto in FantaSchedina Web, l'applicazione per le previsioni delle partite di calcio della "Lega degli Indistruttibili". Questa guida ti aiuterà a utilizzare l'applicazione e a comprendere il nuovo sistema di distribuzione dei premi basato sulle percentuali.
+Benvenuto in FantaSchedina Web, l'applicazione per le previsioni delle partite di calcio della "Lega de i gufi piangenti". Questa guida ti aiuterà a utilizzare l'applicazione e a comprendere il nuovo sistema di distribuzione dei premi basato sulle percentuali.
 
 ## Accesso all'Applicazione
 

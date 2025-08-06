@@ -8,11 +8,11 @@ export default function Footer() {
         <div className="flex flex-col md:flex-row justify-between items-center">
           <div className="flex flex-col items-center md:items-start mb-4 md:mb-0">
             <Logo className="mb-2 h-16" />
-            <p className="text-sm text-gray-600 mt-2">Il sistema di pronostici della Lega degli Indistruttibili</p>
+            <p className="text-sm text-gray-600 mt-2">Il sistema di pronostici della Lega de i gufi piangenti</p>
           </div>
           
           <div className="text-sm text-gray-600 text-center md:text-right">
-            <p className="mb-1">© {new Date().getFullYear()} Lega degli Indistruttibili</p>
+            <p className="mb-1">© {new Date().getFullYear()} Lega de i gufi piangenti</p>
             <p>Tutti i diritti riservati</p>
           </div>
         </div>
