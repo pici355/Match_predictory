@@ -102,7 +102,7 @@ export default function PredictionForm() {
   // Get available match days
   const matchDays = Object.keys(matchesByDay).map(Number).sort((a, b) => a - b);
 
-  // Check if enough matches in a match day have predictions (minimum 5)
+  // Check if all matches in a match day have predictions
   useEffect(() => {
     if (selectedMatchDay && matches && userPredictions && Array.isArray(userPredictions)) {
       const matchesForDay = matches.filter(m => m.matchDay === selectedMatchDay);
@@ -110,15 +110,15 @@ export default function PredictionForm() {
         matchesForDay.some(m => m.id === p.matchId)
       );
       
-      // Calculate how many more predictions are needed to reach minimum of 5
-      const predictionsNeeded = 5 - predictionsForDay.length;
+      // Calculate how many more predictions are needed to complete all matches
+      const predictionsNeeded = matchesForDay.length - predictionsForDay.length;
       setPredictionsRemaining(predictionsNeeded > 0 ? predictionsNeeded : 0);
       
       // Check if all predictions are complete
       const wasPreviouslyIncomplete = !allPredicted && predictionsRemaining > 0;
-      const isNowComplete = predictionsForDay.length >= 5;
+      const isNowComplete = predictionsForDay.length === matchesForDay.length;
       
-      // All predicted if we have at least 5 predictions for this match day
+      // All predicted if we have predictions for all matches in this match day
       setAllPredicted(isNowComplete);
       
       // Se abbiamo appena completato i pronostici (passando da incompleto a completo)
@@ -130,7 +130,7 @@ export default function PredictionForm() {
         // Mostra un messaggio all'utente
         toast({
           title: "Complimenti!",
-          description: "Hai completato i 5 pronostici minimi per questa giornata. Ecco la tua schedina!",
+          description: "Hai completato tutti i pronostici per questa giornata. Ecco la tua schedina!",
         });
         
         // Scrolliamo alla visualizzazione della schedina

@@ -1144,12 +1144,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
       const minMatchDay = Math.min(...uniqueMatchDays);
       
-      // Require at least 5 predictions for the minimum match day first
+      // Check if user has predicted all matches for the current match day first
       if (currentMatchDay > minMatchDay) {
         const predictionsForMinDay = await storage.getUserPredictionsByMatchDay(userId, minMatchDay);
-        if (predictionsForMinDay.length < 5) {
+        const matchesForMinDay = allMatches.filter(m => m.matchDay === minMatchDay);
+        if (predictionsForMinDay.length < matchesForMinDay.length) {
           return res.status(400).json({
-            message: `Devi prima fare minimo 5 pronostici per la giornata ${minMatchDay} prima di poter pronosticare le giornate successive.`
+            message: `Devi prima completare tutti i pronostici per la giornata ${minMatchDay} prima di poter pronosticare le giornate successive.`
           });
         }
       }

@@ -345,15 +345,15 @@ export class DatabaseStorage implements IStorage {
     // Get the total submissions for this match day
     const totalCredits = await this.getTotalCreditsForMatchDay(matchDay);
     
-    // Nel nuovo sistema, solo chi ottiene il 100% delle previsioni corrette riceve premi
-    // Solo 100% previsioni corrette: 10 crediti per utente
+    // Nel nuovo sistema, ogni esito corretto vale 3 crediti
+    // Massimo 9 crediti per schedina completa (3 partite x 3 crediti)
     
     // Count users with 100% correct predictions
     const users100PctResults = await this.getUsersWithCorrectPredictionPercentage(matchDay, 100);
     const users100PctCorrect = users100PctResults.length;
     
     // Calcolo del totale dei crediti distribuiti
-    const potFor100Pct = users100PctCorrect * 10; // 10 crediti per ogni utente al 100%
+    const potFor100Pct = users100PctCorrect * 9; // 9 crediti per ogni utente al 100% (3 partite x 3 crediti)
     
     // Create or update prize distribution record
     const [existingDistribution] = await db.select()
@@ -402,20 +402,24 @@ export class DatabaseStorage implements IStorage {
     const payouts: InsertWinnerPayout[] = [];
     
     // Sistema semplificato:
-    // - Solo chi ha 100% previsioni corrette: 10 crediti
+    // - 3 crediti per ogni esito corretto
     
-    // Processo vincitori con 100% previsioni corrette - premio di 10 crediti
-    const winners100Pct = await this.getUsersWithCorrectPredictionPercentage(matchDay, 100);
-    winners100Pct.forEach(result => {
-      payouts.push({
-        userId: result.user.id,
-        matchDay: matchDay,
-        correctPercentage: result.percentage,
-        predictionsCorrect: result.correctCount,
-        predictionsTotal: result.totalCount,
-        amount: 10, // Premio fisso: 10 crediti
-      });
-    });
+    // Processo vincitori - 3 crediti per ogni esito corretto
+    const allUsers = await this.getAllUsers();
+    for (const user of allUsers) {
+      const stats = await this.getCorrectPredictionStatsForUser(user.id, matchDay);
+      if (stats.correctCount > 0) {
+        const amount = stats.correctCount * 3; // 3 crediti per ogni esito corretto
+        payouts.push({
+          userId: user.id,
+          matchDay: matchDay,
+          correctPercentage: (stats.correctCount / stats.totalCount) * 100,
+          predictionsCorrect: stats.correctCount,
+          predictionsTotal: stats.totalCount,
+          amount: amount,
+        });
+      }
+    }
     
     // Insert all payouts in a transaction
     const savedPayouts = await db.transaction(async (tx) => {
@@ -631,8 +635,8 @@ export class DatabaseStorage implements IStorage {
         allUsers.map(async user => {
           const stats = await this.getCorrectPredictionStatsForUser(user.id, effectiveMatchDay);
           
-          // Un punto per ogni pronostico vincente
-          const leaderboardPoints = stats.correctCount;
+          // Tre crediti per ogni pronostico vincente
+          const leaderboardPoints = stats.correctCount * 3;
           
           return {
             id: user.id,
@@ -640,7 +644,7 @@ export class DatabaseStorage implements IStorage {
             correctPredictions: stats.correctCount,
             totalPredictions: stats.totalCount,
             successRate: stats.percentage,
-            creditsWon: leaderboardPoints, // Ora i "crediti vinti" sono i punti della classifica
+            creditsWon: stats.correctCount * 3, // 3 crediti per ogni esito corretto
             // Position will be calculated after sorting
             position: 0,
             // No previous position for current match day view
@@ -688,8 +692,8 @@ export class DatabaseStorage implements IStorage {
           // Calculate percentage
           const percentage = Math.round((correctCount / totalCount) * 100);
           
-          // Un punto per ogni pronostico vincente (in totale)
-          const leaderboardPoints = correctCount;
+          // Tre crediti per ogni pronostico vincente (in totale)
+          const leaderboardPoints = correctCount * 3;
           
           return {
             id: user.id,
@@ -697,7 +701,7 @@ export class DatabaseStorage implements IStorage {
             correctPredictions: correctCount,
             totalPredictions: totalCount,
             successRate: percentage,
-            creditsWon: leaderboardPoints, // Ora i "crediti vinti" sono i punti della classifica
+            creditsWon: correctCount * 3, // 3 crediti per ogni esito corretto
             // Position will be calculated after sorting
             position: 0,
             // No previous position for overall view
